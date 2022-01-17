@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="arches">
+      <UniqueIdentifier>{229ce882-0c3a-494f-b18d-23f369b02247}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arches\isa">
+      <UniqueIdentifier>{62e99c9a-3bf1-4430-97c0-a698d70fccdd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arches\util">
+      <UniqueIdentifier>{136ef3ef-4008-4896-8341-c5df009e6691}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arches\units">
+      <UniqueIdentifier>{3f17a2ca-e950-4609-86b4-cb15b465eccc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arches\units\usimm">
+      <UniqueIdentifier>{bf3de91a-f8ba-43a4-a734-72e9525bf579}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arches\simulator">
+      <UniqueIdentifier>{ac3b3227-cd52-4b19-9bf1-63bf48631786}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="trax">
+      <UniqueIdentifier>{c5368a4b-93c8-47c8-9881-f22a73515d9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="trax\units">
+      <UniqueIdentifier>{052d0b30-fd76-437d-90bd-88e1f552f798}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="trax\software">
+      <UniqueIdentifier>{49569035-95e7-4486-a003-5d51e5f3aaa8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\arches\isa\errors.hpp">
+      <Filter>arches\isa</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\isa\execution-base.hpp">
+      <Filter>arches\isa</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\isa\registers.hpp">
+      <Filter>arches\isa</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\isa\riscv.hpp">
+      <Filter>arches\isa</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\simulator\input-buffer.hpp">
+      <Filter>arches\simulator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\simulator\output-buffer.hpp">
+      <Filter>arches\simulator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\simulator\simulator.hpp">
+      <Filter>arches\simulator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-base.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-core-simple.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-execution-base.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-main-memory-base.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-memory-base.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-sram.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\barrier.hpp">
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\bit-manipulation.hpp">
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\elf.hpp">
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\endian.hpp">
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\file.hpp">
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\math.hpp">
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\string.hpp">
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stdafx.hpp" />
+    <ClInclude Include="src\trax\units\unit-shared-functional.hpp">
+      <Filter>trax\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\trax\units\unit-thread-proccesor.hpp">
+      <Filter>trax\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\trax\software\src\mesh.hpp">
+      <Filter>trax\software</Filter>
+    </ClInclude>
+    <ClInclude Include="src\trax\software\src\ray-tracing-include.hpp">
+      <Filter>trax\software</Filter>
+    </ClInclude>
+    <ClInclude Include="src\trax\software\src\bvh.hpp">
+      <Filter>trax\software</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\uint-atomic-increment.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-cache.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-dram.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\arches\isa\registers.cpp">
+      <Filter>arches\isa</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\isa\riscv.cpp">
+      <Filter>arches\isa</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\simulator\simulator.cpp">
+      <Filter>arches\simulator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\util\barrier.cpp">
+      <Filter>arches\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\util\elf.cpp">
+      <Filter>arches\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\util\file.cpp">
+      <Filter>arches\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\util\string.cpp">
+      <Filter>arches\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\trax\units\unit-shared-functional.cpp">
+      <Filter>trax\units</Filter>
+    </ClCompile>
+    <ClCompile Include="src\trax\units\unit-thread-proccesor.cpp">
+      <Filter>trax\units</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
