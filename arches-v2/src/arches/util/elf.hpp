@@ -328,7 +328,7 @@ class ELF final {
 				ELF_Header const* _header;
 			public:
 				//Virtual address where segment should be loaded
-				virtual_address vaddr;
+				vaddr_t vaddr;
 
 				//Data loaded into the start of the segment
 				std::vector<uint8_t> data;

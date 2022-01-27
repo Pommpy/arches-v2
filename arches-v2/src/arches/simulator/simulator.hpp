@@ -19,7 +19,7 @@ private:
 	std::atomic_bool              _done{true};
 
 public:
-	cycles current_cycle{0};
+	cycles_t current_cycle{0};
 
 	Simulator() {}
 
@@ -27,6 +27,7 @@ public:
 	void register_unit(Units::UnitBase* unit);
 
 	void _update_buffers();
+	void _send_acknowledgements();
 	void _execute_cycle();
 
 	void execute();

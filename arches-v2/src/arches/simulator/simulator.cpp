@@ -8,7 +8,7 @@ void Simulator::register_input_buffer(InputBufferBase* input_buffer)
 {
 	//add the input buffer and set its index so other untis know where to find it
 	//this means that sending a message to a unit only requires you to querry the input port
-	input_buffer->id = _input_buffers.size();
+	input_buffer->id = static_cast<buffer_id_t>(_input_buffers.size());
 	_input_buffers.push_back(input_buffer);
 }
 
@@ -18,7 +18,7 @@ void Simulator::register_unit(Units::UnitBase * unit)
 }
 
 #ifndef _DEBUG
-#define USE_TBB
+//#define USE_TBB
 #endif
 
 #ifdef USE_TBB
@@ -29,12 +29,13 @@ void Simulator::register_unit(Units::UnitBase * unit)
 #define UNIT_LOOP_END }
 #endif
 
+
 void Simulator::_update_buffers()
 {
 	UNIT_LOOP
-		void* data; uint32_t size, dst_buffer, dst_port;
-		while((data = _units[i]->output_buffer.pop_message(size, dst_buffer, dst_port)) != nullptr)
-			_input_buffers[dst_buffer]->write_data(dst_port, data, size);
+		void* data; uint32_t size, dst_buffer, dst_port; Units::UnitBase* sending_unit;
+	while((data = _units[i]->output_buffer.pop_message(size, dst_buffer, dst_port, sending_unit)) != nullptr)
+		_input_buffers[dst_buffer]->write_data(dst_port, sending_unit, data, size);
 	UNIT_LOOP_END
 }
 
@@ -46,6 +47,16 @@ void Simulator::_execute_cycle()
 	UNIT_LOOP_END
 }
 
+void Simulator::_send_acknowledgements()
+{
+	UNIT_LOOP
+		Units::UnitBase* unit; buffer_id_t buffer;
+		while(_units[i]->acknowledge_buffer.pop_message(unit, buffer))
+			unit->acknowledge(buffer);
+	UNIT_LOOP_END
+}
+
+
 void Simulator::execute()
 {
 	_done = false;
@@ -54,6 +65,7 @@ void Simulator::execute()
 		_done = true;
 		_update_buffers();
 		_execute_cycle();
+		_send_acknowledgements();
 		++current_cycle;
 		if((current_cycle % (1024)) == 0)
 			std::cout << current_cycle << "\n";

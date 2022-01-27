@@ -33,11 +33,12 @@ namespace Arches {
 			{
 				MemoryRequestItem request;
 				uint cycles_remaining{0};
-				bool pending_mem_higher{false};
+				bool sent_load{false};
+				bool miss{false};
 				bool busy{false};
 
-				uint arbitrator_index{0};
-				uint candidate_request_index{0};
+				uint arbitrator_index{~0u};
+				uint candidate_request_index{~0u};
 			};
 
 			CacheConfiguration _configuration;
@@ -53,38 +54,32 @@ namespace Arches {
 
 			std::vector<_Bank> _banks;
 
-			bool _waiting_on_mem_higher_to_accept_request{false};
-			uint _port_to_release_on_ready{~0};
-
-
+			bool _pending_acknowlege{false};
+			uint _bank_request_arbitrator_index{0};
+			uint _next_bank_requesting_offset{~0u};
+			
 		public:
-			UnitCache(CacheConfiguration config, UnitMemoryBase* mem_higher, uint32_t num_clients, Simulator* simulator);
+			UnitCache(CacheConfiguration config, UnitMemoryBase* mem_higher, Simulator* simulator);
 			virtual ~UnitCache();
 			void execute() override;
+			void acknowledge(buffer_id_t buffer) override;
 
 		private:
-			void _update_bank(uint bank);
+			void _try_insert_request(paddr_t paddr, uint index);
+			void _proccess_load_return();
+			void _update_banks();
+			void _try_issue_next_load();
 
-			uint64_t _get_offset(physical_address paddr) { return (paddr >> 0) & _offset_mask; }
-			uint64_t _get_set_index(physical_address paddr) { return (paddr >> _set_index_offset) & _set_index_mask; }
-			uint64_t _get_tag(physical_address paddr) { return (paddr >> _tag_offset) & _tag_mask; }
-			uint64_t _get_bank(physical_address paddr) { return (paddr >> _bank_index_offset) & _bank_index_mask; }
+			uint8_t* _get_cache_line(paddr_t paddr);
+			void _insert_cache_line(paddr_t paddr, uint8_t* data);
 
-			uint64_t _get_cache_line_start_paddr(physical_address paddr) { return (paddr >> _set_index_offset) << _set_index_offset; }
+			uint32_t _get_offset(paddr_t paddr) { return  static_cast<uint32_t>((paddr >> 0) & _offset_mask); }
+			uint32_t _get_set_index(paddr_t paddr) { return  static_cast<uint32_t>((paddr >> _set_index_offset) & _set_index_mask); }
+			uint64_t _get_tag(paddr_t paddr) { return (paddr >> _tag_offset) & _tag_mask; }
+			
+			uint32_t _get_bank(paddr_t paddr) { return static_cast<uint32_t>((paddr >> _bank_index_offset) & _bank_index_mask); }
 
-			uint8_t* _get_cache_line_data_pointer(uint cache_index)
-			{
-				uint data_index = cache_index;
-				data_index <<= _offset_bits;
-				return _data_u8.data() + data_index;
-			}
-
-			uint8_t* _get_cache_line(physical_address paddr);
-			void _insert_cache_line(physical_address paddr, uint8_t* data);
-
-			void _try_insert_request(physical_address paddr, uint index);
+			paddr_t _get_cache_line_start_paddr(paddr_t paddr) { return paddr & ~_offset_mask; }
 		};
-
-
 	}
 }

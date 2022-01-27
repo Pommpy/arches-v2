@@ -4,14 +4,20 @@
 
 namespace Arches {
 
+	namespace Units {
+		class UnitBase;
+	}
+
 	class OutputBuffer
 	{
 		uint32_t num_entries;
 		uint32_t data_index;
 
+		Units::UnitBase* sending_unit;
+
 		struct BufferEntry
 		{
-			uint32_t dst_buffer;
+			buffer_id_t dst_buffer;
 			uint32_t dst_port;
 			uint32_t num_bytes;
 			uint32_t data_index;
@@ -21,8 +27,9 @@ namespace Arches {
 		uint8_t*                 data_u8{nullptr};
 
 	public:
-		OutputBuffer()
+		OutputBuffer(Units::UnitBase* sending_unit) : sending_unit(sending_unit)
 		{
+			assert(sending_unit);
 			num_entries = 0;
 			data_index = 0;
 		}
@@ -37,7 +44,7 @@ namespace Arches {
 		~OutputBuffer() { delete[] data_u8; }
 
 		template<typename T>
-		void push_message(T* message, uint32_t buffer_id, uint32_t port)
+		void push_message(T* message, buffer_id_t buffer_id, uint32_t port)
 		{
 			assert(num_entries < entries.size());
 			entries[num_entries].dst_buffer = buffer_id;
@@ -49,7 +56,7 @@ namespace Arches {
 			num_entries++;
 		}
 
-		void* pop_message(uint32_t& size_out, uint32_t& buffer_id_out, uint32_t& port_out)
+		void* pop_message(uint32_t& size_out, buffer_id_t& buffer_id_out, uint32_t& port_out, Units::UnitBase*& sending_unit_out)
 		{
 			if(num_entries != 0)
 			{
@@ -57,6 +64,7 @@ namespace Arches {
 				size_out = entry.num_bytes;
 				buffer_id_out = entry.dst_buffer;
 				port_out = entry.dst_port;
+				sending_unit_out = sending_unit;
 
 				data_index -= size_out;
 				return (data_u8 + entry.data_index);

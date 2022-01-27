@@ -53,8 +53,8 @@ inline static int64_t get_immediate_S(Instruction instr)
 
 inline static int64_t get_immediate_B(Instruction instr)
 {
-	return sign_extend_32to64(instr.b.imm_12 ? 0b1111'1111'1111'1111'1111'0000'0000'0000 : 0b0) |
-		(instr.b.imm_11 << 11) | (instr.b.imm_10_5 << 5) | (instr.b.imm_4_1 << 1);
+	return sign_extend_32to64((instr.b.imm_12 ? 0b1111'1111'1111'1111'1111'0000'0000'0000 : 0b0) |
+		(instr.b.imm_11 << 11) | (instr.b.imm_10_5 << 5) | (instr.b.imm_4_1 << 1));
 }
 
 inline static int64_t get_immediate_U(Instruction instr)
@@ -64,8 +64,8 @@ inline static int64_t get_immediate_U(Instruction instr)
 
 inline int64_t get_immediate_J(Instruction instr)
 {
-	return  sign_extend_32to64(instr.j.imm_20 ? 0b1111'1111'1111'0000'0000'0000'0000'0000 : 0b0) |
-		(instr.j.imm_19_12 << 12) | (instr.j.imm_11 << 11) | (instr.j.imm_10_1 << 1);
+	return  sign_extend_32to64((instr.j.imm_20 ? 0b1111'1111'1111'0000'0000'0000'0000'0000 : 0b0) |
+		(instr.j.imm_19_12 << 12) | (instr.j.imm_11 << 11) | (instr.j.imm_10_1 << 1));
 }
 
 inline static int64_t div(int64_t op1, int64_t op2)
@@ -213,10 +213,8 @@ template <typename T> inline static void _prepare_store(ExecutionBase* unit, Ins
 #define CALLBACK_GETSTR(STR) [](Instruction const& /*instr*/) { return STR; }
 #define CALLBACK_SUBISA(TO_INSTR_INF) [](Instruction const& instr) -> const char* { return TO_INSTR_INF.get_mnemonic(instr); }
 
-#define META_DECL [](Instruction const& instr) -> InstructionInfo const&
 #define META_NOTI [](Instruction const& instr) -> InstructionInfo const& { throw ErrNotImplInstr(instr); }
 
-#define IMPL_DECL [](Instruction const& instr,InstructionInfo const& /*instr_info*/, ExecutionBase*   unit  ) -> void
 #define IMPL_NONE [](Instruction const& instr,InstructionInfo const& /*instr_info*/, ExecutionBase* /*unit*/) -> void { throw ErrNoSuchInstr (instr); }
 #define IMPL_NOTI [](Instruction const& instr,InstructionInfo const& /*instr_info*/, ExecutionBase* /*unit*/) -> void { throw ErrNotImplInstr(instr); }
 

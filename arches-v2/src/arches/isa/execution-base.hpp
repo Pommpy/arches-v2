@@ -12,11 +12,11 @@ namespace Arches { namespace ISA { namespace RISCV {
 	{
 	public:
 		void*                      backing_memory{nullptr};
-		IntegerRegisterFile*       int_regs;
-		FloatingPointRegisterFile* float_regs;
+		IntegerRegisterFile*       int_regs{nullptr};
+		FloatingPointRegisterFile* float_regs{nullptr};
 
 		bool branch_taken {false};
-		Arches::virtual_address pc{0};
+		Arches::vaddr_t pc{0};
 
 		struct
 		{
@@ -36,7 +36,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 			};
 
 			uint8_t size{0};
-			Arches::virtual_address vaddr{0};
+			Arches::vaddr_t vaddr{0};
 		}
 		memory_access_data;	
 

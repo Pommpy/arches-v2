@@ -6,12 +6,13 @@
 
 namespace Arches { namespace Units {
 
-class UnitAtomicIncrement : public UnitMemoryBase, public UnitBase
+class UnitAtomicIncrement : public UnitMemoryBase
 {
 public:
-	UnitAtomicIncrement(uint32_t num_clients, Simulator* simulator) : UnitMemoryBase(nullptr, num_clients, simulator), UnitBase(simulator)
+	UnitAtomicIncrement(Simulator* simulator) : UnitMemoryBase(nullptr, simulator)
 	{
 		output_buffer.resize(1, sizeof(MemoryRequestItem));
+		acknowledge_buffer.resize(1);
 		executing = false;
 	}
 
@@ -19,20 +20,23 @@ public:
 
 	void execute() override
 	{
-		MemoryRequestItem* request_item;
 		_request_buffer.rest_arbitrator_round_robin();
 
-		if(request_item = _request_buffer.get_next())
+		uint request_index;
+		if((request_index = _request_buffer.get_next_index()) != ~0)
 		{
-			if(request_item->type == MemoryRequestItem::LOAD)
+			MemoryRequestItem* request_item = _request_buffer.get_message(request_index);
+			if(request_item->type == MemoryRequestItem::Type::LOAD)
 			{
-				reinterpret_cast<uint32_t*>(request_item->data)[0] = counter;
-				request_item->type = MemoryRequestItem::LOAD_RETURN;
-				output_buffer.push_message(request_item, request_item->return_buffer_id, request_item->return_port);
-				counter++;
-			}
+				printf("Amoin: %d\n", counter);
+				reinterpret_cast<uint32_t*>(request_item->data)[0] = counter++;
+				request_item->type = MemoryRequestItem::Type::LOAD_RETURN;
+				for(uint i = 0; i < request_item->return_buffer_id_stack_size; ++i)
+					output_buffer.push_message(request_item, request_item->return_buffer_id_stack[i], 0);
 
-			_request_buffer.clear_current();
+				acknowledge_buffer.push_message(_request_buffer.get_sending_unit(request_index), _request_buffer.id);
+				_request_buffer.clear(request_index);
+			}
 		}
 	}
 };

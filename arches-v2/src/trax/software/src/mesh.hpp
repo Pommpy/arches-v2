@@ -126,7 +126,7 @@ public:
 				normals[i] = rtm::normalize(normals[i]);
 		}
 
-		num_triangles = vertex_indices.size();
+		num_triangles = static_cast<uint>(vertex_indices.size());
 		triangles = new Triangle[num_triangles];
 		for(uint i = 0; i < num_triangles; ++i)
 		{

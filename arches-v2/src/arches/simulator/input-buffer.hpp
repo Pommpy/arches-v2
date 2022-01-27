@@ -5,19 +5,23 @@
 #include "../simulator/simulator.hpp"
 
 namespace Arches {
+	namespace Units {
+		class UnitBase;
+	}
 
 	class InputBufferBase
 	{
 	public:
-		uint32_t id;
-		virtual void write_data(uint index, void* data, uint size) = 0;
+		buffer_id_t id {~0u};
+		virtual void write_data(uint index, Units::UnitBase* sending_unit, void* data, uint size) = 0;
 	};
 
 	template <typename T>
 	class InputBuffer : public InputBufferBase
 	{
-		std::vector<bool> valid;
-		std::vector<T>    data;
+		std::vector<bool>             valid;
+		std::vector<Units::UnitBase*> sending_unit;
+		std::vector<T>                data;
 
 		uint32_t last_port{0};
 		uint32_t current_port{0};
@@ -25,22 +29,44 @@ namespace Arches {
 		bool looped{false};
 
 	public:
-		InputBuffer(uint32_t size) : valid(size, false), data(size)
-		{
 
+		InputBuffer(uint32_t size) : valid(size, false), sending_unit(size), data(size)
+		{
 		}
 
-		void write_data(uint port, void* input_data, uint size) override
+		uint size() { return static_cast<uint>(valid.size()); }
+
+		void resize(uint size)
+		{
+			valid.resize(size, false);
+			sending_unit.resize(size, nullptr);
+			data.resize(size);
+		}
+
+		void write_data(uint port, Units::UnitBase* sending_unit, void* input_data, uint size) override
 		{
 			assert(size == sizeof(T));
 			assert(!valid[port]); //check that this isn't in use
-			data[port] = *reinterpret_cast<T*>(input_data);
-			valid[port] = true;
+			this->data[port] = *reinterpret_cast<T*>(input_data);
+			this->sending_unit[port] = sending_unit;
+			this->valid[port] = true;
 		}
 
-		uint size() { return valid.size(); }
-
 		//round robin get_next returns nullptr 
+
+		uint get_next_index()
+		{
+			do
+			{
+				if(looped) return ~0;
+				current_port = (current_port + 1) % valid.size();
+				if(current_port == last_port) looped = true;
+			} while(!valid[current_port]);
+
+			return current_port;
+		}
+
+		/*
 		T* get_next()
 		{
 			uint dummy;
@@ -60,20 +86,20 @@ namespace Arches {
 			index = current_port;
 			return &data[current_port];
 		}
+		*/
 
-		T* get(uint index)
+		T* get_message(uint index)
 		{
 			return &data[index];
 		}
 
-		//round robin get_next returns nullptr 
-		void clear_current()
+		Units::UnitBase* get_sending_unit(uint index)
 		{
-			valid[current_port] = false;
+			return sending_unit[index];
 		}
 
 		//round robin get_next returns nullptr 
-		void clear_index(uint index)
+		void clear(uint index)
 		{
 			valid[index] = false;
 		}

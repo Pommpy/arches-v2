@@ -9,34 +9,44 @@ namespace Arches { namespace Units {
 class UnitSRAM : public UnitMainMemoryBase
 {
 public:
-	UnitSRAM(uint64_t size, uint32_t num_clients, Simulator* simulator) : UnitMainMemoryBase(size, num_clients, simulator)
+	UnitSRAM(uint64_t size, Simulator* simulator) : UnitMainMemoryBase(size, simulator)
 	{
 		output_buffer.resize(16, sizeof(MemoryRequestItem));
+		acknowledge_buffer.resize(16);
 	}
 
 	void execute() override
 	{
-		MemoryRequestItem* request_item;
 		_request_buffer.rest_arbitrator_round_robin();
 		for(uint i = 0; i < 16; ++i)
 		{
-			if((request_item = _request_buffer.get_next()) != nullptr)
+			uint request_index;
+			if((request_index = _request_buffer.get_next_index()) != ~0)
 			{
-				if(request_item->type == MemoryRequestItem::STORE)
+				MemoryRequestItem* request_item = _request_buffer.get_message(request_index);
+				if(request_item->type == MemoryRequestItem::Type::STORE)
 				{
 					std::memcpy(&_data_u8[request_item->paddr], request_item->data, request_item->size);
-					request_item->type = MemoryRequestItem::STORE_ACCEPT;
-					output_buffer.push_message(request_item, request_item->return_buffer_id, request_item->return_port);
+					//request_item->type = MemoryRequestItem::STORE_ACCEPT;
+					//output_buffer.push_message(request_item, request_item->return_buffer_id, request_item->return_port);
+					//just need to ackowlege request 
+					//TODO acknowlege request
+					acknowledge_buffer.push_message(_request_buffer.get_sending_unit(request_index), _request_buffer.id);
+					_request_buffer.clear(request_index);
 				}
 
-				if(request_item->type == MemoryRequestItem::LOAD)
+				if(request_item->type == MemoryRequestItem::Type::LOAD)
 				{
 					std::memcpy(request_item->data, &_data_u8[request_item->paddr], request_item->size);
-					request_item->type = MemoryRequestItem::LOAD_RETURN;
-					output_buffer.push_message(request_item, request_item->return_buffer_id, request_item->return_port);
+					request_item->type = MemoryRequestItem::Type::LOAD_RETURN;
+
+					for(uint i = 0; i < request_item->return_buffer_id_stack_size; ++i)
+						output_buffer.push_message(request_item, request_item->return_buffer_id_stack[i], 0);
+
+					acknowledge_buffer.push_message(_request_buffer.get_sending_unit(request_index), _request_buffer.id);
+					_request_buffer.clear(request_index);
 				}
 
-				_request_buffer.clear_current();
 			}
 			else break;
 		}

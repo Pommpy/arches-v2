@@ -19,8 +19,8 @@ public:
 	};
 
 public:
-	UnitMainMemoryBase(uint64_t size, uint32_t num_clients, Simulator* simulator) : 
-		UnitMemoryBase(nullptr, num_clients, simulator)
+	UnitMainMemoryBase(uint64_t size, Simulator* simulator) : 
+		UnitMemoryBase(nullptr, simulator)
 	{
 		size_bytes = size;
 		_data_u64 = _new uint64_t[(size_bytes + 7ull) / 8ull];
@@ -36,20 +36,20 @@ public:
 		memset(_data_u8, 0x00, size_bytes);
 	}
 
-	void direct_read(void* data, size_t size, physical_address paddr) const
+	void direct_read(void* data, size_t size, paddr_t paddr) const
 	{
 		memcpy(data, _data_u8 + paddr, size);
 	}
 
-	void direct_write(const void* data, size_t size, physical_address paddr)
+	void direct_write(const void* data, size_t size, paddr_t paddr)
 	{
 		memcpy(_data_u8 + paddr, data, size);
 	}
 
 	//return the physical address imidiatly following the end of the elf. This can be used as the start of our heap
-	physical_address write_elf(ELF& elf)
+	paddr_t write_elf(ELF& elf)
 	{
-		physical_address paddr = 0ull;
+		paddr_t paddr = 0ull;
 		for(ELF::LoadableSegment const* seg : elf.segments)
 		{
 			direct_write(seg->data.data(), seg->data.size(), seg->vaddr);
@@ -58,7 +58,7 @@ public:
 		return paddr;
 	}
 
-	void dump_as_ppm_uint8(physical_address from_paddr, size_t width, size_t height, std::string const& path)
+	void dump_as_ppm_uint8(paddr_t from_paddr, size_t width, size_t height, std::string const& path)
 	{
 		uint8_t const* src = _data_u8 + from_paddr;
 
@@ -73,7 +73,7 @@ public:
 		fclose(file);
 	}
 
-	void dump_as_ppm_float(physical_address from_paddr, size_t width, size_t height, std::string const& path)
+	void dump_as_ppm_float(paddr_t from_paddr, size_t width, size_t height, std::string const& path)
 	{
 		float const* src = reinterpret_cast<float const*>(_data_u8 + from_paddr);
 

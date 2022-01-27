@@ -146,13 +146,16 @@
 
 namespace Arches {
 
-typedef uint64_t physical_address;
-typedef uint64_t virtual_address;
+typedef uint64_t paddr_t;
+typedef uint64_t vaddr_t;
 
-typedef uint64_t frame_number;
-typedef uint64_t page_number;
+typedef uint32_t buffer_id_t;
+typedef uint32_t client_id_t;
 
-typedef uint64_t cycles;
+typedef uint64_t frame_number_t;
+typedef uint64_t page_number_t;
+
+typedef uint64_t cycles_t;
 
 typedef uint32_t uint18_t;
 typedef  int32_t  int18_t;

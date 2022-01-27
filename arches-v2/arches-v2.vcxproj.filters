@@ -115,6 +115,9 @@
     <ClInclude Include="src\arches\units\unit-dram.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
+    <ClInclude Include="src\arches\simulator\acknowledge-buffer.hpp">
+      <Filter>arches\simulator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\arches\isa\registers.cpp">
@@ -144,6 +147,12 @@
     </ClCompile>
     <ClCompile Include="src\trax\units\unit-thread-proccesor.cpp">
       <Filter>trax\units</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\units\unit-cache.cpp">
+      <Filter>arches\units</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\simulator\output-buffer.cpp">
+      <Filter>arches\simulator</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
