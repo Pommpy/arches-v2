@@ -19,13 +19,13 @@
     <Filter Include="arches\simulator">
       <UniqueIdentifier>{ac3b3227-cd52-4b19-9bf1-63bf48631786}</UniqueIdentifier>
     </Filter>
-    <Filter Include="trax">
+    <Filter Include="arches\units\trax">
+      <UniqueIdentifier>{2595a594-c1b6-4ee3-8d8d-fefecd2ac7db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="software">
       <UniqueIdentifier>{c5368a4b-93c8-47c8-9881-f22a73515d9f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="trax\units">
-      <UniqueIdentifier>{052d0b30-fd76-437d-90bd-88e1f552f798}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="trax\software">
+    <Filter Include="software\trax">
       <UniqueIdentifier>{49569035-95e7-4486-a003-5d51e5f3aaa8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -91,20 +91,14 @@
       <Filter>arches\util</Filter>
     </ClInclude>
     <ClInclude Include="src\stdafx.hpp" />
-    <ClInclude Include="src\trax\units\unit-shared-functional.hpp">
-      <Filter>trax\units</Filter>
-    </ClInclude>
-    <ClInclude Include="src\trax\units\unit-thread-proccesor.hpp">
-      <Filter>trax\units</Filter>
-    </ClInclude>
     <ClInclude Include="src\trax\software\src\mesh.hpp">
-      <Filter>trax\software</Filter>
+      <Filter>software\trax</Filter>
     </ClInclude>
     <ClInclude Include="src\trax\software\src\ray-tracing-include.hpp">
-      <Filter>trax\software</Filter>
+      <Filter>software\trax</Filter>
     </ClInclude>
     <ClInclude Include="src\trax\software\src\bvh.hpp">
-      <Filter>trax\software</Filter>
+      <Filter>software\trax</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\units\uint-atomic-increment.hpp">
       <Filter>arches\units</Filter>
@@ -117,6 +111,33 @@
     </ClInclude>
     <ClInclude Include="src\arches\simulator\acknowledge-buffer.hpp">
       <Filter>arches\simulator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\stb_image.h">
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\stb_image_write.h">
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\usimm\configfile.h">
+      <Filter>arches\units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\usimm\memory_controller.h">
+      <Filter>arches\units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\usimm\params.h">
+      <Filter>arches\units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\usimm\processor.h">
+      <Filter>arches\units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\usimm\scheduler.h">
+      <Filter>arches\units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\usimm\usimm.h">
+      <Filter>arches\units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\usimm\utils.h">
+      <Filter>arches\units\usimm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -142,17 +163,29 @@
       <Filter>arches\util</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\trax\units\unit-shared-functional.cpp">
-      <Filter>trax\units</Filter>
-    </ClCompile>
-    <ClCompile Include="src\trax\units\unit-thread-proccesor.cpp">
-      <Filter>trax\units</Filter>
-    </ClCompile>
     <ClCompile Include="src\arches\units\unit-cache.cpp">
       <Filter>arches\units</Filter>
     </ClCompile>
     <ClCompile Include="src\arches\simulator\output-buffer.cpp">
       <Filter>arches\simulator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\util\stbi.cpp">
+      <Filter>arches\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\units\unit-dram.cpp">
+      <Filter>arches\units</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\units\usimm\memory_controller.cc">
+      <Filter>arches\units\usimm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\units\usimm\scheduler.cc">
+      <Filter>arches\units\usimm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\units\usimm\usimm.cc">
+      <Filter>arches\units\usimm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\units\unit-core-simple.cpp">
+      <Filter>arches\units</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

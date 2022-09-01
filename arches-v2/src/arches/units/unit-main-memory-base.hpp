@@ -3,6 +3,7 @@
 
 #include "unit-memory-base.hpp"
 #include "../util/elf.hpp"
+#include "../util/stb_image_write.h"
 
 namespace Arches { namespace Units {
 
@@ -71,6 +72,12 @@ public:
 				fwrite(src + index, sizeof(uint8_t), 3, file);
 			}
 		fclose(file);
+	}
+
+	void dump_as_png_uint8(paddr_t from_paddr, size_t width, size_t height, std::string const& path)
+	{
+		uint8_t const* src = _data_u8 + from_paddr;
+		stbi_write_png(path.c_str(), static_cast<int>(width), static_cast<int>(height), 4, src, 0);
 	}
 
 	void dump_as_ppm_float(paddr_t from_paddr, size_t width, size_t height, std::string const& path)

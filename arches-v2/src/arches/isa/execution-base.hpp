@@ -57,7 +57,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 					int_regs->valid[0] = true;
 					return true;
 				}
-				break;
+				return false;
 
 			case ISA::RISCV::Encoding::R4:
 				if (dst_valid[instr.rd] && src_valid[instr.rs1] && src_valid[instr.rs2] && src_valid[instr.rs3])
@@ -66,7 +66,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 					int_regs->valid[0] = true;
 					return true;
 				}
-				break;
+				return false;
 
 			case ISA::RISCV::Encoding::I:
 				if (dst_valid[instr.rd] && src_valid[instr.rs1])
@@ -75,21 +75,21 @@ namespace Arches { namespace ISA { namespace RISCV {
 					int_regs->valid[0] = true;
 					return true;
 				}
-				break;
+				return false;
 
 			case ISA::RISCV::Encoding::S:
 				if (dst_valid[instr.rs2] && src_valid[instr.rs1])
 				{
 					return true;
 				}
-				break;
+				return false;
 
 			case ISA::RISCV::Encoding::B:
 				if (src_valid[instr.rs1] && src_valid[instr.rs2])
 				{
 					return true;
 				}
-				break;
+				return false;
 
 			case ISA::RISCV::Encoding::U:
 				if (dst_valid[instr.rd])
@@ -98,7 +98,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 					int_regs->valid[0] = true;
 					return true;
 				}
-				break;
+				return false;
 
 			case ISA::RISCV::Encoding::J:
 				if (dst_valid[instr.rd])
@@ -107,7 +107,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 					int_regs->valid[0] = true;
 					return true;
 				}
-				break;
+				return false;
 			}
 
 			return false;

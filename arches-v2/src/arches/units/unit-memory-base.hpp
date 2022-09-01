@@ -6,7 +6,7 @@
 
 namespace Arches { namespace Units {
 
-#define CACHE_LINE_SIZE 32
+#define CACHE_LINE_SIZE 64
 
 struct MemoryRequestItem
 {
@@ -24,12 +24,12 @@ struct MemoryRequestItem
 
 	//meta data 
 	Type             type{Type::STORE};
-	bool             sign_extend{false};
-	uint8_t          dst_reg{0};
-	uint8_t          dst_reg_file{0};
+	//bool             sign_extend{false};
+	//uint8_t          dst_reg{0};
+	//uint8_t          dst_reg_file{0};
 	uint8_t          size{0};
 	uint8_t          offset{0};
-	uint8_t          _padd[1];
+	uint8_t          _padd[4];
 
 	paddr_t          paddr{0ull};
 	uint8_t          data[CACHE_LINE_SIZE];//make sure this is 8 byte aligned
@@ -47,6 +47,9 @@ protected:
 	client_id_t                       _client_id{0};
 
 public:
+	uint                              offset_bits{ 0 }; //how many bits are used for the offset. Needed by the core to align loads to line boundries properly
+	uint64_t                          offset_mask{ 0 };
+
 	UnitMemoryBase(UnitMemoryBase* memory_higher, Simulator* simulator) : UnitBase(simulator)
 	{
 		simulator->register_input_buffer(&_request_buffer);

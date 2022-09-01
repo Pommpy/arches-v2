@@ -110,7 +110,7 @@ namespace Arches {
 			looped = false;
 		}
 
-		void rest_arbitrator_lowest_index()
+		void reset_arbitrator_lowest_index()
 		{
 			last_port = current_port = 0;
 			looped = false;

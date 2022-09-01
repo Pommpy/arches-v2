@@ -10,7 +10,7 @@
 		#define BUILD_RELEASE
 	#endif
 
-	#define _CRT_SECURE_NO_WARNINGS //The std library is not deprecated
+	//#define _CRT_SECURE_NO_WARNINGS //The std library is not deprecated
 
 	#define unreachable __assume(0)
 #else

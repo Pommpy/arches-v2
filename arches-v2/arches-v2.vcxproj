@@ -36,19 +36,26 @@
     <ClInclude Include="src\arches\units\unit-main-memory-base.hpp" />
     <ClInclude Include="src\arches\units\unit-memory-base.hpp" />
     <ClInclude Include="src\arches\units\unit-sram.hpp" />
+    <ClInclude Include="src\arches\units\usimm\configfile.h" />
+    <ClInclude Include="src\arches\units\usimm\memory_controller.h" />
+    <ClInclude Include="src\arches\units\usimm\params.h" />
+    <ClInclude Include="src\arches\units\usimm\processor.h" />
+    <ClInclude Include="src\arches\units\usimm\scheduler.h" />
+    <ClInclude Include="src\arches\units\usimm\usimm.h" />
+    <ClInclude Include="src\arches\units\usimm\utils.h" />
     <ClInclude Include="src\arches\util\barrier.hpp" />
     <ClInclude Include="src\arches\util\bit-manipulation.hpp" />
     <ClInclude Include="src\arches\util\elf.hpp" />
     <ClInclude Include="src\arches\util\endian.hpp" />
     <ClInclude Include="src\arches\util\file.hpp" />
     <ClInclude Include="src\arches\util\math.hpp" />
+    <ClInclude Include="src\arches\util\stb_image.h" />
+    <ClInclude Include="src\arches\util\stb_image_write.h" />
     <ClInclude Include="src\arches\util\string.hpp" />
     <ClInclude Include="src\stdafx.hpp" />
     <ClInclude Include="src\trax\software\src\bvh.hpp" />
     <ClInclude Include="src\trax\software\src\mesh.hpp" />
     <ClInclude Include="src\trax\software\src\ray-tracing-include.hpp" />
-    <ClInclude Include="src\trax\units\unit-shared-functional.hpp" />
-    <ClInclude Include="src\trax\units\unit-thread-proccesor.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\arches\isa\registers.cpp" />
@@ -56,13 +63,17 @@
     <ClCompile Include="src\arches\simulator\output-buffer.cpp" />
     <ClCompile Include="src\arches\simulator\simulator.cpp" />
     <ClCompile Include="src\arches\units\unit-cache.cpp" />
+    <ClCompile Include="src\arches\units\unit-core-simple.cpp" />
+    <ClCompile Include="src\arches\units\unit-dram.cpp" />
+    <ClCompile Include="src\arches\units\usimm\memory_controller.cc" />
+    <ClCompile Include="src\arches\units\usimm\scheduler.cc" />
+    <ClCompile Include="src\arches\units\usimm\usimm.cc" />
     <ClCompile Include="src\arches\util\barrier.cpp" />
     <ClCompile Include="src\arches\util\elf.cpp" />
     <ClCompile Include="src\arches\util\file.cpp" />
+    <ClCompile Include="src\arches\util\stbi.cpp" />
     <ClCompile Include="src\arches\util\string.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\trax\units\unit-shared-functional.cpp" />
-    <ClCompile Include="src\trax\units\unit-thread-proccesor.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -185,11 +196,11 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

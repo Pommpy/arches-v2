@@ -8,7 +8,7 @@
 
 namespace Arches { namespace Units {
 
-class UnitBase
+class alignas(64) UnitBase
 {
 public:
 	bool                          executing{false};

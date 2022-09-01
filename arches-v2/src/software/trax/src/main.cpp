@@ -25,6 +25,13 @@ int main()
 	global_data.framebuffer_size = global_data.framebuffer_width * global_data.framebuffer_height;
 	global_data.framebuffer = new uint32_t[global_data.framebuffer_size];
 
+	global_data.tile_width = 8;
+	global_data.tile_height = 8;
+	global_data.tile_size = global_data.tile_width * global_data.tile_height;
+	global_data.num_tiles_width = global_data.framebuffer_width / global_data.tile_width;
+	global_data.num_tiles_height = global_data.framebuffer_height / global_data.tile_height;
+	global_data.num_tiles = global_data.num_tiles_width * global_data.num_tiles_height;
+
 	global_data.samples_per_pixel = 1;
 	global_data.inverse_samples_per_pixel = 1.0f / global_data.samples_per_pixel;
 	global_data.max_path_depth = 1;
@@ -39,11 +46,13 @@ int main()
 	std::vector<std::thread*> threads(std::thread::hardware_concurrency(), nullptr);
 	auto start = std::chrono::high_resolution_clock::now();
 
-	{
-		reset_atomicinc();
-		for(auto& thread : threads) thread = new std::thread(path_tracer);
-		for(std::thread* thread : threads) thread->join(), delete thread, 0;
-	}
+#if 1
+	reset_atomicinc();
+	for(auto& thread : threads) thread = new std::thread(path_tracer);
+	for(std::thread* thread : threads) thread->join(), delete thread, 0;
+#else
+	path_tracer();
+#endif
 
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);

@@ -3,11 +3,10 @@
 
 #include "rtm.hpp"
 
-struct CompactRay;
-
 struct Ray
 {
 	rtm::vec3 o;
+	float     t_min{T_MIN};
 	rtm::vec3 d;
-	rtm::vec3 inv_d;
+	float     t_max{T_MAX};
 };

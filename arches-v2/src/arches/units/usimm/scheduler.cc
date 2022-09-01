@@ -5,7 +5,7 @@
 #include "memory_controller.h"
 #include "params.h"
 
-extern Arches::cycles CYCLE_VAL;
+extern Arches::cycles_t CYCLE_VAL;
 
 int BANK_CAN_BE_CLOSED[MAX_NUM_CHANNELS][MAX_NUM_RANKS][MAX_NUM_BANKS];
 long long int schedule_count;

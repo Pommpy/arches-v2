@@ -14,15 +14,15 @@ public:
 	AABB() {}
 	~AABB() {}
 
-	float intersect(const Ray& ray) const
+	float intersect(const Ray& ray, const rtm::vec3& inv_d) const
 	{
-		float tmin = (min.x - ray.o.x) * ray.inv_d.x;
-		float tmax = (max.x - ray.o.x) * ray.inv_d.x;
+		float tmin = (min.x - ray.o.x) * inv_d.x;
+		float tmax = (max.x - ray.o.x) * inv_d.x;
 
 		if (tmin > tmax) { float temp = tmin; tmin = tmax; tmax = temp; }
 
-		float tymin = (min.y - ray.o.y) * ray.inv_d.y;
-		float tymax = (max.y - ray.o.y) * ray.inv_d.y;
+		float tymin = (min.y - ray.o.y) * inv_d.y;
+		float tymax = (max.y - ray.o.y) * inv_d.y;
 
 		if (tymin > tymax) { float temp = tymin; tymin = tymax; tymax = temp; }
 
@@ -30,8 +30,8 @@ public:
 		if (tymin > tmin) tmin = tymin;
 		if (tymax < tmax) tmax = tymax;
 
-		float tzmin = (min.z - ray.o.z) * ray.inv_d.z;
-		float tzmax = (max.z - ray.o.z) * ray.inv_d.z;
+		float tzmin = (min.z - ray.o.z) * inv_d.z;
+		float tzmax = (max.z - ray.o.z) * inv_d.z;
 
 		if (tzmin > tzmax) { float temp = tzmin; tzmin = tzmax; tzmax = temp; }
 
@@ -39,7 +39,7 @@ public:
 		if (tzmin > tmin) tmin = tzmin;
 		if (tzmax < tmax) tmax = tzmax;
 
-		if (tmax < T_MIN) return T_MAX;
+		if (tmax < ray.t_min) return ray.t_max;
 
 		return tmin;
 	}

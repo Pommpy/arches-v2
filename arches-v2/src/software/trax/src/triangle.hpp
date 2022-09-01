@@ -38,6 +38,7 @@ public:
 		return rtm::normalize(rtm::cross(vrts[1] - vrts[0], vrts[2] - vrts[0]));
 	}
 
+	#if 0
 	bool inline intersect(const Ray& ray, Hit& hit) const
 	{
 		rtm::vec3 gn = rtm::cross(vrts[1] - vrts[0], vrts[2] - vrts[0]);
@@ -87,4 +88,26 @@ public:
 		}
 		return false;
 	}
+	#else
+	bool inline intersect(const Ray& ray, Hit& hit) const
+	{
+		rtm::vec3 bc;
+		bc[0] = rtm::dot(rtm::cross(vrts[2] - vrts[1], vrts[1] - ray.o), ray.d);
+		if(bc[0] < 0.0f) return false;
+		bc[1] = rtm::dot(rtm::cross(vrts[0] - vrts[2], vrts[2] - ray.o), ray.d);
+		if(bc[1] < 0.0f) return false;
+		bc[2] = rtm::dot(rtm::cross(vrts[1] - vrts[0], vrts[0] - ray.o), ray.d);
+		if(bc[2] < 0.0f) return false;
+
+		rtm::vec3 gn = rtm::cross(vrts[1] - vrts[0], vrts[2] - vrts[0]);
+		float gn_dot_d = rtm::dot(gn, ray.d);
+		float t = rtm::dot(gn, vrts[0] - ray.o) / gn_dot_d;
+		if(t < ray.t_min || t > hit.t) return false;
+
+		//bc /= (bc[0] + bc[1] + bc[2]);
+		hit.t = t;
+		hit.normal = rtm::normalize(gn); 
+		return true;
+	}
+	#endif
 };

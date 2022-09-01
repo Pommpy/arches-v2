@@ -22,7 +22,7 @@ void Simulator::register_unit(Units::UnitBase * unit)
 #endif
 
 #ifdef USE_TBB
-#define UNIT_LOOP tbb::parallel_for(tbb::blocked_range<uint>(0, _units.size(), 4), [&](tbb::blocked_range<uint> r) { for(uint i = r.begin(); i < r.end(); ++i) {
+#define UNIT_LOOP tbb::parallel_for(tbb::blocked_range<uint>(0, _units.size()), [&](tbb::blocked_range<uint> r) { for(uint i = r.begin(); i < r.end(); ++i) {
 #define UNIT_LOOP_END }});
 #else
 #define UNIT_LOOP for(uint i = 0; i < _units.size(); ++i) {
@@ -67,8 +67,6 @@ void Simulator::execute()
 		_execute_cycle();
 		_send_acknowledgements();
 		++current_cycle;
-		if((current_cycle % (1024)) == 0)
-			std::cout << current_cycle << "\n";
 	}
 }
 

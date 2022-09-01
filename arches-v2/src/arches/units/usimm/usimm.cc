@@ -124,7 +124,7 @@ int ADDRESS_MAPPING;                    // Address mapping mode (1)
 
 
 long long int BIGNUM    = 1000000;
-Arches::cycles CYCLE_VAL = 0;
+ Arches::cycles_t CYCLE_VAL = 0;
 
 int expt_done = 0;
 
@@ -134,7 +134,7 @@ uint32_t numc            = 0;
 int chips_per_rank  = -1;
 uint32_t num_ret         = 0;
 
-Arches::cycles get_current_cycle()
+ Arches::cycles_t get_current_cycle()
 {
     return CYCLE_VAL;
 }
@@ -702,7 +702,7 @@ float getUsimmPower()
 
 void printUsimmStats(uint32_t const L2_line_size,
                      uint32_t const word_size,
-                     Arches::cycles cycle_count)
+                      Arches::cycles_t cycle_count)
 {
     printf("-------------DRAM stats-------------\n");
     printf("Cycles %lld\n", CYCLE_VAL);

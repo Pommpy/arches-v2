@@ -12,9 +12,9 @@
 #include <vector>
 #include <list>
 #include <stdlib.h>
-#include "../isa/riscv.hpp"
-#include "../units/riscv/registers.hpp"
-#include "../stdafx.hpp"
+#include "../../isa/riscv.hpp"
+#include "../../isa/registers.hpp"
+#include "../../../stdafx.hpp"
 
 #define MAX_QUEUE_LENGTH 80
 #define MAX_NUM_CHANNELS 16
@@ -67,13 +67,13 @@ struct UsimmUsageStats_t
 // Call-back for TRaX from USIMM
 struct UsimmListener
 {
-    virtual void UsimmNotifyEvent(Arches::physical_address const address, Arches::cycles write_cycle, uint32_t request_id) = 0;
+    virtual void UsimmNotifyEvent(Arches::paddr_t const address, Arches::cycles_t write_cycle, uint32_t request_id) = 0;
 };
 
 // DRAM Address Structure
 typedef struct draddr
 {
-    Arches::physical_address actual_address; // physical_address being accessed
+    Arches::paddr_t actual_address; // physical_address being accessed
     int channel;                  // channel id
     int rank;                     // rank id
     int bank;                     // bank id
@@ -110,7 +110,7 @@ typedef struct arches_request_t
     //uint32_t op;
     //not sure how to represent the thread state for Arches
     //ThreadState        *thread;
-    Arches::physical_address arches_addr;
+    Arches::paddr_t arches_addr;
     UsimmListener            *listener;
     uint32_t                 id;
     arches_request_t() :
@@ -187,14 +187,14 @@ typedef enum
 typedef struct bnk
 {
     bankstate_t   state;
-    Arches::cycles active_row;
-    Arches::cycles next_pre;
-    Arches::cycles next_act;
-    Arches::cycles next_read;
-    Arches::cycles next_write;
-    Arches::cycles next_powerdown;
-    Arches::cycles next_powerup;
-    Arches::cycles next_refresh;
+    Arches::cycles_t active_row;
+    Arches::cycles_t next_pre;
+    Arches::cycles_t next_act;
+    Arches::cycles_t next_read;
+    Arches::cycles_t next_write;
+    Arches::cycles_t next_powerdown;
+    Arches::cycles_t next_powerup;
+    Arches::cycles_t next_refresh;
 } bank_t;
 
 extern struct robstructure * ROB;
@@ -392,18 +392,18 @@ bool write_exists_in_write_queue(const dram_address_t &physical_address,
 // enqueue a read into the corresponding read queue (returns ptr to new node)
 reqInsertRet_t insert_read(const dram_address_t &dram_address,
                            const arches_request_t &arches_request,
-                           Arches::cycles arrival_time);
+                           Arches::cycles_t arrival_time);
 //                           const int instruction_id,
 //                           const long long int instruction_pc);
 
 // enqueue a write into the corresponding write queue (returns ptr to new_node)
 reqInsertRet_t insert_write(const dram_address_t &dram_address,
                             const arches_request_t &arches_request,
-                            Arches::cycles arrival_time);
+                            Arches::cycles_t arrival_time);
 //                            const int instruction_id,
 //                            const long long int instruction_pc);
 
-dram_address_t calcDramAddr(Arches::physical_address physical_address);
+dram_address_t calcDramAddr(Arches::paddr_t physical_address);
 
 // convert the TRaX address to byte-addressed, cache-line-aligned
 inline long long int traxAddrToUsimm(const int address, const int lineSize)

@@ -171,7 +171,7 @@ bool is_T_FAW_met(const int channel,
 // shift the moving window, clear out the past
 void flush_activate_record(const int channel,
                            const int rank,
-                           Arches::cycles cycle)
+                            Arches::cycles_t cycle)
 {
     if (cycle >= T_FAW + PROCESSOR_CLK_MULTIPLIER)
     {
@@ -418,7 +418,7 @@ dram_address_t * calc_dram_addr(const long long int physical_address)
 // Function to decompose the incoming DRAM address into the
 // constituent channel, rank, bank, row and column ids. 
 // Note : This version does not return a pointer (save calls to malloc/free)
-dram_address_t calcDramAddr(Arches::physical_address physical_address)
+dram_address_t calcDramAddr( Arches::paddr_t physical_address)
 {
     long long int input_a;
     long long int temp_b, temp_a;
@@ -499,7 +499,7 @@ dram_address_t calcDramAddr(Arches::physical_address physical_address)
 // or write queue.
 request_t init_new_node(const dram_address_t &dram_address,
                         const arches_request_t &archesRequest,
-                        Arches::cycles arrival_time,
+                        Arches::cycles_t arrival_time,
                         const optype_t type)
 //                        const int instruction_id,
 //                        const long long int instruction_pc)
@@ -552,7 +552,7 @@ request_t init_new_node(const dram_address_t &dram_address,
 // Once the completion time of a read is known, this function informs
 // the TRaX thread and caches and corrects the "infinite" latency that was assumed
 void updateTraxRequest(arches_request_t &request,
-                       Arches::cycles completion_time)
+                        Arches::cycles_t completion_time)
 {
     // printf("\t%u: thread id: %d, which_reg: %d, result: %u, addr: %d\n", i, thread->thread_id, 
     //	 request->arches_reqs[i].which_reg, request->arches_reqs[i].result.udata, request->arches_reqs[i].arches_addr);
@@ -658,7 +658,7 @@ bool write_exists_in_write_queue(const dram_address_t &physical_address,
 // Insert a new read to the read queue
 reqInsertRet_t insert_read(const dram_address_t &dram_address,
                            const arches_request_t &arches_request,
-                           Arches::cycles arrival_time)
+                            Arches::cycles_t arrival_time)
 //                           const int instruction_id,
 //                           const long long int instruction_pc)
 {
@@ -762,7 +762,7 @@ reqInsertRet_t insert_read(const dram_address_t &dram_address,
 // Insert a new write to the write queue
 reqInsertRet_t insert_write(const dram_address_t &dram_address,
                             const arches_request_t &arches_request,
-                            Arches::cycles arrival_time)
+                             Arches::cycles_t arrival_time)
 //                            const int instruction_id,
 //                            const long long int instruction_pc)
 {
@@ -1099,7 +1099,7 @@ bool issue_request_command(request_t *request)
 {
     //printf("issue_request_command\n");
 
-    Arches::cycles cycle = CYCLE_VAL;
+     Arches::cycles_t cycle = CYCLE_VAL;
     if (!request->command_issuable ||
         command_issued_current_cycle[request->dram_addr.channel])
     {
@@ -1707,7 +1707,7 @@ bool issue_powerup_command(const int channel, const int rank)
         return false;
     }
 
-    Arches::cycles cycle = CYCLE_VAL;
+     Arches::cycles_t cycle = CYCLE_VAL;
     for (int i = 0; i < NUM_BANKS; i++)
     {
         if (dram_state[channel][rank][i].state == PRECHARGE_POWER_DOWN_SLOW ||
@@ -1756,7 +1756,7 @@ bool issue_autoprecharge(const int channel,
         return false;
     }
 
-    Arches::cycles start_precharge = 0;
+     Arches::cycles_t start_precharge = 0;
 
     dram_state[channel][rank][bank].active_row = -1;
     dram_state[channel][rank][bank].state      = PRECHARGING;

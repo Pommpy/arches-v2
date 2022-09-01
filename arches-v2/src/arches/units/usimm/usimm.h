@@ -1,7 +1,7 @@
 #ifndef USIMM_H_
 #define USIMM_H_
 
-#include "../stdafx.hpp"
+#include "../../../stdafx.hpp"
 
 //#ifndef REL_PATH_BIN_TO_SAMPLES
 //#  define REL_PATH_BIN_TO_SAMPLES "../../config-files/usimm/"
@@ -19,6 +19,6 @@ void usimmDestroy();
 
 void printUsimmStats(uint32_t const L2_line_size,
                      uint32_t const word_size,
-                     Arches::cycles cycle_count);
+                     Arches::cycles_t cycle_count);
 
 #endif
