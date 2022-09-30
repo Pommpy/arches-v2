@@ -6,6 +6,6 @@
 #riscv64-unknown-elf-g++ -nostartfiles -mno-relax -mabi=lp64f --entry=main -O3 -S ./src/trace_rays.cpp -o ./bin/riscv/trace_rays.s
 #riscv64-unknown-elf-objdump -d -x ./bin/riscv/trace_rays > "./bin/riscv/trace_rays.dump"
 
-riscv64-unknown-elf-g++ -nostartfiles -mno-relax -mabi=lp64f --entry=main -O3 ./src/main.cpp -o ./bin/riscv/trax
-riscv64-unknown-elf-g++ -nostartfiles -mno-relax -mabi=lp64f --entry=main -O3 -S ./src/main.cpp -o ./bin/riscv/trax.s
-riscv64-unknown-elf-objdump -d -x ./bin/riscv/trax > "./bin/riscv/trax.dump"
+riscv64-unknown-elf-g++ -nostartfiles -mno-relax -mabi=lp64f --entry=main -Ofast ./src/path-tracer.cpp -o ./bin/riscv/path-tracer
+riscv64-unknown-elf-g++ -nostartfiles -mno-relax -mabi=lp64f --entry=main -Ofast -S ./src/path-tracer.cpp -o ./bin/riscv/path-tracer.s
+riscv64-unknown-elf-objdump -d -x ./bin/riscv/path-tracer > "./bin/riscv/path-tracer.dump"

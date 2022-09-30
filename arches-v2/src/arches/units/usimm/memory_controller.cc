@@ -145,9 +145,9 @@ bool is_T_FAW_met(const int channel,
     int start               = cycle;
     int number_of_activates = 0;
 
-    if (start >= T_FAW)
+    if (start >= (int)T_FAW)
     {
-        for (int i = 1; i <= T_FAW; i++)
+        for (int i = 1; i <= (int)T_FAW; i++)
         {
             //printf("accessing activation record [%d][%d][%d]\n", channel, rank, (start-i)%BIG_ACTIVATION_WINDOW);
             if (activation_record[channel][rank][(start - i) % BIG_ACTIVATION_WINDOW])
@@ -175,7 +175,7 @@ void flush_activate_record(const int channel,
 {
     if (cycle >= T_FAW + PROCESSOR_CLK_MULTIPLIER)
     {
-        for (int i = 1; i <= PROCESSOR_CLK_MULTIPLIER; i++)
+        for (int i = 1; i <= (int)PROCESSOR_CLK_MULTIPLIER; i++)
         {
             activation_record[channel][rank][(cycle - T_FAW - i) % BIG_ACTIVATION_WINDOW] = false; // make sure cycle >tFAW
         }
@@ -227,7 +227,7 @@ void init_memory_controller_vars()
             next_refresh_completion_deadline[i][j] = 8 * T_REFI;
             last_refresh_completion_deadline[i][j] = 0;
             forced_refresh_mode_on[i][j]           = false;
-            refresh_issue_deadline[i][j]           = next_refresh_completion_deadline[i][j] - T_RP - 8 * T_RFC;
+            refresh_issue_deadline[i][j]           = (int)(next_refresh_completion_deadline[i][j] - T_RP - 8 * T_RFC);
             num_issued_refreshes[i][j]             = 0;
 
             stats_time_spent_in_active_power_down[i][j]         = 0;

@@ -14,6 +14,8 @@ public:
 	AABB() {}
 	~AABB() {}
 
+	#if 0 
+
 	float intersect(const Ray& ray, const rtm::vec3& inv_d) const
 	{
 		float tmin = (min.x - ray.o.x) * inv_d.x;
@@ -43,6 +45,22 @@ public:
 
 		return tmin;
 	}
+	#else 
+	float intersect(const Ray& ray, const rtm::vec3& inv_d) const
+	{
+		rtm::vec3 t0 = (min - ray.o) * inv_d;
+		rtm::vec3 t1 = (max - ray.o) * inv_d;
+
+		rtm::vec3 tminv = rtm::min(t0, t1);
+		rtm::vec3 tmaxv = rtm::max(t0, t1);
+
+		float tmin =  std::max(std::max(tminv.x, tminv.y), std::max(tminv.z, ray.t_min));
+		float tmax = std::min(std::min(tmaxv.x, tmaxv.y), std::min(tmaxv.z, ray.t_max));
+
+		if (tmin > tmax || tmax < ray.t_min) return ray.t_max;//no hit || behind
+		return tmin;
+	}
+	#endif
 
 	void add_aabb(const AABB& other)
 	{

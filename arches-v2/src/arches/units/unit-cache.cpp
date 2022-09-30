@@ -3,13 +3,19 @@
 namespace Arches {
 	namespace Units {
 
-		UnitCache::UnitCache(CacheConfiguration config, UnitMemoryBase* mem_higher, Simulator* simulator) : UnitMemoryBase(mem_higher, simulator)
+		UnitCache::UnitCache(Configuration config, UnitMemoryBase* mem_higher, uint mem_higher_bus_start_index, Simulator* simulator) : UnitMemoryBase(config.num_incoming_ports, simulator)
 		{
 			_configuration = config;
 
 			_data_u8.resize(config.cache_size);
 			_cache_state.resize(config.cache_size / config.line_size);
-			_banks.resize(config.num_banks);
+			_banks.resize(config.num_banks, config.num_incoming_ports);
+			_port_locked.resize(config.num_incoming_ports);
+
+			_mem_higher = mem_higher;
+			_mem_higher_ports_start_index = mem_higher_bus_start_index;
+			
+			_num_incoming_ports = config.num_incoming_ports;
 
 			_associativity = config.associativity;
 			_line_size = config.line_size;
@@ -30,9 +36,6 @@ namespace Arches {
 			_set_index_offset = offset_bits;
 			_tag_offset = offset_bits + _set_index_bits;
 			_bank_index_offset = log2i(config.bank_stride * config.line_size);
-
-			output_buffer.resize(static_cast<uint>(_banks.size()) * 4u, static_cast<uint>(sizeof(MemoryRequestItem))); //TODO tighter bounds
-			acknowledge_buffer.resize(static_cast<uint>(_banks.size()));//every bank can acknowledge a request on a given cycle
 		}
 
 		UnitCache::~UnitCache()
@@ -74,7 +77,7 @@ namespace Arches {
 		}
 
 		//inserts cacheline associated with paddr replacing least recently used. Assumes cachline isn't already in cache if it is this has undefined behaviour
-		void UnitCache::_insert_cache_line(paddr_t paddr, uint8_t* data)
+		void UnitCache::_insert_cache_line(paddr_t paddr, const uint8_t* data)
 		{
 			uint32_t start = _get_set_index(paddr) * _associativity;
 			uint32_t end = start + _associativity;
@@ -109,136 +112,144 @@ namespace Arches {
 
 		void UnitCache::_proccess_load_return()
 		{
-			_return_buffer.reset_arbitrator_lowest_index();
-			uint return_index = _return_buffer.get_next_index();
-			if(return_index != ~0)
+			for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
 			{
-				MemoryRequestItem* return_item = _return_buffer.get_message(return_index);
-				assert(return_item->type == MemoryRequestItem::Type::LOAD_RETURN);
-				_insert_cache_line(return_item->paddr, return_item->data);
-				_banks[_get_bank(return_item->paddr)].busy = false; //free bank to accept next request
-				_return_buffer.clear(return_index);
-				_pending_load_return = false;
+				uint mem_higher_return_port_index = _mem_higher_ports_start_index + bank_index;
+				if(_mem_higher->return_bus.get_pending(mem_higher_return_port_index))
+				{
+					const MemoryRequestItem& return_item = _mem_higher->return_bus.get_bus_data(mem_higher_return_port_index);
+					_mem_higher->return_bus.clear_pending(mem_higher_return_port_index);
+
+					assert(return_item.type == MemoryRequestItem::Type::LOAD_RETURN);
+					_insert_cache_line(return_item.line_paddr, return_item.data);
+
+					//uint bank_index = _get_bank(return_item.line_paddr);
+					_Bank& bank = _banks[bank_index];
+					bank.block_for_load = false;
+					bank.cycles_remaining = 1;
+				}
 			}
 		}
 
 		void UnitCache::_proccess_requests()
 		{
-			uint request_index = 0;
-			_request_buffer.reset_arbitrator_lowest_index();
-			while ((request_index = _request_buffer.get_next_index()) != ~0) //loop till all entries incoming connection have been checked
+			//loop till all entries incoming connection have been checked
+			for(uint port_index = 0; port_index < _num_incoming_ports; ++port_index)
 			{
-				MemoryRequestItem* request_item = _request_buffer.get_message(request_index);
-				assert(request_item->type != MemoryRequestItem::Type::STORE);
-				if (request_item->type == MemoryRequestItem::Type::LOAD)
+				if(request_bus.get_pending(port_index))
 				{
-					paddr_t aligned_paddr = _get_cache_line_start_paddr(request_item->paddr);
-					uint32_t bank = _get_bank(aligned_paddr);
-					if (_banks[bank].busy) continue; //we can't accept this request on this cycle since the bank is busy so we go on to the next
-
-					uint32_t request_offest = (_request_buffer.size() + request_index - _banks[bank].arbitrator_index) % _request_buffer.size();
-					if (request_offest < _banks[bank].candidate_request_offset) _banks[bank].candidate_request_offset = request_offest;
+					const MemoryRequestItem& request_item = request_bus.get_bus_data(port_index);
+					uint32_t bank_index = _get_bank(request_item.line_paddr);
+					_banks[bank_index].arbitrator.push_request(port_index);
 				}
 			}
 		}
 
-		void UnitCache::_update_banks()
+		void UnitCache::_update_banks_rise()
 		{
-			for (uint bank = 0; bank < _banks.size(); ++bank)
+			for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
 			{
-				//if we are waiting for data or dont have a bank then do nothing
-				if (!_banks[bank].busy)
+				_Bank& bank = _banks[bank_index];
+
+				if(!bank.active)
 				{
 					//if bank isn't busy and there are no pending requests to that bank then we can skip it
-					if (_banks[bank].candidate_request_offset == ~0) continue;
+					bank.port_index = bank.arbitrator.pop_request();
+					if(bank.port_index == ~0u) continue;
 
-					uint request_index = (_banks[bank].arbitrator_index + _banks[bank].candidate_request_offset) % _request_buffer.size();
+					bank.cycles_remaining = _penalty;
+					bank.active = true;
 
-					_banks[bank].request = *_request_buffer.get_message(request_index);
-					acknowledge_buffer.push_message(_request_buffer.get_sending_unit(request_index), _request_buffer.id);
-					_request_buffer.clear(request_index);
+					bank.request = request_bus.get_bus_data(bank.port_index);
+					request_bus.clear_pending(bank.port_index);
+				}
+			}
+		}
 
-					_banks[bank].cycles_remaining = _penalty;
-					_banks[bank].sent_load = false;
-					_banks[bank].miss = false;
-					_banks[bank].busy = true;
+		void UnitCache::_update_banks_fall()
+		{
+			for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
+			{
+				_Bank& bank = _banks[bank_index];
+				uint mem_higher_request_port_index = _mem_higher_ports_start_index + bank_index;
 
-					_banks[bank].arbitrator_index = (request_index + 1) % _request_buffer.size();
-					_banks[bank].candidate_request_offset = ~0;
+				if(!bank.active) continue;
+				if(bank.block_for_load) continue;
+				if(bank.block_for_store)
+				{
+					//check if last request has been accepted
+					if(!_mem_higher->request_bus.get_pending(mem_higher_request_port_index))
+					{
+						bank.block_for_store = false;
+						bank.active = false;
+					}
+					continue;
 				}
 
-				if (!_banks[bank].miss && (--_banks[bank].cycles_remaining == 0))
+				if(bank.request.type == MemoryRequestItem::Type::STORE)
+				{
+					//forward store
+					_mem_higher->request_bus.set_bus_data(bank.request, mem_higher_request_port_index);
+					_mem_higher->request_bus.set_pending(mem_higher_request_port_index);
+					bank.block_for_store = true;
+				}
+				else if (--bank.cycles_remaining == 0) //run bank
 				{
 					//check if we have the data
-					MemoryRequestItem& request = _banks[bank].request;
-					assert(_get_offset(request.paddr) == 0);
-					uint8_t* line_data = _get_cache_line(_banks[bank].request.paddr);
-					if (line_data)
+					assert(_get_offset(bank.request.line_paddr) == 0);
+					uint8_t* line_data = _get_cache_line(bank.request.line_paddr);
+					if(line_data)
 					{
-						//if we do return data to pending unit and release bank
-						log.log_hit();
+						//if we do have the data return it to pending unit and release bank
+						//check if last request has been accepted
+						if(!return_bus.get_pending(bank.port_index))
+						{
+							log.log_hit();
 
-						request.type = MemoryRequestItem::Type::LOAD_RETURN;
-						std::memcpy(request.data, line_data, _line_size);
+							std::memcpy(bank.request.data, line_data, _line_size);
+							bank.request.type = MemoryRequestItem::Type::LOAD_RETURN;
 
-						for (uint8_t i = 0; i < request.return_buffer_id_stack_size; ++i)
-							output_buffer.push_message(&request, request.return_buffer_id_stack[i], 0);
+							return_bus.set_bus_data(bank.request, bank.port_index);
+							return_bus.set_pending(bank.port_index);
 
-						_banks[bank].busy = false;
+							//free bank
+							bank.active = false;
+						}
+						else
+						{
+							//stall
+							bank.cycles_remaining = 1;
+						}
 					}
 					else
 					{
-						//if we dont issue load to mem higher
-						log.log_miss();
-
-						request.return_buffer_id_stack[request.return_buffer_id_stack_size++] = _return_buffer.id;
-						_banks[bank].miss = true;
+						//issue to mem_higher and stall
+						if(!_mem_higher->request_bus.get_pending(mem_higher_request_port_index))
+						{
+							log.log_miss();
+							_mem_higher->request_bus.set_bus_data(bank.request, mem_higher_request_port_index);
+							_mem_higher->request_bus.set_pending(mem_higher_request_port_index);
+							bank.block_for_load = true;
+						}
+						else
+						{
+							bank.cycles_remaining = 1;
+						}
 					}
 				}
 			}
 		}
-		
-		void UnitCache::_try_issue_next_load()
-		{
-			if(_pending_load_return) return;
-			for(uint bank = 0; bank < _banks.size(); ++bank)
-			{
-				if(_banks[bank].miss && !_banks[bank].sent_load)
-				{
-					uint _bank_offset = (static_cast<uint>(_banks.size()) + bank - _bank_request_arbitrator_index) % _banks.size();
-					if(_bank_offset < _next_bank_requesting_offset) _next_bank_requesting_offset = _bank_offset;
-				}
-			}
 
-			if(_next_bank_requesting_offset == ~0u) return;
-			
-			_bank_request_arbitrator_index = (_bank_request_arbitrator_index + _next_bank_requesting_offset) % _banks.size();
-
-			MemoryRequestItem& request = _banks[_bank_request_arbitrator_index].request;
-			_banks[_bank_request_arbitrator_index].sent_load = true;
-			output_buffer.push_message(&request, _memory_higher_buffer_id, _client_id);
-			_pending_load_return = true;
-			
-			_bank_request_arbitrator_index = (_bank_request_arbitrator_index + 1) % _banks.size();
-			_next_bank_requesting_offset = ~0u;
-		}
-
-		void UnitCache::acknowledge(buffer_id_t buffer)
-		{
-			assert(buffer == _memory_higher_buffer_id);
-			//_pending_load_return = false;
-			//_try_issue_next_load();
-		}
-
-		void UnitCache::execute()
+		void UnitCache::clock_rise()
 		{
 			_proccess_load_return();
-
 			_proccess_requests();
+			_update_banks_rise();
+		}
 
-			_update_banks();
-
-			_try_issue_next_load();
+		void UnitCache::clock_fall()
+		{
+			_update_banks_fall();
 		}
 	}
 }

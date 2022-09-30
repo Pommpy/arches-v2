@@ -39,33 +39,65 @@ bool inline intersect(const Node* nodes, const Triangle* triangles, const Ray& r
 	while(node_stack_index != ~0u)
 	{
 		NodeStackEntry current_entry = node_stack[node_stack_index--];
+
+	TRAV:
 		if(current_entry.hit_t >= hit.t) continue;
 		if(!current_entry.is_leaf)
 		{
+			Node nodes_local[2] = {nodes[current_entry.fst_chld_ind + 0u], nodes[current_entry.fst_chld_ind + 1u]};
+
 			float hit_ts[2];
-			hit_ts[0] = nodes[current_entry.fst_chld_ind + 0u].aabb.intersect(ray, inv_d);
-			hit_ts[1] = nodes[current_entry.fst_chld_ind + 1u].aabb.intersect(ray, inv_d);
+			hit_ts[0] = nodes_local[0].aabb.intersect(ray, inv_d);
+			hit_ts[1] = nodes_local[1].aabb.intersect(ray, inv_d);
 
 			if(hit_ts[0] < hit_ts[1])
 			{
-				if(hit_ts[1] < hit.t) node_stack[++node_stack_index] = {hit_ts[1], nodes[current_entry.fst_chld_ind + 1u].data};
-				if(hit_ts[0] < hit.t) node_stack[++node_stack_index] = {hit_ts[0], nodes[current_entry.fst_chld_ind + 0u].data};
+				
+				if(hit_ts[1] < hit.t) node_stack[++node_stack_index] = {hit_ts[1], nodes_local[1].data};
+				if(hit_ts[0] < hit.t)
+				{
+					current_entry = {hit_ts[0], nodes_local[0].data}; 
+					goto TRAV;
+				}
 			}
 			else
 			{
-				if(hit_ts[0] < hit.t) node_stack[++node_stack_index] = {hit_ts[0], nodes[current_entry.fst_chld_ind + 0u].data};
-				if(hit_ts[1] < hit.t) node_stack[++node_stack_index] = {hit_ts[1], nodes[current_entry.fst_chld_ind + 1u].data};
+				if(hit_ts[0] < hit.t) node_stack[++node_stack_index] = {hit_ts[0], nodes_local[0].data};
+				if(hit_ts[1] < hit.t)
+				{
+					current_entry = {hit_ts[1], nodes_local[1].data}; 
+					goto TRAV;
+				}
 			}
 		}
 		else
 		{
-			for(uint i = 0; i <= current_entry.lst_chld_ofst; ++i)
+			if(an_hit)
 			{
-				uint obj_ind = current_entry.fst_chld_ind + i;
-				if(triangles[obj_ind].intersect(ray, hit))
+				uint id = current_entry.fst_chld_ind;
+				for(uint i = 0; i <= current_entry.lst_chld_ofst; ++i)
 				{
-					if(an_hit) return true;
-					is_hit = true;
+					Triangle t = triangles[id];
+					if(t.intersect(ray, hit))
+					{
+						hit.prim_id = id;
+						return true;
+					}
+					id++;
+				}
+			}
+			else
+			{
+				uint id = current_entry.fst_chld_ind;
+				for(uint i = 0; i <= current_entry.lst_chld_ofst; ++i)
+				{
+					Triangle t = triangles[id];
+					if(t.intersect(ray, hit))
+					{
+						hit.prim_id = id;
+						is_hit = true;
+					}
+					id++;
 				}
 			}
 		}

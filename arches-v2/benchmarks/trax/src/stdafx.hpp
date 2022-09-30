@@ -31,7 +31,7 @@
 
 typedef unsigned int uint;
 
-float fast_sqrtf(float input)
+float inline fast_sqrtf(float input)
 {
 	#ifdef ARCH_X86
 	return sqrtf(input);
@@ -46,7 +46,7 @@ float fast_sqrtf(float input)
 	return 0;
 }
 
-float fast_inv_sqrtf(float input)
+float inline fast_inv_sqrtf(float input)
 {
 	#ifdef ARCH_X86
 	return 1.0f / fast_sqrtf(input);

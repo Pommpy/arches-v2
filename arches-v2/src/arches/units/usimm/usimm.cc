@@ -899,7 +899,7 @@ bool usimmIsBusy()
 
 void usimmDestroy()
 {
-    for (int i = 0; (int32_t)i < NUMCORES; i++)
+    for (int i = 0; i < (int32_t)NUMCORES; i++)
     {
         free(ROB[i].comptime);
         free(ROB[i].mem_address);

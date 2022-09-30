@@ -178,6 +178,7 @@ template <typename T> inline static void _prepare_load(ExecutionBase* unit, Inst
 {
 	unit->memory_access_data.size = sizeof(T);
 	unit->memory_access_data.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + get_immediate_I(instr);
+	unit->memory_access_data.dst_reg = instr.i.rd;
 
 	if(typeid(T) == typeid(float) || typeid(T) == typeid(double))
 	{
@@ -189,8 +190,6 @@ template <typename T> inline static void _prepare_load(ExecutionBase* unit, Inst
 		unit->memory_access_data.sign_extend = std::is_signed_v<T>;
 		unit->memory_access_data.dst_reg_file = static_cast<uint8_t>(RegFile::INT);
 	}
-
-	unit->memory_access_data.dst_reg = instr.i.rd;
 }
 
 

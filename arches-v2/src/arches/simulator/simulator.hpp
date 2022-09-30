@@ -2,7 +2,7 @@
 #include "../../stdafx.hpp"
 
 #include "../util/barrier.hpp"
-#include "input-buffer.hpp"
+//#include "input-buffer.hpp"
 
 namespace Arches {
 
@@ -14,21 +14,29 @@ namespace Units
 class Simulator
 {
 private:
-	std::vector<InputBufferBase*> _input_buffers;
+	struct UnitGroup
+	{
+		uint start;
+		uint size;
+
+		UnitGroup() = default;
+		UnitGroup(uint start, uint size) : start(start), size(size) {}
+	};
+
+	std::vector<UnitGroup> _unit_groups;
 	std::vector<Units::UnitBase*> _units;
 	std::atomic_bool              _done{true};
 
 public:
 	cycles_t current_cycle{0};
 
-	Simulator() {}
+	Simulator() { _unit_groups.emplace_back(0u, 0u); }
 
-	void register_input_buffer(InputBufferBase* input_buffer);
 	void register_unit(Units::UnitBase* unit);
+	void start_new_unit_group();
 
-	void _update_buffers();
-	void _send_acknowledgements();
-	void _execute_cycle();
+	void _clock_rise();
+	void _clock_fall();
 
 	void execute();
 };

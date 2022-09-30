@@ -52,38 +52,38 @@ class IntegerRegisterFile final
 			Register64 registers[32];
 			struct
 			{
-				Register64 zero;
-				Register64 ra;
-				Register64 sp;
-				Register64 gp;
-				Register64 tp;
-				Register64 t0;
-				Register64 t1;
-				Register64 t2;
-				Register64 s0;
-				Register64 s1;
-				Register64 a0;
-				Register64 a1;
-				Register64 a2;
-				Register64 a3;
-				Register64 a4;
-				Register64 a5;
-				Register64 a6;
-				Register64 a7;
-				Register64 s2;
-				Register64 s3;
-				Register64 s4;
-				Register64 s5;
-				Register64 s6;
-				Register64 s7;
-				Register64 s8;
-				Register64 s9;
-				Register64 s10;
-				Register64 s11;
-				Register64 t3;
-				Register64 t4;
-				Register64 t5;
-				Register64 t6;
+				Register64 zero; //0
+				Register64 ra; //1
+				Register64 sp; //2
+				Register64 gp; //3
+				Register64 tp; //4 
+				Register64 t0; //5
+				Register64 t1; //6
+				Register64 t2; //7
+				Register64 s0; //8
+				Register64 s1; //9
+				Register64 a0; //10
+				Register64 a1; //11
+				Register64 a2; //12
+				Register64 a3; //13
+				Register64 a4; //14
+				Register64 a5; //15
+				Register64 a6; //16
+				Register64 a7; //17
+				Register64 s2; //18
+				Register64 s3; //19
+				Register64 s4; //20
+				Register64 s5; //21
+				Register64 s6; //22
+				Register64 s7; //23
+				Register64 s8; //24
+				Register64 s9; //25
+				Register64 s10; //26
+				Register64 s11; //27
+				Register64 t3; //28
+				Register64 t4; //29 
+				Register64 t5; //30
+				Register64 t6; //31
 			};
 			struct
 			{
@@ -144,38 +144,38 @@ public:
 		Register32 registers[32];
 		struct
 		{
-			Register32 ft0;
-			Register32 ft1;
-			Register32 ft2;
-			Register32 ft3;
-			Register32 ft4;
-			Register32 ft5;
-			Register32 ft6;
-			Register32 ft7;
-			Register32 fs0;
-			Register32 fs1;
-			Register32 fa0;
-			Register32 fa1;
-			Register32 fa2;
-			Register32 fa3;
-			Register32 fa4;
-			Register32 fa5;
-			Register32 fa6;
-			Register32 fa7;
-			Register32 fs2;
-			Register32 fs3;
-			Register32 fs4;
-			Register32 fs5;
-			Register32 fs6;
-			Register32 fs7;
-			Register32 fs8;
-			Register32 fs9;
-			Register32 fs10;
-			Register32 fs11;
-			Register32 ft8;
-			Register32 ft9;
-			Register32 ft10;
-			Register32 ft11;
+			Register32 ft0; //0
+			Register32 ft1; //1
+			Register32 ft2; //2
+			Register32 ft3; //3
+			Register32 ft4; //4
+			Register32 ft5; //5
+			Register32 ft6; //6
+			Register32 ft7; //7
+			Register32 fs0; //8
+			Register32 fs1; //9
+			Register32 fa0; //10
+			Register32 fa1; //11
+			Register32 fa2; //12
+			Register32 fa3; //13
+			Register32 fa4; //14
+			Register32 fa5; //15
+			Register32 fa6; //16
+			Register32 fa7; //17
+			Register32 fs2; //18
+			Register32 fs3; //19
+			Register32 fs4; //20
+			Register32 fs5; //21
+			Register32 fs6; //22
+			Register32 fs7; //23
+			Register32 fs8; //24
+			Register32 fs9; //25
+			Register32 fs10; //26
+			Register32 fs11; //27
+			Register32 ft8; //28
+			Register32 ft9; //29
+			Register32 ft10; //30
+			Register32 ft11; //31
 		};
 		struct 
 		{

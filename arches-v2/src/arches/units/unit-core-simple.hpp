@@ -3,8 +3,8 @@
 #include "../../stdafx.hpp"
 
 #include "unit-base.hpp"
-#include "unit-execution-base.hpp"
 #include "unit-memory-base.hpp"
+#include "unit-main-memory-base.hpp"
 #include "uint-atomic-increment.hpp"
 
 #include "../isa/execution-base.hpp"
@@ -26,7 +26,7 @@ const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::CUSTOM, Encod
 namespace Arches { namespace Units {
 
 
-class UnitCoreSimple : public ISA::RISCV::ExecutionBase, public UnitMemoryBase
+class UnitCoreSimple : public ISA::RISCV::ExecutionBase, public UnitBase
 {
 public:
 	class Log
@@ -49,9 +49,9 @@ public:
 				_instruction_counters[i] += other._instruction_counters[i];
 		}
 
-		void log_instruction(const ISA::RISCV::InstructionData& data)
+		void log_instruction(const ISA::RISCV::InstructionInfo& info)
 		{
-			_instruction_counters[static_cast<size_t>(data.type)]++;
+			_instruction_counters[static_cast<size_t>(info.type)]++;
 		}
 
 		void print_log()
@@ -71,11 +71,15 @@ private:
 	ISA::RISCV::IntegerRegisterFile _int_regs{};
 	ISA::RISCV::FloatingPointRegisterFile _float_regs{};
 
-	buffer_id_t _atomic_inc_buffer_id;
-	client_id_t _atomic_inc_client_id;
+	UnitAtomicIncrement* atomic_inc;
+	UnitMemoryBase* mem_higher;
+	UnitMainMemoryBase* main_mem;
 
-	buffer_id_t _main_mem_buffer_id;
-	client_id_t _main_mem_client_id;
+	uint tm_index;
+	uint global_index;
+
+	uint                        offset_bits{0}; //how many bits are used for the offset. Needed by the core to align loads to line boundries properly
+	uint64_t                    offset_mask{0};
 
 	uint8_t _stack[1024];
 	paddr_t _stack_start{ 0ull - sizeof(_stack) };
@@ -86,11 +90,10 @@ private:
 public:
 	//this is how you declare the size of output buffer. In this case we want to send one memory request item on any given cycle
 	//also we must register our input buffers in contructor by convention
-	UnitCoreSimple(UnitMemoryBase* mem_higher, UnitMemoryBase* main_memory, UnitAtomicIncrement* atomic_inc, Simulator* simulator);
+	UnitCoreSimple(UnitMemoryBase* mem_higher, UnitMainMemoryBase* main_mem, UnitAtomicIncrement* atomic_inc, uint tm_index, uint chip_index, Simulator* simulator);
 
-	void acknowledge(buffer_id_t buffer) override;
-
-	void execute() override;
+	void clock_rise() override;
+	void clock_fall() override;
 };
 
 }}

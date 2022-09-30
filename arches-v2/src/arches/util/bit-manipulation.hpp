@@ -1,3 +1,4 @@
+#pragma once
 #include "../../stdafx.hpp"
 
 inline uint log2i(uint in)

@@ -2,19 +2,13 @@
 
 namespace Arches { namespace Units {
 
-UnitCoreSimple::UnitCoreSimple(UnitMemoryBase* mem_higher, UnitMemoryBase* main_memory, UnitAtomicIncrement* atomic_inc, Simulator* simulator) :
-	ExecutionBase(&_int_regs, &_float_regs),
-	UnitMemoryBase(mem_higher, simulator)
+UnitCoreSimple::UnitCoreSimple(UnitMemoryBase* mem_higher, UnitMainMemoryBase* main_mem, UnitAtomicIncrement* atomic_inc, uint tm_index, uint global_index, Simulator* simulator) :
+	ExecutionBase(&_int_regs, &_float_regs), UnitBase(simulator),
+	mem_higher(mem_higher), main_mem(main_mem), atomic_inc(atomic_inc),
+	tm_index(tm_index), global_index(global_index)
 {
 	ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE0] = ISA::RISCV::traxamoin;
 
-	_atomic_inc_buffer_id = atomic_inc->get_request_buffer_id();
-	_atomic_inc_client_id = atomic_inc->add_client();
-
-	_main_mem_buffer_id = main_memory->get_request_buffer_id();
-	_main_mem_client_id = main_memory->add_client();
-
-	output_buffer.resize(1, sizeof(UnitMemoryBase));
 	_int_regs.ra.u64 = 0ull;
 
 	offset_bits = mem_higher->offset_bits;
@@ -23,61 +17,83 @@ UnitCoreSimple::UnitCoreSimple(UnitMemoryBase* mem_higher, UnitMemoryBase* main_
 	executing = true;
 }
 
-void UnitCoreSimple::acknowledge(buffer_id_t buffer)
+void UnitCoreSimple::clock_rise()
 {
-	if(_stalled_for_store)
+	if(mem_higher->return_bus.get_pending(tm_index))
 	{
-		_stalled_for_store = false;
-		execute();
-	}
-}
+		const MemoryRequestItem& return_item = mem_higher->return_bus.get_bus_data(tm_index);
+		mem_higher->return_bus.clear_pending(tm_index);
 
-void UnitCoreSimple::execute()
-{
-	if(!executing) return;
-	if(_stalled_for_store) return;
-
-	uint return_index;
-	_return_buffer.rest_arbitrator_round_robin();
-	if((return_index = _return_buffer.get_next_index()) != ~0u)
-	{
-		MemoryRequestItem* return_item = _return_buffer.get_message(return_index);
-		assert(return_item->type == MemoryRequestItem::Type::LOAD_RETURN);
-		assert(return_item->size <= 8);
+		assert(return_item.type == MemoryRequestItem::Type::LOAD_RETURN);
+		assert(return_item.size <= 8);
 		if(memory_access_data.dst_reg_file == 0)
 		{
 			//TODO fix. This is not portable.
 			int_regs->registers[memory_access_data.dst_reg].u64 = 0x0ull;
-			std::memcpy(&int_regs->registers[memory_access_data.dst_reg].u64, &return_item->data[return_item->offset], return_item->size);
+			std::memcpy(&int_regs->registers[memory_access_data.dst_reg].u64, &return_item.data[return_item.offset], return_item.size);
 
-			uint64_t sign_bit = int_regs->registers[memory_access_data.dst_reg].u64 >> (return_item->size * 8 - 1);
+			uint64_t sign_bit = int_regs->registers[memory_access_data.dst_reg].u64 >> (return_item.size * 8 - 1);
 			if(memory_access_data.sign_extend && sign_bit)
-				int_regs->registers[memory_access_data.dst_reg].u64 |= (~0x0ull << (return_item->size * 8 - 1));
+				int_regs->registers[memory_access_data.dst_reg].u64 |= (~0x0ull << (return_item.size * 8 - 1));
 		}
 		else
 		{
-			assert(return_item->size == 4);
-			std::memcpy(&float_regs->registers[memory_access_data.dst_reg].f32, &return_item->data[return_item->offset], return_item->size);
+			assert(return_item.size == 4);
+			std::memcpy(&float_regs->registers[memory_access_data.dst_reg].f32, &return_item.data[return_item.offset], return_item.size);
 		}
+
 		_stalled_for_load = false;
-		_return_buffer.clear(return_index);
 	}
-	if(_stalled_for_load) return;
+
+	if(atomic_inc->return_bus.get_pending(global_index))
+	{
+		const MemoryRequestItem& return_item = atomic_inc->return_bus.get_bus_data(global_index);
+		atomic_inc->return_bus.clear_pending(global_index);
+
+		assert(return_item.type == MemoryRequestItem::Type::LOAD_RETURN);
+		assert(return_item.size <= 8);
+		if(memory_access_data.dst_reg_file == 0)
+		{
+			//TODO fix. This is not portable.
+			int_regs->registers[memory_access_data.dst_reg].u64 = 0x0ull;
+			std::memcpy(&int_regs->registers[memory_access_data.dst_reg].u64, &return_item.data[return_item.offset], return_item.size);
+
+			uint64_t sign_bit = int_regs->registers[memory_access_data.dst_reg].u64 >> (return_item.size * 8 - 1);
+			if(memory_access_data.sign_extend && sign_bit)
+				int_regs->registers[memory_access_data.dst_reg].u64 |= (~0x0ull << (return_item.size * 8 - 1));
+		}
+		else
+		{
+			assert(return_item.size == 4);
+			std::memcpy(&float_regs->registers[memory_access_data.dst_reg].f32, &return_item.data[return_item.offset], return_item.size);
+		}
+
+		_stalled_for_load = false;
+	}
+}
+
+void UnitCoreSimple::clock_fall()
+{
+	if(_stalled_for_store && !main_mem->request_bus.get_pending(global_index)) _stalled_for_store = false;
+
+	if(!executing) return;
+	if(_stalled_for_store || _stalled_for_load) return;
 
 	ISA::RISCV::Instruction instr(reinterpret_cast<uint32_t*>(backing_memory)[pc / 4]);
 	const ISA::RISCV::InstructionInfo instr_info = instr.get_info();
-	const ISA::RISCV::InstructionData instr_data = instr_info.get_data();
 
-	log.log_instruction(instr_data);
-
-#if 0
-	printf("Executing %07I64x: %08x", pc, instr.data);
-	printf(" \t(%s)", instr_data.mnemonic);
-	printf("\n");
-	//for (uint i = 0; i < 32; ++i) printf("Register%d: %llx\n", i, _int_regs.registers[i].u64);
-	//for (uint i = 0; i < 32; ++i) printf("Float Register%d: %f\n", i, _float_regs.registers[i].f32);
+#if 1
+	if(global_index == 0)
+	{
+		printf("Executing %07I64x: %08x", pc, instr.data);
+		printf(" \t(%s)", instr_info.mnemonic);
+		printf("\n");
+		//for (uint i = 0; i < 32; ++i) printf("Register%d: %llx\n", i, _int_regs.registers[i].u64);
+		//for (uint i = 0; i < 32; ++i) printf("Float Register%d: %f\n", i, _float_regs.registers[i].f32);
+	}
 #endif
 
+	log.log_instruction(instr_info);
 	instr_info.execute(this, instr);
 	_int_regs.zero.u64 = 0ull;
 
@@ -87,17 +103,16 @@ void UnitCoreSimple::execute()
 	if(instr.opcode == ISA::RISCV::CUSTOM_OPCODE0)
 	{
 		MemoryRequestItem request_item;
-		request_item.return_buffer_id_stack[request_item.return_buffer_id_stack_size++] = _return_buffer.id;
-
 		request_item.type = MemoryRequestItem::Type::LOAD;
 		request_item.size = memory_access_data.size;
 		request_item.offset = 0;
-
-		output_buffer.push_message(&request_item, _atomic_inc_buffer_id, _atomic_inc_client_id);
+		
+		atomic_inc->request_bus.set_bus_data(request_item, global_index);
+		atomic_inc->request_bus.set_pending(global_index);
 		_stalled_for_load = true;
 	}
 
-	if(instr_data.type == ISA::RISCV::Type::LOAD)
+	if(instr_info.type == ISA::RISCV::Type::LOAD)
 	{
 		paddr_t paddr = memory_access_data.vaddr;
 		if(paddr >= _stack_start)
@@ -121,19 +136,18 @@ void UnitCoreSimple::execute()
 		else
 		{
 			MemoryRequestItem request_item;
-			request_item.return_buffer_id_stack[request_item.return_buffer_id_stack_size++] = _return_buffer.id;
-
 			request_item.type = MemoryRequestItem::Type::LOAD;
 			request_item.size = memory_access_data.size;
 			request_item.offset = static_cast<uint8_t>(paddr & offset_mask);
-			request_item.paddr = paddr - request_item.offset;
+			request_item.line_paddr = paddr - request_item.offset;
 
-			output_buffer.push_message(&request_item, _memory_higher_buffer_id, _client_id);
+			mem_higher->request_bus.set_bus_data(request_item, tm_index);
+			mem_higher->request_bus.set_pending(tm_index);
 			_stalled_for_load = true;
 		}
 	}
 
-	if(instr_data.type == ISA::RISCV::Type::STORE)
+	if(instr_info.type == ISA::RISCV::Type::STORE)
 	{
 		paddr_t paddr = memory_access_data.vaddr;
 		if(paddr >= _stack_start)
@@ -144,15 +158,15 @@ void UnitCoreSimple::execute()
 		else
 		{
 			MemoryRequestItem request_item;
-			request_item.return_buffer_id_stack[request_item.return_buffer_id_stack_size++] = _return_buffer.id;
-
 			request_item.type = MemoryRequestItem::Type::STORE;
 			request_item.size = memory_access_data.size;
 			request_item.offset = static_cast<uint8_t>(memory_access_data.vaddr & offset_mask);
-			request_item.paddr = memory_access_data.vaddr - request_item.offset;
+			request_item.line_paddr = memory_access_data.vaddr - request_item.offset;
 			std::memcpy(&request_item.data[request_item.offset], memory_access_data.store_data_u8, request_item.size);
 
-			output_buffer.push_message(&request_item, _main_mem_buffer_id, _main_mem_client_id);
+			//TODO this
+			main_mem->request_bus.set_bus_data(request_item, global_index);
+			main_mem->request_bus.set_pending(global_index);
 			_stalled_for_store = true;
 		}
 	}

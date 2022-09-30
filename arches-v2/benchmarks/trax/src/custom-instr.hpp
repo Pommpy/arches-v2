@@ -7,7 +7,7 @@
 static std::atomic_uint atomicinc_i;
 #endif
 
-uint32_t atomicinc()
+uint32_t inline atomicinc()
 {
 	#ifdef ARCH_RISCV
 	uint32_t value = 0;

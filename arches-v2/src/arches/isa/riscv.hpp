@@ -138,6 +138,7 @@ enum class RegFile : uint8_t
 {
 	INT,
 	FLOAT,
+	CUSTOM,
 };
 
 class InstructionInfo;
@@ -261,83 +262,66 @@ class Instruction final {
 };
 //static_assert(sizeof(Instruction)==sizeof(uint32_t),"Implementation error!");
 
-struct InstructionData {
-	uint32_t op_code;
-	Type type;
-	Encoding encoding;
-	RegFile dst_reg_file;
-	RegFile src_reg_file;
-	char const* mnemonic;
-};
-
 class InstructionInfo final {
 
-	public:
-		typedef InstructionInfo const&(*FunctionGetSubOp)( Instruction const& );
-		typedef void(*FunctionProcessor)(Instruction const&, InstructionInfo const&, ExecutionBase*);
+public:
+	typedef InstructionInfo const& (*FunctionGetSubOp)(Instruction const&);
+	typedef void(*FunctionProcessor)(Instruction const&, InstructionInfo const&, ExecutionBase*);
 
-	private:
-		FunctionProcessor _impl_fn;
-		bool _is_meta;
-		union {
-			InstructionData _data;
-			struct {
-				uint32_t _func_code;
-				FunctionGetSubOp _resolve_fn;
-			} _meta;
+	union
+	{
+		struct
+		{
+			char const* mnemonic;
+			uint32_t    op_code;
+			Type        type;
+			Encoding    encoding;
+			RegFile     dst_reg_file;
+			RegFile     src_reg_file;
 		};
 
-	public:
-		InstructionInfo(uint32_t opcode, FunctionProcessor impl_fn) :
-			_impl_fn(impl_fn), _is_meta(false), _data({opcode,Type::NA,Encoding::NA,RegFile::INT,RegFile::INT,nullptr})
-		{}
-
-		InstructionInfo(uint32_t opcode, char const* mnemonic, FunctionProcessor impl_fn) :
-			_impl_fn(impl_fn), _is_meta(false), _data({opcode,Type::NA,Encoding::NA,RegFile::INT,RegFile::INT,mnemonic})
-		{}
-
-		InstructionInfo(uint32_t opcode, char const* mnemonic, Type type, Encoding encoding, RegFile reg_file, FunctionProcessor impl_fn) :
-			_impl_fn(impl_fn), _is_meta(false), _data({opcode,type,encoding,reg_file,reg_file,mnemonic})
-		{}
-
-		InstructionInfo(uint32_t opcode, char const* mnemonic, Type type, Encoding encoding, RegFile dst_reg_file, RegFile src_reg_file, FunctionProcessor impl_fn) :
-			_impl_fn(impl_fn), _is_meta(false), _data({opcode,type,encoding,dst_reg_file,src_reg_file,mnemonic})
-		{}
-
-		InstructionInfo(uint32_t func_code, FunctionGetSubOp resolve_fn) :
-			_is_meta(true)
+		struct
 		{
-			_impl_fn = []( Instruction const& instr,InstructionInfo const& instr_info, ExecutionBase* unit ) -> void {
-				InstructionInfo const& sub_instr = instr_info._meta._resolve_fn(instr);
-				sub_instr.execute(unit,instr);
-			};
+			FunctionGetSubOp _resolve_fn;
+			uint32_t         _func_code;
+		} _meta;
+	};
 
-			_meta._func_code = func_code;
-			_meta._resolve_fn = resolve_fn;
-		}
-		~InstructionInfo() = default;
+private:
+	FunctionProcessor _impl_fn;
+	bool              _is_meta;
 
-		const InstructionData get_data() const
-		{
-			//can only be accesed on not meta instr info
-			assert(!_is_meta);
-			return _data;
-		}
+public:
+	InstructionInfo() = default;
+	InstructionInfo(uint32_t opcode, FunctionProcessor impl_fn) : InstructionInfo(opcode, nullptr, Type::NA, Encoding::NA, RegFile::INT, RegFile::INT, impl_fn) {}
+	InstructionInfo(uint32_t opcode, char const* mnemonic, FunctionProcessor impl_fn) : InstructionInfo(opcode, mnemonic, Type::NA, Encoding::NA, RegFile::INT, RegFile::INT, impl_fn) {}
+	InstructionInfo(uint32_t opcode, char const* mnemonic, Type type, Encoding encoding, RegFile reg_file, FunctionProcessor impl_fn) : InstructionInfo(opcode, mnemonic, type, encoding, reg_file, reg_file, impl_fn) {}
+	InstructionInfo(uint32_t opcode, char const* mnemonic, Type type, Encoding encoding, RegFile dst_reg_file, RegFile src_reg_file, FunctionProcessor impl_fn) :
+		_impl_fn(impl_fn), _is_meta(false), op_code(opcode), type(type), encoding(encoding), dst_reg_file(dst_reg_file), src_reg_file(src_reg_file), mnemonic(mnemonic)
+	{
+			
+	}
 
-		const FunctionProcessor get_impl() const
-		{
-			//can only be accesed on not meta instr info
-			assert(!_is_meta);
-			return _impl_fn;
-		}
+	InstructionInfo(uint32_t func_code, FunctionGetSubOp resolve_fn) :
+		_is_meta(true)
+	{
+		_impl_fn = []( Instruction const& instr,InstructionInfo const& instr_info, ExecutionBase* unit ) -> void {
+			InstructionInfo const& sub_instr = instr_info._meta._resolve_fn(instr);
+			sub_instr.execute(unit,instr);
+		};
 
-		const InstructionInfo get_direct_instr_info(Instruction const& instr) const
-		{
-			if (!_is_meta) return *this;
-			else           return _meta._resolve_fn(instr).get_direct_instr_info(instr);
-		}
+		_meta._func_code = func_code;
+		_meta._resolve_fn = resolve_fn;
+	}
+	~InstructionInfo() = default;
 
-		void execute(ExecutionBase* unit, Instruction const& instr) const { _impl_fn( instr,*this, unit ); }
+	const InstructionInfo get_direct_instr_info(Instruction const& instr) const
+	{
+		if (!_is_meta) return *this;
+		else           return _meta._resolve_fn(instr).get_direct_instr_info(instr);
+	}
+
+	void execute(ExecutionBase* unit, Instruction const& instr) const { _impl_fn(instr, *this, unit); }
 };
 
 int64_t get_immediate_I(Instruction instr);

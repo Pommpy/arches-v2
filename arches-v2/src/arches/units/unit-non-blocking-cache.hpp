@@ -8,7 +8,7 @@
 namespace Arches {
 	namespace Units {
 
-		class UnitCache final : public UnitMemoryBase
+		class UnitNonBlockingCache final : public UnitMemoryBase
 		{
 		public:
 			struct Configuration
@@ -82,18 +82,84 @@ namespace Arches {
 				uint64_t valid   : 1;
 			};
 
+			struct MSHR
+			{
+				paddr_t line_paddr{0x0ull};
+				bool valid{false};
+				bool issued{false};
+			};
+
+			//struct LSE
+			//{
+			//	union
+			//	{
+			//		struct
+			//		{
+			//			uint port_index;
+			//			uint8_t dst_reg;
+			//			uint8_t dst_reg_file;
+			//		};
+			//
+			//		uint64_t data;
+			//	};
+			//
+			//	uint mshr_index;
+			//	bool valid;
+			//	MemoryRequestItem::Type type;
+			//	uint8_t size;
+			//	uint8_t offset;
+			//};
+
+			struct LSE
+			{			
+				uint mshr_index;
+				uint16_t port_index;
+				bool valid{false};
+				bool ready{false}; //returned from memory so we can start returning to mem lower
+
+				MemoryRequestItem request;
+			};
+
+		#define NUM_MSHR 4
+		#define NUM_LSE 8
+
 			struct _Bank
 			{
+				MSHR mshrs[NUM_MSHR];
+				LSE  lses [NUM_LSE];
+
 				RoundRobinArbitrator arbitrator;
 
 				MemoryRequestItem request; //current request
 				uint cycles_remaining{0u};
 				uint port_index{~0u};
 				bool active{false};
-				bool block_for_store{false};
-				bool block_for_load{false};
 
 				_Bank(uint num_ports) : arbitrator(num_ports) {}
+
+				uint get_mshr(paddr_t line_paddr)
+				{
+					for(uint i = 0; i < NUM_MSHR; ++i)
+						if(mshrs[i].valid && mshrs[i].line_paddr == line_paddr) 
+							return i;
+					return ~0u;
+				}
+
+				uint get_free_mshr()
+				{
+					for(uint i = 0; i < NUM_MSHR; ++i)
+						if(!mshrs[i].valid)
+							return i;
+					return ~0u;
+				}
+
+				uint get_free_lse()
+				{
+					for(uint i = 0; i < NUM_LSE; ++i)
+						if(!lses[i].valid)
+							return i;
+					return ~0u;
+				}
 			};
 
 			Configuration _configuration;
@@ -119,8 +185,8 @@ namespace Arches {
 			uint _next_bank_requesting_offset{~0u};
 			
 		public:
-			UnitCache(Configuration config, UnitMemoryBase* mem_higher, uint bus_index_start, Simulator* simulator);
-			virtual ~UnitCache();
+			UnitNonBlockingCache(Configuration config, UnitMemoryBase* mem_higher, uint bus_index_start, Simulator* simulator);
+			virtual ~UnitNonBlockingCache();
 			void clock_rise() override;
 			void clock_fall() override;
 

@@ -12,7 +12,8 @@ class UnitMainMemoryBase : public UnitMemoryBase
 public:
 	size_t size_bytes;
 
-	union {
+	union 
+	{
 		uint8_t* _data_u8;
 		uint16_t* _data_u16;
 		uint32_t* _data_u32;
@@ -20,8 +21,8 @@ public:
 	};
 
 public:
-	UnitMainMemoryBase(uint64_t size, Simulator* simulator) : 
-		UnitMemoryBase(nullptr, simulator)
+	UnitMainMemoryBase(uint num_clients, size_t size, Simulator* simulator) :
+		UnitMemoryBase(num_clients, simulator)
 	{
 		size_bytes = size;
 		_data_u64 = _new uint64_t[(size_bytes + 7ull) / 8ull];
@@ -38,7 +39,7 @@ public:
 	}
 
 	void direct_read(void* data, size_t size, paddr_t paddr) const
-	{
+	{ 
 		memcpy(data, _data_u8 + paddr, size);
 	}
 

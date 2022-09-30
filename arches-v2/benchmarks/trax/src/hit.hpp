@@ -5,6 +5,7 @@
 
 struct Hit
 {
-	float t         {T_MAX};
-	rtm::vec3 normal{};
+	float t {T_MAX};
+	rtm::vec2 bc;
+	uint prim_id;
 };

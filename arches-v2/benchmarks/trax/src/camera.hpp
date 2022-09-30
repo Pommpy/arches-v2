@@ -52,7 +52,7 @@ public:
 	uint get_width() {return _width;}
 	uint get_height() {return _height;}
 
-	void generate_ray_through_pixel(uint i, uint j, Ray& ray, RNG& rng)
+	void generate_ray_through_pixel(uint i, uint j, Ray& ray, RNG& rng) const
 	{
 		rtm::vec2 uv = (rtm::vec2(static_cast<float>(i), static_cast<float>(j)) + rtm::vec2(0.5f)) * _inv_size_x2 - rtm::vec2(1.0f);
 		ray.d = rtm::normalize(_x * uv.x + _y * uv.y - _z);

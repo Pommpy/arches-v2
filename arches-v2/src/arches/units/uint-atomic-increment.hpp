@@ -9,34 +9,40 @@ namespace Arches { namespace Units {
 class UnitAtomicIncrement : public UnitMemoryBase
 {
 public:
-	UnitAtomicIncrement(Simulator* simulator) : UnitMemoryBase(nullptr, simulator)
+	UnitAtomicIncrement(uint num_clients, Simulator* simulator) : arbitrator(num_clients), UnitMemoryBase(num_clients, simulator)
 	{
-		output_buffer.resize(1, sizeof(MemoryRequestItem));
-		acknowledge_buffer.resize(1);
 		executing = false;
 	}
 
 	uint32_t counter{0};
+	RoundRobinArbitrator arbitrator;
 
-	void execute() override
+	uint request_index{~0u};
+	MemoryRequestItem request_item;
+
+	void clock_rise() override
 	{
-		_request_buffer.rest_arbitrator_round_robin();
+		for(uint i = 0; i < request_bus.size(); ++i)
+			if(request_bus.get_pending(i)) arbitrator.push_request(i);
 
-		uint request_index;
-		if((request_index = _request_buffer.get_next_index()) != ~0)
+		if((request_index = arbitrator.pop_request()) != ~0)
 		{
-			MemoryRequestItem* request_item = _request_buffer.get_message(request_index);
-			if(request_item->type == MemoryRequestItem::Type::LOAD)
-			{
-				if((counter & 0x0) == 0x0) printf(" Amoin: %d\r", counter);
-				reinterpret_cast<uint32_t*>(request_item->data)[0] = counter++;
-				request_item->type = MemoryRequestItem::Type::LOAD_RETURN;
-				for(uint i = 0; i < request_item->return_buffer_id_stack_size; ++i)
-					output_buffer.push_message(request_item, request_item->return_buffer_id_stack[i], 0);
+			request_item = request_bus.get_bus_data(request_index);
+			assert(request_item.type == MemoryRequestItem::Type::LOAD);
+			request_bus.clear_pending(request_index);
+		}
+	}
 
-				//acknowledge_buffer.push_message(_request_buffer.get_sending_unit(request_index), _request_buffer.id);
-				_request_buffer.clear(request_index);
-			}
+	void clock_fall() override
+	{
+		if(request_index != ~0)
+		{
+			if((counter & 0x00) == 0x0) printf(" Amoin: %d\r", counter);
+			reinterpret_cast<uint32_t*>(request_item.data)[0] = counter++;
+			request_item.type = MemoryRequestItem::Type::LOAD_RETURN;
+
+			return_bus.set_bus_data(request_item, request_index);
+			return_bus.set_pending(request_index);
 		}
 	}
 };

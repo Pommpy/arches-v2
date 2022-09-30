@@ -23,19 +23,17 @@
     <ClInclude Include="src\arches\isa\execution-base.hpp" />
     <ClInclude Include="src\arches\isa\registers.hpp" />
     <ClInclude Include="src\arches\isa\riscv.hpp" />
-    <ClInclude Include="src\arches\simulator\acknowledge-buffer.hpp" />
-    <ClInclude Include="src\arches\simulator\input-buffer.hpp" />
-    <ClInclude Include="src\arches\simulator\output-buffer.hpp" />
     <ClInclude Include="src\arches\simulator\simulator.hpp" />
+    <ClInclude Include="src\arches\units\trax\unit-sfu.hpp" />
+    <ClInclude Include="src\arches\units\trax\unit-tp.hpp" />
     <ClInclude Include="src\arches\units\uint-atomic-increment.hpp" />
     <ClInclude Include="src\arches\units\unit-base.hpp" />
+    <ClInclude Include="src\arches\units\unit-non-blocking-cache.hpp" />
     <ClInclude Include="src\arches\units\unit-cache.hpp" />
     <ClInclude Include="src\arches\units\unit-core-simple.hpp" />
     <ClInclude Include="src\arches\units\unit-dram.hpp" />
-    <ClInclude Include="src\arches\units\unit-execution-base.hpp" />
     <ClInclude Include="src\arches\units\unit-main-memory-base.hpp" />
     <ClInclude Include="src\arches\units\unit-memory-base.hpp" />
-    <ClInclude Include="src\arches\units\unit-sram.hpp" />
     <ClInclude Include="src\arches\units\usimm\configfile.h" />
     <ClInclude Include="src\arches\units\usimm\memory_controller.h" />
     <ClInclude Include="src\arches\units\usimm\params.h" />
@@ -49,19 +47,20 @@
     <ClInclude Include="src\arches\util\endian.hpp" />
     <ClInclude Include="src\arches\util\file.hpp" />
     <ClInclude Include="src\arches\util\math.hpp" />
+    <ClInclude Include="src\arches\util\round-robin-arbitrator.hpp" />
     <ClInclude Include="src\arches\util\stb_image.h" />
     <ClInclude Include="src\arches\util\stb_image_write.h" />
     <ClInclude Include="src\arches\util\string.hpp" />
+    <ClInclude Include="src\riscv\trax\src\ray-tracing-include.hpp" />
     <ClInclude Include="src\stdafx.hpp" />
-    <ClInclude Include="src\trax\software\src\bvh.hpp" />
-    <ClInclude Include="src\trax\software\src\mesh.hpp" />
-    <ClInclude Include="src\trax\software\src\ray-tracing-include.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\arches\isa\registers.cpp" />
     <ClCompile Include="src\arches\isa\riscv.cpp" />
-    <ClCompile Include="src\arches\simulator\output-buffer.cpp" />
     <ClCompile Include="src\arches\simulator\simulator.cpp" />
+    <ClCompile Include="src\arches\units\trax\unit-sfu.cpp" />
+    <ClCompile Include="src\arches\units\trax\unit-tp.cpp" />
+    <ClCompile Include="src\arches\units\unit-non-blocking-cache.cpp" />
     <ClCompile Include="src\arches\units\unit-cache.cpp" />
     <ClCompile Include="src\arches\units\unit-core-simple.cpp" />
     <ClCompile Include="src\arches\units\unit-dram.cpp" />
@@ -175,11 +174,11 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -196,7 +195,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
