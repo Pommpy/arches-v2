@@ -10,7 +10,6 @@ namespace Arches {
 			_data_u8.resize(config.cache_size);
 			_cache_state.resize(config.cache_size / config.line_size);
 			_banks.resize(config.num_banks, config.num_incoming_ports);
-			_port_locked.resize(config.num_incoming_ports);
 
 			_mem_higher = mem_higher;
 			_mem_higher_ports_start_index = mem_higher_bus_start_index;

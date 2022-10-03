@@ -133,7 +133,7 @@ public:
 
 private:
 	void _process_load_return(const MemoryRequestItem& return_item);
-
+	bool _check_dependacies_and_set_valid_bit(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info);
 };
 
 }}}

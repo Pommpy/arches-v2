@@ -17,7 +17,7 @@ public:
 public:
 	UnitSFU(uint latency, uint issue_width, uint num_clients, Simulator* simulator) :
 		UnitBase(simulator), request_bus(num_clients), return_bus(num_clients),
-		_arbitrator(num_clients), issue_width(issue_width), latency(latency)
+		 issue_width(issue_width), latency(latency), _arbitrator(num_clients)
 	{
 		executing = false;
 	}

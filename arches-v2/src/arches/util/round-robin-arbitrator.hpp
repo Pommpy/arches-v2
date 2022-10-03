@@ -3,7 +3,7 @@
 
 
 //todo this is not a good implmnetation
-class alignas(32) RoundRobinArbitrator
+class RoundRobinArbitrator
 {
 private:
 	std::vector<uint8_t> request_mask;

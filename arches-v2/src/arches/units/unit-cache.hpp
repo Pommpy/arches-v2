@@ -108,16 +108,11 @@ namespace Arches {
 			std::vector<uint8_t> _data_u8; //backing data left seperate to reduce stride when updating lru
 
 			std::vector<_Bank> _banks;
-			std::vector<bool> _port_locked;
 			uint _num_incoming_ports;
 
 			UnitMemoryBase* _mem_higher;
 			uint _mem_higher_ports_start_index;
 
-			bool _pending_load_return{false};
-			uint _bank_request_arbitrator_index{0};
-			uint _next_bank_requesting_offset{~0u};
-			
 		public:
 			UnitCache(Configuration config, UnitMemoryBase* mem_higher, uint bus_index_start, Simulator* simulator);
 			virtual ~UnitCache();

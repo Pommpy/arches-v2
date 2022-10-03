@@ -49,9 +49,9 @@ void run_sim_simple()
 
 }
 
-paddr_t aligne_to_cache_line(paddr_t paddr)
+paddr_t aligne_to(size_t alignment, paddr_t paddr)
 {
-	return (paddr + CACHE_LINE_SIZE - 1) & ~(CACHE_LINE_SIZE - 1);
+	return (paddr + alignment - 1) & ~(alignment - 1);
 }
 
 GlobalData initilize_buffers(Units::UnitMainMemoryBase* main_memory, paddr_t& heap_address)
@@ -60,10 +60,10 @@ GlobalData initilize_buffers(Units::UnitMainMemoryBase* main_memory, paddr_t& he
 	BVH  bvh(mesh);
 
 	GlobalData global_data;
-	global_data.framebuffer_width = 1024;
-	global_data.framebuffer_height = 1024;
+	global_data.framebuffer_width = 64;
+	global_data.framebuffer_height = 64;
 	global_data.framebuffer_size = global_data.framebuffer_width * global_data.framebuffer_height;
-	heap_address = aligne_to_cache_line(heap_address);
+	heap_address = aligne_to(4 * 1024, heap_address);
 	global_data.framebuffer = reinterpret_cast<uint32_t*>(heap_address); heap_address += global_data.framebuffer_size * sizeof(uint32_t);
 
 	global_data.tile_width = 32;
@@ -81,11 +81,11 @@ GlobalData initilize_buffers(Units::UnitMainMemoryBase* main_memory, paddr_t& he
 	global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 90.0f, rtm::vec3(-900.6f, 150.8f, 120.74f), rtm::vec3(79.7f, 14.0f, -17.4f));
 	global_data.light_dir = rtm::normalize(rtm::vec3(4.5f, 42.5f, 5.0f));
 
-	heap_address = aligne_to_cache_line(heap_address);
+	heap_address = aligne_to(CACHE_LINE_SIZE, heap_address);
 	main_memory->direct_write(mesh.triangles, mesh.num_triangles * sizeof(Triangle), heap_address);
 	global_data.triangles = reinterpret_cast<Triangle*>(heap_address); heap_address += mesh.num_triangles * sizeof(Triangle);
 
-	heap_address = aligne_to_cache_line(heap_address);
+	heap_address = aligne_to(CACHE_LINE_SIZE, heap_address); heap_address += sizeof(Node);
 	main_memory->direct_write(bvh.nodes, bvh.num_nodes * sizeof(Node), heap_address);
 	global_data.nodes = reinterpret_cast<Node*>(heap_address); heap_address += bvh.num_nodes * sizeof(Node);
 
@@ -105,7 +105,7 @@ void run_sim_trax()
 	uint num_sfus = static_cast<uint>(ISA::RISCV::Type::NUM_TYPES) * num_tms;
 
 	Units::UnitNonBlockingCache::Configuration l1_config;
-	l1_config.associativity = 1;
+	l1_config.associativity = 4;
 	l1_config.bank_stride = 1;
 	l1_config.cache_size = 32 * 1024;
 	l1_config.line_size = CACHE_LINE_SIZE;
@@ -114,7 +114,7 @@ void run_sim_trax()
 	l1_config.penalty = 1;
 
 	Units::UnitCache::Configuration l2_config;
-	l2_config.associativity = 1;
+	l2_config.associativity = 4;
 	l2_config.bank_stride = 1;
 	l2_config.cache_size = 512 * 1024;
 	l2_config.line_size = CACHE_LINE_SIZE;
@@ -198,6 +198,21 @@ void run_sim_trax()
 			}
 		}
 	}
+
+	simulator.register_unit(&mm);
+	simulator.register_unit(&amoin);
+
+	for(auto& l1 : l1s)
+		simulator.register_unit(l1);
+
+	for(auto& l2 : l2s)
+		simulator.register_unit(l2);
+
+	for(auto& tp : tps)
+		simulator.register_unit(tp);
+
+	for(auto& sfu : sfus)
+		simulator.register_unit(sfu);
 
 	{
 		auto start = std::chrono::high_resolution_clock::now();

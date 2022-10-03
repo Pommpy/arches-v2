@@ -27,6 +27,77 @@ void UnitTP::_process_load_return(const MemoryRequestItem& return_item)
 	_write_register(return_item.dst_reg, return_item.dst_reg_file, return_item.size, return_item.sign_extend, &return_item.data[return_item.offset]);
 }
 
+bool UnitTP::_check_dependacies_and_set_valid_bit(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info)
+{
+	bool* dst_valid = (uint8_t)instr_info.dst_reg_file ? float_regs->valid : int_regs->valid;
+	bool* src_valid = (uint8_t)instr_info.src_reg_file ? float_regs->valid : int_regs->valid;
+
+	switch(instr_info.encoding)
+	{
+	case ISA::RISCV::Encoding::R:
+		if(dst_valid[instr.rd] && src_valid[instr.rs1] && src_valid[instr.rs2])
+		{
+			dst_valid[instr.rd] = false;
+			int_regs->valid[0] = true;
+			return true;
+		}
+		return false;
+
+	case ISA::RISCV::Encoding::R4:
+		if(dst_valid[instr.rd] && src_valid[instr.rs1] && src_valid[instr.rs2] && src_valid[instr.rs3])
+		{
+			dst_valid[instr.rd] = false;
+			int_regs->valid[0] = true;
+			return true;
+		}
+		return false;
+
+	case ISA::RISCV::Encoding::I:
+		if(dst_valid[instr.rd] && src_valid[instr.rs1])
+		{
+			dst_valid[instr.rd] = false;
+			int_regs->valid[0] = true;
+			return true;
+		}
+		return false;
+
+	case ISA::RISCV::Encoding::S:
+		if(dst_valid[instr.rs2] && src_valid[instr.rs1])
+		{
+			return true;
+		}
+		return false;
+
+	case ISA::RISCV::Encoding::B:
+		if(src_valid[instr.rs1] && src_valid[instr.rs2])
+		{
+			return true;
+		}
+		return false;
+
+	case ISA::RISCV::Encoding::U:
+		if(dst_valid[instr.rd])
+		{
+			dst_valid[instr.rd] = false;
+			int_regs->valid[0] = true;
+			return true;
+		}
+		return false;
+
+	case ISA::RISCV::Encoding::J:
+		if(dst_valid[instr.rd])
+		{
+			dst_valid[instr.rd] = false;
+			int_regs->valid[0] = true;
+			return true;
+		}
+		return false;
+	}
+
+	return false;
+}
+
+
 void UnitTP::clock_rise()
 {
 	if(mem_higher->return_bus.get_pending(tm_index))

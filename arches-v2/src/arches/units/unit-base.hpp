@@ -9,12 +9,6 @@
 
 namespace Arches { namespace Units {
 
-union Pending
-{
-	__m512i _data_aligner;
-	bool data[64];
-};
-
 #if 0
 template<typename T>
 class BusGroup
@@ -81,50 +75,51 @@ public:
 	}
 };
 #else
+
 template<typename T>
 class BusGroup
 {
-public:
 
 
-	struct BusForward
-	{
-		BusGroup<T>* bus{nullptr};
-		size_t       index{0};
-	};
 
 protected:
-	std::vector<Pending>    pending;
+	union alignas(64) _64Aligned
+	{
+		uint8_t data[64];
+	};
+
+	std::vector<_64Aligned> _p_backing;
 	std::vector<T>          data;
+	volatile uint8_t*       pending;
 
 public:
 	BusGroup(uint size)
 	{
-		pending.resize((size + 63) / 64);
-		for(uint i = 0; i < pending.size(); ++i)
-			for(uint j = 0; j < pending.size(); ++j)
-				pending[i].data[j] = false;
-
 		data.resize(size);
+		_p_backing.resize((size + 63) / 64);
+
+		pending = (volatile uint8_t*)_p_backing[0].data;
+
+		for(uint i = 0; i < size; ++i) pending[i] = 0;
 	}
 	size_t size() const { return data.size(); }
 
-	bool get_pending(size_t index) { return pending.data()->data[index]; }
+	bool get_pending(size_t index) { return pending[index]; }
 	void set_pending(size_t index)
 	{
-		assert(pending.data()->data[index] == false);
-		pending.data()->data[index] = true;
+		assert(pending[index] == 0);
+		pending[index] = 1;
 	}
 	void clear_pending(size_t index)
 	{
-		assert(pending.data()->data[index] == true);
-		pending.data()->data[index] = false;
+		assert(pending[index] == 1);
+		pending[index] = 0;
 	}
 
 	const T& get_bus_data(size_t index) { return data[index]; }
 	void set_bus_data(const T& data, size_t index)
 	{
-		assert(pending.data()->data[index] == false);
+		assert(pending[index] == 0);
 		this->data[index] = data;
 	}
 };
@@ -138,7 +133,7 @@ public:
 
 	UnitBase(Simulator* simulator)
 	{
-		simulator->register_unit(this);
+		//simulator->register_unit(this);
 	}
 
 	virtual void clock_rise() = 0;
