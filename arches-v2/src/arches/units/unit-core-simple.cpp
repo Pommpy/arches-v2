@@ -21,7 +21,7 @@ void UnitCoreSimple::clock_rise()
 {
 	if(mem_higher->return_bus.get_pending(tm_index))
 	{
-		const MemoryRequestItem& return_item = mem_higher->return_bus.get_bus_data(tm_index);
+		const MemoryRequestItem& return_item = mem_higher->return_bus.get_data(tm_index);
 		mem_higher->return_bus.clear_pending(tm_index);
 
 		assert(return_item.type == MemoryRequestItem::Type::LOAD_RETURN);
@@ -30,7 +30,7 @@ void UnitCoreSimple::clock_rise()
 		{
 			//TODO fix. This is not portable.
 			int_regs->registers[memory_access_data.dst_reg].u64 = 0x0ull;
-			std::memcpy(&int_regs->registers[memory_access_data.dst_reg].u64, &return_item.data[return_item.offset], return_item.size);
+			//std::memcpy(&int_regs->registers[memory_access_data.dst_reg].u64, &return_item.data[return_item.offset], return_item.size);
 
 			uint64_t sign_bit = int_regs->registers[memory_access_data.dst_reg].u64 >> (return_item.size * 8 - 1);
 			if(memory_access_data.sign_extend && sign_bit)
@@ -39,7 +39,7 @@ void UnitCoreSimple::clock_rise()
 		else
 		{
 			assert(return_item.size == 4);
-			std::memcpy(&float_regs->registers[memory_access_data.dst_reg].f32, &return_item.data[return_item.offset], return_item.size);
+			//std::memcpy(&float_regs->registers[memory_access_data.dst_reg].f32, &return_item.data[return_item.offset], return_item.size);
 		}
 
 		_stalled_for_load = false;
@@ -47,7 +47,7 @@ void UnitCoreSimple::clock_rise()
 
 	if(atomic_inc->return_bus.get_pending(global_index))
 	{
-		const MemoryRequestItem& return_item = atomic_inc->return_bus.get_bus_data(global_index);
+		const MemoryRequestItem& return_item = atomic_inc->return_bus.get_data(global_index);
 		atomic_inc->return_bus.clear_pending(global_index);
 
 		assert(return_item.type == MemoryRequestItem::Type::LOAD_RETURN);
@@ -56,7 +56,7 @@ void UnitCoreSimple::clock_rise()
 		{
 			//TODO fix. This is not portable.
 			int_regs->registers[memory_access_data.dst_reg].u64 = 0x0ull;
-			std::memcpy(&int_regs->registers[memory_access_data.dst_reg].u64, &return_item.data[return_item.offset], return_item.size);
+			//std::memcpy(&int_regs->registers[memory_access_data.dst_reg].u64, &return_item.data[return_item.offset], return_item.size);
 
 			uint64_t sign_bit = int_regs->registers[memory_access_data.dst_reg].u64 >> (return_item.size * 8 - 1);
 			if(memory_access_data.sign_extend && sign_bit)
@@ -65,7 +65,7 @@ void UnitCoreSimple::clock_rise()
 		else
 		{
 			assert(return_item.size == 4);
-			std::memcpy(&float_regs->registers[memory_access_data.dst_reg].f32, &return_item.data[return_item.offset], return_item.size);
+			//std::memcpy(&float_regs->registers[memory_access_data.dst_reg].f32, &return_item.data[return_item.offset], return_item.size);
 		}
 
 		_stalled_for_load = false;
@@ -107,7 +107,7 @@ void UnitCoreSimple::clock_fall()
 		request_item.size = memory_access_data.size;
 		request_item.offset = 0;
 		
-		atomic_inc->request_bus.set_bus_data(request_item, global_index);
+		atomic_inc->request_bus.set_data(request_item, global_index);
 		atomic_inc->request_bus.set_pending(global_index);
 		_stalled_for_load = true;
 	}
@@ -141,7 +141,7 @@ void UnitCoreSimple::clock_fall()
 			request_item.offset = static_cast<uint8_t>(paddr & offset_mask);
 			request_item.line_paddr = paddr - request_item.offset;
 
-			mem_higher->request_bus.set_bus_data(request_item, tm_index);
+			mem_higher->request_bus.set_data(request_item, tm_index);
 			mem_higher->request_bus.set_pending(tm_index);
 			_stalled_for_load = true;
 		}
@@ -162,10 +162,10 @@ void UnitCoreSimple::clock_fall()
 			request_item.size = memory_access_data.size;
 			request_item.offset = static_cast<uint8_t>(memory_access_data.vaddr & offset_mask);
 			request_item.line_paddr = memory_access_data.vaddr - request_item.offset;
-			std::memcpy(&request_item.data[request_item.offset], memory_access_data.store_data_u8, request_item.size);
+			//std::memcpy(&request_item.data[request_item.offset], memory_access_data.store_data_u8, request_item.size);
 
 			//TODO this
-			main_mem->request_bus.set_bus_data(request_item, global_index);
+			main_mem->request_bus.set_data(request_item, global_index);
 			main_mem->request_bus.set_pending(global_index);
 			_stalled_for_store = true;
 		}

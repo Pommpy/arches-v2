@@ -22,11 +22,23 @@
     <Filter Include="arches\units\trax">
       <UniqueIdentifier>{2595a594-c1b6-4ee3-8d8d-fefecd2ac7db}</UniqueIdentifier>
     </Filter>
-    <Filter Include="riscv">
+    <Filter Include="arches\units\dual-streaming">
+      <UniqueIdentifier>{f14bb3fe-a019-47b2-979a-474edbd44d61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="benchmarks">
       <UniqueIdentifier>{d2aa26f2-4afd-4570-85af-47a9f292bfba}</UniqueIdentifier>
     </Filter>
-    <Filter Include="riscv\trax">
+    <Filter Include="benchmarks\trax">
       <UniqueIdentifier>{c1d491ac-5fc1-4678-b5bf-9eabfeca53e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="benchmarks\trax\src">
+      <UniqueIdentifier>{066a875b-895e-4ffe-af64-e8fa000f827a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="benchmarks\dual-streaming">
+      <UniqueIdentifier>{b6e04cee-a5cb-42c4-bdbc-1a34a8a06f9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="benchmarks\dual-streaming\src">
+      <UniqueIdentifier>{53ae0324-555a-46f2-988b-a2c13270a9ed}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -82,9 +94,6 @@
     <ClInclude Include="src\arches\units\uint-atomic-increment.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\units\unit-cache.hpp">
-      <Filter>arches\units</Filter>
-    </ClInclude>
     <ClInclude Include="src\arches\units\unit-dram.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
@@ -118,17 +127,25 @@
     <ClInclude Include="src\arches\util\round-robin-arbitrator.hpp">
       <Filter>arches\util</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\units\trax\unit-tp.hpp">
+    <ClInclude Include="src\arches\units\trax\unit-trax-tp.hpp">
       <Filter>arches\units\trax</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\units\trax\unit-sfu.hpp">
-      <Filter>arches\units\trax</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\unit-non-blocking-cache.hpp">
+    <ClInclude Include="src\arches\units\unit-cache.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
+    <ClInclude Include="src\trax.hpp" />
     <ClInclude Include="src\riscv\trax\src\ray-tracing-include.hpp">
-      <Filter>riscv\trax</Filter>
+      <Filter>benchmarks\trax\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dual-streaming.hpp" />
+    <ClInclude Include="benchmarks\dual-streaming\src\ray-tracing-include.hpp">
+      <Filter>benchmarks\dual-streaming\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\dual-streaming\unit-ds-tp.hpp">
+      <Filter>arches\units\dual-streaming</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-sfu.hpp">
+      <Filter>arches\units</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -154,9 +171,6 @@
       <Filter>arches\util</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\arches\units\unit-cache.cpp">
-      <Filter>arches\units</Filter>
-    </ClCompile>
     <ClCompile Include="src\arches\util\stbi.cpp">
       <Filter>arches\util</Filter>
     </ClCompile>
@@ -175,14 +189,14 @@
     <ClCompile Include="src\arches\units\unit-core-simple.cpp">
       <Filter>arches\units</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\trax\unit-tp.cpp">
+    <ClCompile Include="src\arches\units\trax\unit-trax-tp.cpp">
       <Filter>arches\units\trax</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\trax\unit-sfu.cpp">
-      <Filter>arches\units\trax</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arches\units\unit-non-blocking-cache.cpp">
+    <ClCompile Include="src\arches\units\unit-cache.cpp">
       <Filter>arches\units</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\units\dual-streaming\unit-ds-tp.cpp">
+      <Filter>arches\units\dual-streaming</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

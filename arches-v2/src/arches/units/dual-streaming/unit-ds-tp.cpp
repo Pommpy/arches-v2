@@ -1,17 +1,16 @@
-#include "unit-tp.hpp"
+#include "unit-ds-tp.hpp"
 
-namespace Arches { namespace Units { namespace TRaX {
+namespace Arches { namespace Units { namespace DualStreaming {
 
 UnitTP::UnitTP(const Configuration& config, Simulator* simulator) :  UnitBase(simulator), ISA::RISCV::ExecutionBase(&_int_regs, &_float_regs)
 {
-	ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE0] = ISA::RISCV::TRaX::traxamoin;
+	ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE0] = ISA::RISCV::DualStreaming::traxamoin;
 
 	atomic_inc = config.atomic_inc;
 	main_mem = config.main_mem;
 	mem_higher = config.mem_higher;
 	sfu_table = config.sfu_table;
 
-	offset_bits = mem_higher->offset_bits;
 	offset_mask = mem_higher->offset_mask;
 
 	global_index = config.global_index;
@@ -24,7 +23,7 @@ void UnitTP::_process_load_return(const MemoryRequestItem& return_item)
 {
 	assert(return_item.type == MemoryRequestItem::Type::LOAD_RETURN);
 	assert(return_item.size <= 8);
-	_write_register(return_item.dst_reg, return_item.dst_reg_file, return_item.size, return_item.sign_extend, &return_item.data[return_item.offset]);
+	_write_register(return_item.dst_reg, return_item.dst_reg_file, return_item.size, return_item.sign_extend, (uint8_t*)&return_item.line_paddr);
 }
 
 bool UnitTP::_check_dependacies_and_set_valid_bit(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info)
@@ -102,13 +101,13 @@ void UnitTP::clock_rise()
 {
 	if(mem_higher->return_bus.get_pending(tm_index))
 	{
-		_process_load_return(mem_higher->return_bus.get_bus_data(tm_index));
+		//_process_load_return(mem_higher->return_bus.get_bus_data(tm_index));
 		mem_higher->return_bus.clear_pending(tm_index);
 	}
 
 	if(atomic_inc->return_bus.get_pending(global_index))
-	{
-		_process_load_return(atomic_inc->return_bus.get_bus_data(global_index));
+	{ 
+		_process_load_return(atomic_inc->return_bus.get_data(global_index));
 		atomic_inc->return_bus.clear_pending(global_index);
 	}
 
@@ -117,7 +116,7 @@ void UnitTP::clock_rise()
 	{
 		if(sfu_table[i] && sfu_table[i]->return_bus.get_pending(tm_index))
 		{
-			UnitSFU::Request return_item = sfu_table[i]->return_bus.get_bus_data(tm_index);
+			UnitSFU::Request return_item = sfu_table[i]->return_bus.get_data(tm_index);
 			sfu_table[i]->return_bus.clear_pending(tm_index);
 
 			if     (return_item.dst_reg_file == 0) int_regs->valid[return_item.dst_reg] = true;
@@ -187,10 +186,10 @@ void UnitTP::clock_fall()
 	if(instr_info.type == ISA::RISCV::Type::LOAD)
 	{
 		paddr_t paddr = memory_access_data.vaddr;
-		if(paddr >= _stack_start)
+		if(paddr >= stack_end)
 		{
-			paddr_t index = paddr - _stack_start;
-			_write_register(memory_access_data.dst_reg, memory_access_data.dst_reg_file, memory_access_data.size, memory_access_data.sign_extend, &_stack[index]);
+			if     (memory_access_data.dst_reg_file == 0)   int_regs->valid[memory_access_data.dst_reg] = true;
+			else if(memory_access_data.dst_reg_file == 1) float_regs->valid[memory_access_data.dst_reg] = true;
 		}
 		else
 		{
@@ -205,7 +204,7 @@ void UnitTP::clock_fall()
 
 			if(request_item.line_paddr > 1 * 1024 * 1024 * 1024) __debugbreak();
 
-			mem_higher->request_bus.set_bus_data(request_item, tm_index);
+			mem_higher->request_bus.set_data(request_item, tm_index);
 			mem_higher->request_bus.set_pending(tm_index);
 			_stalled_for_load_issue = true;
 		}
@@ -213,10 +212,8 @@ void UnitTP::clock_fall()
 	else if(instr_info.type == ISA::RISCV::Type::STORE)
 	{
 		paddr_t paddr = memory_access_data.vaddr;
-		if(paddr >= _stack_start)
+		if(paddr >= stack_end)
 		{
-			paddr_t index = paddr - _stack_start;
-			std::memcpy(&_stack[index], memory_access_data.store_data_u8, memory_access_data.size);
 		}
 		else
 		{
@@ -225,14 +222,14 @@ void UnitTP::clock_fall()
 			request_item.size = memory_access_data.size;
 			request_item.offset = static_cast<uint8_t>(memory_access_data.vaddr & offset_mask);
 			request_item.line_paddr = memory_access_data.vaddr - request_item.offset;
-			std::memcpy(&request_item.data[request_item.offset], memory_access_data.store_data_u8, request_item.size);
+			//std::memcpy(&request_item.data[request_item.offset], memory_access_data.store_data_u8, request_item.size);
 
 		#if 0
 			main_mem->request_bus.set_bus_data(request_item, global_index);
 			main_mem->request_bus.set_pending(global_index);
 			_stalled_for_store_issue = true;
 		#else
-			mem_higher->request_bus.set_bus_data(request_item, tm_index);
+			mem_higher->request_bus.set_data(request_item, tm_index);
 			mem_higher->request_bus.set_pending(tm_index);
 			_stalled_for_load_issue = true;
 		#endif
@@ -250,7 +247,7 @@ void UnitTP::clock_fall()
 		request_item.dst_reg_file = memory_access_data.dst_reg_file;
 		request_item.sign_extend = memory_access_data.sign_extend;
 		
-		atomic_inc->request_bus.set_bus_data(request_item, global_index);
+		atomic_inc->request_bus.set_data(request_item, global_index);
 		atomic_inc->request_bus.set_pending(global_index);
 		_stalled_for_atomic_inc_issue = true;
 	}
@@ -263,7 +260,7 @@ void UnitTP::clock_fall()
 		_last_issue_sfu = sfu_table[static_cast<uint>(instr_info.type)];
 		if(_last_issue_sfu)
 		{
-			_last_issue_sfu->request_bus.set_bus_data(request, tm_index);
+			_last_issue_sfu->request_bus.set_data(request, tm_index);
 			_last_issue_sfu->request_bus.set_pending(tm_index);
 		}
 		else

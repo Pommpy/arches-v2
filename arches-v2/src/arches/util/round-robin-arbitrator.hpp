@@ -7,12 +7,13 @@ class RoundRobinArbitrator
 {
 private:
 	std::vector<uint8_t> request_mask;
-	uint16_t size{0};
-	uint16_t current_index{0};
+	uint size{0};
+	uint current_index{0};
 
 public:
-	RoundRobinArbitrator(uint size) : size(size)
+	RoundRobinArbitrator(uint size)
 	{
+		this->size = size;
 		request_mask.resize((size + 7) / 8);
 	}
 

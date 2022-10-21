@@ -190,6 +190,9 @@ template <typename T> inline static void _prepare_load(ExecutionBase* unit, Inst
 		unit->memory_access_data.sign_extend = std::is_signed_v<T>;
 		unit->memory_access_data.dst_reg_file = static_cast<uint8_t>(RegFile::INT);
 	}
+
+	if(unit->memory_access_data.vaddr < (0ull - (1 * 1024 * 1024))) unit->_write_register(unit->memory_access_data.dst_reg, unit->memory_access_data.dst_reg_file, unit->memory_access_data.size, unit->memory_access_data.sign_extend,
+		&unit->backing_memory[unit->memory_access_data.vaddr]);
 }
 
 
@@ -206,6 +209,8 @@ template <typename T> inline static void _prepare_store(ExecutionBase* unit, Ins
 	{
 		unit->memory_access_data.store_data = unit->int_regs->registers[instr.s.rs2].u64;
 	}
+	
+	if(unit->memory_access_data.vaddr < (0ull - (1 * 1024 * 1024))) std::memcpy(&unit->backing_memory[unit->memory_access_data.vaddr], &unit->memory_access_data.store_data, unit->memory_access_data.size);
 }
 
 

@@ -11,7 +11,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 	class ExecutionBase
 	{
 	public:
-		void*                      backing_memory{nullptr};
+		uint8_t*                   backing_memory{nullptr};
 		IntegerRegisterFile*       int_regs{nullptr};
 		FloatingPointRegisterFile* float_regs{nullptr};
 
@@ -43,7 +43,6 @@ namespace Arches { namespace ISA { namespace RISCV {
 
 		ExecutionBase(IntegerRegisterFile* int_regs, FloatingPointRegisterFile* float_regs) : int_regs(int_regs), float_regs(float_regs) {}
 
-	protected:
 		void _write_register(uint dst_reg, uint dst_reg_file, uint size, bool sign_extend, const uint8_t* data)
 		{
 			if(dst_reg_file == 0)
@@ -58,7 +57,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 					case 2: int_regs->registers[dst_reg].u64 = *((uint16_t*)data); break;
 					case 4: int_regs->registers[dst_reg].u64 = *((uint32_t*)data); break;
 					case 8: int_regs->registers[dst_reg].u64 = *((uint64_t*)data); break;
-					nodefault;
+						nodefault;
 					}
 				}
 				else
@@ -69,7 +68,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 					case 2: int_regs->registers[dst_reg].s64 = *((int16_t*)data); break;
 					case 4: int_regs->registers[dst_reg].s64 = *((int32_t*)data); break;
 					case 8: int_regs->registers[dst_reg].s64 = *((int64_t*)data); break;
-					nodefault;
+						nodefault;
 					}
 				}
 
@@ -83,7 +82,6 @@ namespace Arches { namespace ISA { namespace RISCV {
 			}
 		}
 
-	public:
 		ExecutionBase() {}
 		virtual ~ExecutionBase() = default;
 	};

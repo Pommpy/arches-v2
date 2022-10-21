@@ -55,7 +55,7 @@ bool UnitDRAM::_load(const MemoryRequestItem& request_item, uint request_index)
 
 	_request_map[_next_request_id].request = request_item;
 	_request_map[_next_request_id].request.type = MemoryRequestItem::Type::LOAD_RETURN;
-	std::memcpy(_request_map[_next_request_id].request.data, &_data_u8[line_paddr], CACHE_LINE_SIZE);
+	//std::memcpy(_request_map[_next_request_id].request.data, &_data_u8[line_paddr], CACHE_LINE_SIZE);
 	_request_map[_next_request_id].bus_index = request_index;
 	
 	if (request.retLatencyKnown)
@@ -71,7 +71,7 @@ bool UnitDRAM::_load(const MemoryRequestItem& request_item, uint request_index)
 bool UnitDRAM::_store(const MemoryRequestItem& request_item, uint request_index)
 {
 	paddr_t paddr = request_item.line_paddr;
-	std::memcpy(&_data_u8[request_item.line_paddr + request_item.offset], &request_item.data[request_item.offset], request_item.size);
+	//std::memcpy(&_data_u8[request_item.line_paddr + request_item.offset], &request_item.data[request_item.offset], request_item.size);
 
 	//interface with usimm
 	dram_address_t const dram_addr = calcDramAddr(paddr);
@@ -99,7 +99,7 @@ void UnitDRAM::clock_rise()
 	uint request_index;
 	while((request_index = arbitrator.pop_request()) != ~0)
 	{
-		const MemoryRequestItem& request = request_bus.get_bus_data(request_index);
+		const MemoryRequestItem& request = request_bus.get_data(request_index);
 		if(request.type == MemoryRequestItem::Type::STORE)
 		{
 			if(_store(request, request_index))
@@ -130,7 +130,7 @@ void UnitDRAM::clock_fall()
 		auto it = _request_map.find(request_id);
 		if(it != _request_map.end())
 		{
-			return_bus.set_bus_data(it->second.request, it->second.bus_index);
+			return_bus.set_data(it->second.request, it->second.bus_index);
 			return_bus.set_pending(it->second.bus_index);
 			_request_map.erase(it);
 		}

@@ -27,7 +27,7 @@ public:
 
 		if((request_index = arbitrator.pop_request()) != ~0)
 		{
-			request_item = request_bus.get_bus_data(request_index);
+			request_item = request_bus.get_data(request_index);
 			assert(request_item.type == MemoryRequestItem::Type::LOAD);
 			request_bus.clear_pending(request_index);
 		}
@@ -38,10 +38,10 @@ public:
 		if(request_index != ~0)
 		{
 			if((counter & 0x00) == 0x0) printf(" Amoin: %d\r", counter);
-			reinterpret_cast<uint32_t*>(request_item.data)[0] = counter++;
+			request_item.line_paddr = counter++;
 			request_item.type = MemoryRequestItem::Type::LOAD_RETURN;
 
-			return_bus.set_bus_data(request_item, request_index);
+			return_bus.set_data(request_item, request_index);
 			return_bus.set_pending(request_index);
 		}
 	}
