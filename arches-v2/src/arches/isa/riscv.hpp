@@ -82,7 +82,14 @@ const std::string instr_type_names[NUM_OPCODES] =
 	"FDIV",
 	"FSQRT",
 
-	"CUSTOM",
+	"CUSTOM0",
+	"CUSTOM1",
+	"CUSTOM2",
+	"CUSTOM3",
+	"CUSTOM4",
+	"CUSTOM5",
+	"CUSTOM6",
+	"CUSTOM7",
 };
 
 //TODO make these class enums
@@ -117,7 +124,14 @@ enum class Type : uint8_t
 	FDIV,
 	FSQRT,
 
-	CUSTOM,
+	CUSTOM0,
+	CUSTOM1,
+	CUSTOM2,
+	CUSTOM3,
+	CUSTOM4,
+	CUSTOM5,
+	CUSTOM6,
+	CUSTOM7,
 
 	NUM_TYPES,
 };
@@ -138,7 +152,6 @@ enum class RegFile : uint8_t
 {
 	INT,
 	FLOAT,
-	CUSTOM,
 };
 
 class InstructionInfo;
@@ -325,6 +338,7 @@ public:
 };
 
 int64_t get_immediate_I(Instruction instr);
+int64_t get_immediate_U(Instruction instr);
 
 //RVC
 //extern InstructionInfo const compressed_isa[4]; //TODO this

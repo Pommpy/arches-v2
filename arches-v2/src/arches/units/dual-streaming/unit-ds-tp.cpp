@@ -4,7 +4,9 @@ namespace Arches { namespace Units { namespace DualStreaming {
 
 UnitTP::UnitTP(const Configuration& config, Simulator* simulator) :  UnitBase(simulator), ISA::RISCV::ExecutionBase(&_int_regs, &_float_regs)
 {
-	ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE0] = ISA::RISCV::DualStreaming::traxamoin;
+	ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE0] = ISA::RISCV::DualStreaming::custom0;
+
+	//ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE1] = ISA::RISCV::DualStreaming::custom1;
 
 	atomic_inc = config.atomic_inc;
 	main_mem = config.main_mem;
@@ -77,6 +79,24 @@ bool UnitTP::_check_dependacies_and_set_valid_bit(const ISA::RISCV::Instruction 
 	case ISA::RISCV::Encoding::U:
 		if(dst_valid[instr.rd])
 		{
+			if(instr.opcode == ISA::RISCV::CUSTOM_OPCODE0)
+			{
+				if(instr.u.imm == 1) //boxisect
+				{
+					for(uint i = 3; i < 17; ++i)
+						if(!_float_regs.valid[i]) 
+							return false;
+				}
+				else if(instr.u.imm == 2) //triisect
+				{
+					for(uint i = 0; i < 20; ++i)
+						if(!_float_regs.valid[i])
+							return false;
+
+					//_float_regs.valid[0] = false; //TODO maybe?
+				}
+			}
+
 			dst_valid[instr.rd] = false;
 			int_regs->valid[0] = true;
 			return true;
@@ -235,10 +255,8 @@ void UnitTP::clock_fall()
 		#endif
 		}
 	}
-	else if(instr_info.type == ISA::RISCV::Type::CUSTOM)
+	else if(instr.opcode == ISA::RISCV::CUSTOM_OPCODE0 && instr.u.imm == 0)
 	{
-		assert(instr.opcode == ISA::RISCV::CUSTOM_OPCODE0);
-
 		MemoryRequestItem request_item;
 		request_item.type = MemoryRequestItem::Type::LOAD;
 		request_item.size = memory_access_data.size;
@@ -246,7 +264,7 @@ void UnitTP::clock_fall()
 		request_item.dst_reg = memory_access_data.dst_reg;
 		request_item.dst_reg_file = memory_access_data.dst_reg_file;
 		request_item.sign_extend = memory_access_data.sign_extend;
-		
+
 		atomic_inc->request_bus.set_data(request_item, global_index);
 		atomic_inc->request_bus.set_pending(global_index);
 		_stalled_for_atomic_inc_issue = true;

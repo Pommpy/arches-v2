@@ -46,6 +46,7 @@ struct MemoryRequestItem
 //	uint8_t           data[CACHE_LINE_SIZE];//make sure this is 8 byte aligned
 //};
 
+
 class UnitMemoryBase : public UnitBase
 {
 public:
@@ -57,6 +58,38 @@ public:
 	UnitMemoryBase(uint num_clients, Simulator* simulator) : request_bus(num_clients), return_bus(num_clients), UnitBase(simulator)
  	{
 		
+	}
+};
+
+
+class MemoryUnitMap
+{
+	std::vector<paddr_t>         ranges;
+	std::vector<UnitMemoryBase*> units;
+
+public:
+	void add_unit(paddr_t paddr, UnitMemoryBase* unit)
+	{
+		uint i = 0;
+		for(; i < ranges.size(); ++i)
+			if(paddr < ranges[i]) break;
+
+		ranges.insert(ranges.begin() + i, paddr);
+		units.insert(units.begin() + i, unit);
+	}
+
+	UnitMemoryBase* get_unit(paddr_t paddr)
+	{
+		uint start = 0;
+		uint end = ranges.size();
+		while((start + 1) != end)
+		{
+			uint middle = (start + end) / 2;
+			if(paddr >= ranges[middle]) start = middle;
+			else                        end = middle;
+		}
+
+		return units[start];
 	}
 };
 

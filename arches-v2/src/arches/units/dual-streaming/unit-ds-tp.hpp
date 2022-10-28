@@ -12,18 +12,8 @@
 
 #include "../unit-sfu.hpp"
 
-namespace Arches { namespace ISA { namespace RISCV { namespace DualStreaming {
-
-//TRAXAMOIN
-const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::CUSTOM, Encoding::U, RegFile::INT, IMPL_DECL
-{
-	unit->memory_access_data.dst_reg_file = 0;
-	unit->memory_access_data.dst_reg = instr.i.rd;
-	unit->memory_access_data.sign_extend = false;
-	unit->memory_access_data.size = 4;
-});
-
-}}}}
+#include "../../../../benchmarks/dual-streaming/src/triangle.hpp"
+#include "../../../../benchmarks/dual-streaming/src/aabb.hpp"
 
 namespace Arches { namespace Units { namespace DualStreaming {
 
@@ -115,6 +105,7 @@ public:
 	}log;
 
 	paddr_t stack_end;
+	uint8_t isec_regs[22];
 
 private:
 	ISA::RISCV::IntegerRegisterFile       _int_regs{};
@@ -124,6 +115,21 @@ private:
 	UnitMemoryBase*      mem_higher;
 	UnitMainMemoryBase*  main_mem;
 	UnitSFU**            sfu_table;
+
+	//rayox
+	//rayox
+	//rayox
+	//raymin
+	//raydx
+	//raydx
+	//raydx
+	//
+	//minx
+	//miny
+	//minz
+	//maxx
+	//maxy
+	//maxz
 
 	uint tm_index;
 	uint global_index;
@@ -151,3 +157,140 @@ private:
 };
 
 }}}
+
+namespace Arches { namespace ISA { namespace RISCV { namespace DualStreaming {
+
+const static InstructionInfo isa_custom0[4] =
+{
+	InstructionInfo(0x0, "traxamoin", Type::CUSTOM0, Encoding::U, RegFile::INT, IMPL_DECL
+	{
+		unit->memory_access_data.dst_reg_file = 0;
+		unit->memory_access_data.dst_reg = instr.i.rd;
+		unit->memory_access_data.sign_extend = false;
+		unit->memory_access_data.size = 4;
+	}),
+	InstructionInfo(0x1, "boxisect", Type::CUSTOM1, Encoding::U, RegFile::FLOAT, IMPL_DECL
+	{
+		Register32* fr = unit->float_regs->registers;
+
+		Ray ray;
+		ray.o.x = fr[3].f32;
+		ray.o.y = fr[4].f32;
+		ray.o.z = fr[5].f32;
+		ray.t_min = fr[6].f32;
+		ray.d.x = fr[7].f32;
+		ray.d.y = fr[8].f32;
+		ray.d.z = fr[9].f32;
+		ray.t_max = fr[10].f32;
+
+		AABB aabb;
+		aabb.min.x = fr[11].f32;
+		aabb.min.y = fr[12].f32;
+		aabb.min.z = fr[13].f32;
+		aabb.max.x = fr[14].f32;
+		aabb.max.y = fr[15].f32;
+		aabb.max.z = fr[16].f32;
+
+		unit->float_regs->registers[instr.u.rd].f32 = aabb.intersect(ray, rtm::vec3(1.0f) / ray.d);
+	}),
+	InstructionInfo(0x2, "triisect", Type::CUSTOM2, Encoding::U, RegFile::INT, IMPL_DECL
+	{	
+		Register32* fr = unit->float_regs->registers;
+
+		Hit hit;
+		hit.t =     fr[0].f32;
+		hit.bc[0] = fr[1].f32;
+		hit.bc[1] = fr[2].f32;
+
+		Ray ray;
+		ray.o.x =   fr[3].f32;
+		ray.o.y =   fr[4].f32;
+		ray.o.z =   fr[5].f32;
+		ray.t_min = fr[6].f32;
+		ray.d.x =   fr[7].f32;
+		ray.d.y =   fr[8].f32;
+		ray.d.z =   fr[9].f32;
+		ray.t_max = fr[10].f32;
+
+		Triangle tri;
+		tri.vrts[0].x = fr[11].f32;
+		tri.vrts[0].y = fr[12].f32;
+		tri.vrts[0].z = fr[13].f32;
+		tri.vrts[1].x = fr[14].f32;
+		tri.vrts[1].y = fr[15].f32;
+		tri.vrts[1].z = fr[16].f32;
+		tri.vrts[2].x = fr[17].f32;
+		tri.vrts[2].y = fr[18].f32;
+		tri.vrts[2].z = fr[19].f32;
+
+		unit->int_regs->registers[instr.u.rd].u32 = tri.intersect(ray, hit);
+
+		fr[0].f32 = hit.t;
+		fr[1].f32 = hit.bc[0];
+		fr[2].f32 = hit.bc[1];
+	}),
+};
+
+
+/*
+const static InstructionInfo isa_custom1[6] =
+{
+	InstructionInfo(CUSTOM_OPCODE1, "siarg0", Type::CUSTOM, Encoding::R4, RegFile::FLOAT, RegFile::FLOAT, IMPL_DECL
+	{
+		Units::DualStreaming::UnitTP * tp = reinterpret_cast<Units::DualStreaming::UnitTP*>(unit);
+		uint offset = instr.r4.funct3 * 3 + 4;
+		tp->isec_regs[offset + 0] = instr.r4.rs1;
+		tp->isec_regs[offset + 1] = instr.r4.rs2;
+		tp->isec_regs[offset + 2] = instr.r4.rs3;
+		tp->isec_regs[instr.r4.funct3] = instr.r4.rd;
+	}),
+	InstructionInfo(CUSTOM_OPCODE1, "siarg1", Type::CUSTOM, Encoding::R4, RegFile::FLOAT, RegFile::FLOAT, IMPL_DECL
+	{
+		Units::DualStreaming::UnitTP * tp = reinterpret_cast<Units::DualStreaming::UnitTP*>(unit);
+		uint offset = instr.r4.funct3 * 3 + 4;
+		tp->isec_regs[offset + 0] = instr.r4.rs1;
+		tp->isec_regs[offset + 1] = instr.r4.rs2;
+		tp->isec_regs[offset + 2] = instr.r4.rs3;
+		tp->isec_regs[instr.r4.funct3] = instr.r4.rd;
+	}),
+	InstructionInfo(CUSTOM_OPCODE1, "siarg2", Type::CUSTOM, Encoding::R4, RegFile::FLOAT, RegFile::FLOAT, IMPL_DECL
+	{
+		Units::DualStreaming::UnitTP * tp = reinterpret_cast<Units::DualStreaming::UnitTP*>(unit);
+		uint offset = instr.r4.funct3 * 3 + 4;
+		tp->isec_regs[offset + 0] = instr.r4.rs1;
+		tp->isec_regs[offset + 1] = instr.r4.rs2;
+		tp->isec_regs[offset + 2] = instr.r4.rs3;
+		tp->isec_regs[instr.r4.funct3] = instr.r4.rd;
+	}),
+	InstructionInfo(CUSTOM_OPCODE1, "siarg3", Type::CUSTOM, Encoding::R4, RegFile::INT, RegFile::FLOAT, IMPL_DECL
+	{
+		Units::DualStreaming::UnitTP * tp = reinterpret_cast<Units::DualStreaming::UnitTP*>(unit);
+		uint offset = instr.r4.funct3 * 3 + 4;
+		tp->isec_regs[offset + 0] = instr.r4.rs1;
+		tp->isec_regs[offset + 1] = instr.r4.rs2;
+		tp->isec_regs[offset + 2] = instr.r4.rs3;
+		tp->isec_regs[instr.r4.funct3] = instr.r4.rd;
+	}),
+	InstructionInfo(CUSTOM_OPCODE1, "siarg4", Type::CUSTOM, Encoding::R4, RegFile::INT, RegFile::FLOAT, IMPL_DECL
+	{
+		Units::DualStreaming::UnitTP * tp = reinterpret_cast<Units::DualStreaming::UnitTP*>(unit);
+		uint offset = instr.r4.funct3 * 3 + 4;
+		tp->isec_regs[offset + 0] = instr.r4.rs1;
+		tp->isec_regs[offset + 1] = instr.r4.rs2;
+		tp->isec_regs[offset + 2] = instr.r4.rs3;
+	}),
+	InstructionInfo(CUSTOM_OPCODE1, "siarg5", Type::CUSTOM, Encoding::R4, RegFile::INT, RegFile::FLOAT, IMPL_DECL
+	{
+		Units::DualStreaming::UnitTP * tp = reinterpret_cast<Units::DualStreaming::UnitTP*>(unit);
+		uint offset = instr.r4.funct3 * 3 + 4;
+		tp->isec_regs[offset + 0] = instr.r4.rs1;
+		tp->isec_regs[offset + 1] = instr.r4.rs2;
+		tp->isec_regs[offset + 2] = instr.r4.rs3;
+	}),
+};
+*/
+
+const static InstructionInfo custom0(CUSTOM_OPCODE0, META_DECL{return isa_custom0[instr.u.imm]; });
+//const static InstructionInfo custom1(CUSTOM_OPCODE0, META_DECL{return isa_custom1[instr.r4.funct3];});
+
+}}}}

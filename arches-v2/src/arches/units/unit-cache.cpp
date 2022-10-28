@@ -222,7 +222,7 @@ namespace Arches {
 				else if(--bank.cycles_remaining == 0) //run bank
 				{
 					//check if we have the data
-					assert(_get_offset(bank.request.line_paddr) == 0);
+					assert(_get_offset(bank.current_request.line_paddr) == 0);
 					if(_get_cache_line(bank.current_request.line_paddr))
 					{
 						//if we do have the data return it to pending unit and release bank

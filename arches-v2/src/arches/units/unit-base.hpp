@@ -32,8 +32,8 @@ public:
 
 	~ConnectionGroup()
 	{
-		delete[] (uint8_t*)_pending;
-		delete[] (uint8_t*)_data;
+		delete[] (_64Aligned*)_pending;
+		delete[] (_64Aligned*)_data;
 	}
 	
 	size_t size() const { return _size; }

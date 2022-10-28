@@ -146,26 +146,26 @@ static void run_sim_trax()
 			tp_config.mem_higher = l1;
 			tp_config.sfu_table = sfu_table;
 
-			sfus.push_back(new Units::UnitSFU(2, 8, num_tps_per_tm, &simulator));
+			sfus.push_back(_new Units::UnitSFU(8, 1, 2, num_tps_per_tm, &simulator));
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FADD)] = sfus.back();
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FSUB)] = sfus.back();
 			simulator.register_unit(sfus.back());
 
-			sfus.push_back(new Units::UnitSFU(2, 8, num_tps_per_tm, &simulator));
+			sfus.push_back(_new Units::UnitSFU(8, 1, 2, num_tps_per_tm, &simulator));
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FMUL)] = sfus.back();
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FFUSED_MUL_ADD)] = sfus.back();
 			simulator.register_unit(sfus.back());
 
-			sfus.push_back(new Units::UnitSFU(1, 2, num_tps_per_tm, &simulator));
+			sfus.push_back(_new Units::UnitSFU(2, 1, 1, num_tps_per_tm, &simulator));
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::IMUL)] = sfus.back();
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::IDIV)] = sfus.back();
 			simulator.register_unit(sfus.back());
 
-			sfus.push_back(new Units::UnitSFU(20, 1, num_tps_per_tm, &simulator));
+			sfus.push_back(_new Units::UnitSFU(1, 1, 20, num_tps_per_tm, &simulator));
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FDIV)] = sfus.back();
 			simulator.register_unit(sfus.back());
 
-			sfus.push_back(new Units::UnitSFU(20, 1, num_tps_per_tm, &simulator));
+			sfus.push_back(_new Units::UnitSFU(1, 1, 20, num_tps_per_tm, &simulator));
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FSQRT)] = sfus.back();
 			simulator.register_unit(sfus.back());
 

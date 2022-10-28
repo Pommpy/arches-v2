@@ -13,7 +13,7 @@
 namespace Arches { namespace ISA { namespace RISCV {
 
 //TRAXAMOIN
-const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::CUSTOM, Encoding::U, RegFile::INT, IMPL_DECL
+const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::CUSTOM0, Encoding::U, RegFile::INT, IMPL_DECL
 {
 	unit->memory_access_data.dst_reg_file = 0;
 	unit->memory_access_data.dst_reg = instr.i.rd;

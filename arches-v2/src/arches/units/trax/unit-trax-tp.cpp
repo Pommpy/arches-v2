@@ -235,7 +235,7 @@ void UnitTP::clock_fall()
 		#endif
 		}
 	}
-	else if(instr_info.type == ISA::RISCV::Type::CUSTOM)
+	else if(instr_info.type == ISA::RISCV::Type::CUSTOM0)
 	{
 		assert(instr.opcode == ISA::RISCV::CUSTOM_OPCODE0);
 

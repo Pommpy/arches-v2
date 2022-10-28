@@ -57,7 +57,7 @@ inline static int64_t get_immediate_B(Instruction instr)
 		(instr.b.imm_11 << 11) | (instr.b.imm_10_5 << 5) | (instr.b.imm_4_1 << 1));
 }
 
-inline static int64_t get_immediate_U(Instruction instr)
+int64_t get_immediate_U(Instruction instr)
 {
 	return  sign_extend_32to64(instr.u.imm << 12);
 }
