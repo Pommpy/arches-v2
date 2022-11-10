@@ -18,7 +18,6 @@ namespace Arches {
 				uint associativity{1};
 				uint num_banks{1};
 				uint num_incoming_connections{1};
-				uint bank_stride{1};
 				bool blocking{false};
 				uint penalty{1};
 				uint num_lse{1};

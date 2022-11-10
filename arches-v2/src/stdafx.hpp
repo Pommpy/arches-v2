@@ -172,7 +172,7 @@ typedef  int64_t  int48_t;
 
 static_assert(sizeof(float)==4&&sizeof(double)==8,"Not Implemented!");
 
-#define STACK_SIZE (1024 * 1024u)
+#define STACK_SIZE (1024u * 1024u)
 #define ARCHES_LOGGING
 
 }

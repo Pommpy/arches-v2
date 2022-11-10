@@ -1,12 +1,91 @@
 #include "unit-ds-tp.hpp"
 
+#include "../../../../benchmarks/dual-streaming/src/intersect.hpp"
+
+namespace Arches { namespace ISA { namespace RISCV { namespace DualStreaming {
+
+const static InstructionInfo isa_custom0[4] =
+{
+	InstructionInfo(0x0, "traxamoin", Type::CUSTOM0, Encoding::U, RegFile::INT, IMPL_DECL
+	{
+		unit->memory_access_data.dst_reg_file = 0;
+		unit->memory_access_data.dst_reg = instr.i.rd;
+		unit->memory_access_data.sign_extend = false;
+		unit->memory_access_data.size = 4;
+	}),
+	InstructionInfo(0x1, "boxisect", Type::CUSTOM1, Encoding::U, RegFile::FLOAT, IMPL_DECL
+	{
+		Register32* fr = unit->float_regs->registers;
+
+		rtm::vec3 inv_d;
+
+		Ray ray;
+		ray.o.x = fr[3].f32;
+		ray.o.y = fr[4].f32;
+		ray.o.z = fr[5].f32;
+		ray.t_min = fr[6].f32;
+		inv_d.x = fr[7].f32;
+		inv_d.y = fr[8].f32;
+		inv_d.z = fr[9].f32;
+		ray.t_max = fr[10].f32;
+
+		AABB aabb;
+		aabb.min.x = fr[11].f32;
+		aabb.min.y = fr[12].f32;
+		aabb.min.z = fr[13].f32;
+		aabb.max.x = fr[14].f32;
+		aabb.max.y = fr[15].f32;
+		aabb.max.z = fr[16].f32;
+
+		unit->float_regs->registers[instr.u.rd].f32 = intersect(aabb, ray, inv_d);
+	}),
+	InstructionInfo(0x2, "triisect", Type::CUSTOM2, Encoding::U, RegFile::INT, IMPL_DECL
+	{	
+		Register32* fr = unit->float_regs->registers;
+
+		Hit hit;
+		hit.t =     fr[0].f32;
+		hit.bc[0] = fr[1].f32;
+		hit.bc[1] = fr[2].f32;
+
+		Ray ray;
+		ray.o.x =   fr[3].f32;
+		ray.o.y =   fr[4].f32;
+		ray.o.z =   fr[5].f32;
+		ray.t_min = fr[6].f32;
+		ray.d.x =   fr[7].f32;
+		ray.d.y =   fr[8].f32;
+		ray.d.z =   fr[9].f32;
+		ray.t_max = fr[10].f32;
+
+		Triangle tri;
+		tri.vrts[0].x = fr[11].f32;
+		tri.vrts[0].y = fr[12].f32;
+		tri.vrts[0].z = fr[13].f32;
+		tri.vrts[1].x = fr[14].f32;
+		tri.vrts[1].y = fr[15].f32;
+		tri.vrts[1].z = fr[16].f32;
+		tri.vrts[2].x = fr[17].f32;
+		tri.vrts[2].y = fr[18].f32;
+		tri.vrts[2].z = fr[19].f32;
+
+		unit->int_regs->registers[instr.u.rd].u32 = intersect(tri, ray, hit);
+
+		fr[0].f32 = hit.t;
+		fr[1].f32 = hit.bc[0];
+		fr[2].f32 = hit.bc[1];
+	}),
+};
+
+const static InstructionInfo custom0(CUSTOM_OPCODE0, META_DECL{return isa_custom0[instr.u.imm]; });
+
+}}}}
+
 namespace Arches { namespace Units { namespace DualStreaming {
 
 UnitTP::UnitTP(const Configuration& config, Simulator* simulator) :  UnitBase(simulator), ISA::RISCV::ExecutionBase(&_int_regs, &_float_regs)
 {
 	ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE0] = ISA::RISCV::DualStreaming::custom0;
-
-	//ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE1] = ISA::RISCV::DualStreaming::custom1;
 
 	atomic_inc = config.atomic_inc;
 	main_mem = config.main_mem;
@@ -182,7 +261,7 @@ void UnitTP::clock_fall()
 	//if we don't have the dependecy we have to stall. TODO: we need to handel forwarding from 1 cycle sfus see UnitSFU for why.
 	if(!_check_dependacies_and_set_valid_bit(instr, instr_info)) return; //todo log data dependence stalls
 
-#if 0
+#if 1
 	if(global_index == 0)
 	{
 		printf("Executing %07I64x: %08x", pc, instr.data);
@@ -206,7 +285,7 @@ void UnitTP::clock_fall()
 	if(instr_info.type == ISA::RISCV::Type::LOAD)
 	{
 		paddr_t paddr = memory_access_data.vaddr;
-		if(paddr >= stack_end)
+		if(paddr >= stack_start)
 		{
 			if     (memory_access_data.dst_reg_file == 0)   int_regs->valid[memory_access_data.dst_reg] = true;
 			else if(memory_access_data.dst_reg_file == 1) float_regs->valid[memory_access_data.dst_reg] = true;
@@ -222,8 +301,6 @@ void UnitTP::clock_fall()
 			request_item.dst_reg_file = memory_access_data.dst_reg_file;
 			request_item.sign_extend = memory_access_data.sign_extend;
 
-			if(request_item.line_paddr > 1 * 1024 * 1024 * 1024) __debugbreak();
-
 			mem_higher->request_bus.set_data(request_item, tm_index);
 			mem_higher->request_bus.set_pending(tm_index);
 			_stalled_for_load_issue = true;
@@ -232,7 +309,7 @@ void UnitTP::clock_fall()
 	else if(instr_info.type == ISA::RISCV::Type::STORE)
 	{
 		paddr_t paddr = memory_access_data.vaddr;
-		if(paddr >= stack_end)
+		if(paddr >= stack_start)
 		{
 		}
 		else

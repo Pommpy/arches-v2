@@ -261,19 +261,19 @@ InstructionInfo isa[32] =
 		InstructionInfo(0b01110, META_DECL { return isa_OP_32[instr.r.funct7 & 0b01 | instr.r.funct7 >> 4 & 0b10]; }),//OP-32
 		InstructionInfo(0b01111, IMPL_NOTI),//64b
 
-		InstructionInfo(0b10000, "fmadd", Type::FFUSED_MUL_ADD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
+		InstructionInfo(0b10000, "fmadd", Type::FFMAD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
 		{
 			unit->float_regs->registers[instr.r4.rd].f32 = (unit->float_regs->registers[instr.r4.rs1].f32 * unit->float_regs->registers[instr.r4.rs2].f32) + unit->float_regs->registers[instr.r4.rs3].f32;
 		}),//FMADD
-		InstructionInfo(0b10001, "fmsub", Type::FFUSED_MUL_ADD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
+		InstructionInfo(0b10001, "fmsub", Type::FFMAD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
 		{
 			unit->float_regs->registers[instr.r4.rd].f32 = (unit->float_regs->registers[instr.r4.rs1].f32 * unit->float_regs->registers[instr.r4.rs2].f32) - unit->float_regs->registers[instr.r4.rs3].f32;
 		}),//FMSUB
-		InstructionInfo(0b10010, "fnmsub", Type::FFUSED_MUL_ADD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
+		InstructionInfo(0b10010, "fnmsub", Type::FFMAD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
 		{
 			unit->float_regs->registers[instr.r4.rd].f32 = -(unit->float_regs->registers[instr.r4.rs1].f32 * unit->float_regs->registers[instr.r4.rs2].f32) + unit->float_regs->registers[instr.r4.rs3].f32;
 		}),//FNMSUB
-		InstructionInfo(0b10011, "fnmadd", Type::FFUSED_MUL_ADD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
+		InstructionInfo(0b10011, "fnmadd", Type::FFMAD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
 		{
 			unit->float_regs->registers[instr.r4.rd].f32 = -(unit->float_regs->registers[instr.r4.rs1].f32 * unit->float_regs->registers[instr.r4.rs2].f32) - unit->float_regs->registers[instr.r4.rs3].f32;
 		}),//FNMADD

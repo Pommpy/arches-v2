@@ -73,7 +73,6 @@ static void run_sim_trax()
 
 	Units::UnitCache::Configuration l1_config;
 	l1_config.associativity = 4;
-	l1_config.bank_stride = 1;
 	l1_config.cache_size = 32 * 1024;
 	l1_config.line_size = CACHE_LINE_SIZE;
 	l1_config.num_banks = 8;
@@ -85,7 +84,6 @@ static void run_sim_trax()
 
 	Units::UnitCache::Configuration l2_config;
 	l2_config.associativity = 4;
-	l2_config.bank_stride = 1;
 	l2_config.cache_size = 512 * 1024;
 	l2_config.line_size = CACHE_LINE_SIZE;
 	l2_config.num_banks = 16;
@@ -153,7 +151,7 @@ static void run_sim_trax()
 
 			sfus.push_back(_new Units::UnitSFU(8, 1, 2, num_tps_per_tm, &simulator));
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FMUL)] = sfus.back();
-			sfu_table[static_cast<uint>(ISA::RISCV::Type::FFUSED_MUL_ADD)] = sfus.back();
+			sfu_table[static_cast<uint>(ISA::RISCV::Type::FFMAD)] = sfus.back();
 			simulator.register_unit(sfus.back());
 
 			sfus.push_back(_new Units::UnitSFU(2, 1, 1, num_tps_per_tm, &simulator));

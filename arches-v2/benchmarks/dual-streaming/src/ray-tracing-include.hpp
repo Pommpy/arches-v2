@@ -6,11 +6,7 @@
 #include "sampling.hpp"
 #include "bvh.hpp"
 #include "camera.hpp"
-#include "ray.hpp"
-#include "hit.hpp"
-#include "node.hpp"
 #include "intersect.hpp"
-#include "path.hpp"
 
 #define GLOBAL_DATA_ADDRESS 256ull
 
@@ -36,5 +32,11 @@ struct GlobalData
 	rtm::vec3 light_dir;
 
 	Triangle* triangles;
-	Node*     nodes;
+	Treelet*  treelets;
+	Ray*      ray_buffer;
+	Hit*      hit_buffer;
+
+	Ray*     ray_staging_buffer;
+	Hit*     hit_record_updater;
+	Treelet* scene_buffer;
 };

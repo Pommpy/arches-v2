@@ -24,58 +24,78 @@ static uint32_t encode_pixel(rtm::vec3 in)
 	return out;
 }
 
-void static inline path_tracer()
+void static inline ray_gen()
 {
 	_KERNEL_AGRS;
 	for(uint index = atomicinc(); index < global_data.framebuffer_size; index = atomicinc())
 	{
-		{
-			uint fb_index = index;
-			uint x = index % global_data.framebuffer_width;
-			uint y = index / global_data.framebuffer_width;	
-			RNG rng(fb_index);
+		uint fb_index = index;
+		uint x = index % global_data.framebuffer_width;
+		uint y = index / global_data.framebuffer_width;	
+		RNG rng(fb_index);	
 
-			rtm::vec3 output(0.0f);
-			for(uint i = 0; i < global_data.samples_per_pixel; ++i)
-			{
-				Ray ray; Hit hit;
-				rtm::vec3 attenuation(1.0f), radiance(0.0f);
-				rtm::vec3 normal;
-				for(uint j = 0; j < global_data.max_path_depth; ++j)
-				{
-					if(j == 0) global_data.camera.generate_ray_through_pixel(x, y, ray, rng);
-					else       ray.d = cosine_sample_hemisphere(normal, rng);
+		Ray ray; Hit hit;
+		global_data.camera.generate_ray_through_pixel(x, y, ray, rng);
 
-					if(intersect(global_data.nodes, global_data.triangles, ray, false, hit))
-					{
-						normal = global_data.triangles[hit.prim_id].get_normal();
-
-						attenuation *= rtm::vec3(0.8f);
-						ray.o += ray.d * hit.t;
-						hit.t = T_MAX;
-
-						//directional light
-						float shading = rtm::dot(global_data.light_dir, normal);
-						if(shading > 0.0f)
-						{
-							Ray shadow_ray; Hit shadow_hit;
-							shadow_ray.o = ray.o;
-							shadow_ray.d = global_data.light_dir;
-							if(!intersect(global_data.nodes, global_data.triangles, shadow_ray, true, shadow_hit))
-								radiance += attenuation * rtm::vec3(0.8f, 0.75f, 0.7f) * shading;
-						}
-					}
-					else
-					{
-						radiance += attenuation * rtm::vec3(0.6f, 0.8f, 1.0f);
-						break;
-					}
-				}
-				output += radiance;
-			}
-			global_data.framebuffer[fb_index] = encode_pixel(output * global_data.inverse_samples_per_pixel);
-		}
+		global_data.ray_buffer[index] = ray;
+		global_data.hit_buffer[index] = hit;
 	}
+}
+
+void static inline trace_rays()
+{
+	_KERNEL_AGRS;
+	for(uint index = atomicinc(); index < global_data.framebuffer_size; index = atomicinc())
+	{
+		uint fb_index = index;
+		uint x = index % global_data.framebuffer_width;
+		uint y = index / global_data.framebuffer_width;	
+		RNG rng(fb_index);	
+
+		Ray ray = global_data.ray_buffer[index];
+		Hit hit = global_data.hit_buffer[index];
+		intersect(global_data.treelets, ray, false, hit);
+		global_data.hit_buffer[index] = hit;
+	}
+}
+
+void static inline shade()
+{
+	_KERNEL_AGRS;
+	for(uint index = atomicinc(); index < global_data.framebuffer_size; index = atomicinc())
+	{
+		uint fb_index = index;
+		uint x = index % global_data.framebuffer_width;
+		uint y = index / global_data.framebuffer_width;	
+		RNG rng(fb_index);
+
+		Ray ray = global_data.ray_buffer[index];
+		Hit hit = global_data.hit_buffer[index];
+
+		rtm::vec3 output(0.0f);
+		if(hit.t < ray.t_max)
+		{
+			rtm::vec3 normal = global_data.triangles[hit.prim_id].get_normal();
+			float shading = std::max(rtm::dot(global_data.light_dir, normal), 0.0f);
+			output = rtm::vec3(0.8f * shading);
+		}
+
+		global_data.framebuffer[fb_index] = encode_pixel(output);
+	}
+}
+
+void inline barrier()
+{
+
+}
+
+void static inline path_tracer()
+{
+	ray_gen();
+	barrier();
+	trace_rays();
+	barrier();
+	shade();
 }
 
 #ifdef ARCH_RISCV
@@ -92,6 +112,9 @@ int main()
 {
 	Mesh mesh("./res/sponza.obj");
 	BVH bvh(mesh);
+	TreeletBVH treelet_bvh(bvh, mesh);
+	std::vector<Ray> ray_buffer(global_data.framebuffer_size);
+	std::vector<Hit> hit_buffer(global_data.framebuffer_size);
 
 	global_data.framebuffer_width = 1024;
 	global_data.framebuffer_height = 1024;
@@ -107,14 +130,16 @@ int main()
 
 	global_data.samples_per_pixel = 1;
 	global_data.inverse_samples_per_pixel = 1.0f / global_data.samples_per_pixel;
-	global_data.max_path_depth = 2;
+	global_data.max_path_depth = 1;
 
 	//global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 60.0f, rtm::vec3(0.0f, 0.0f, 2.0f), rtm::vec3(0.0, 0.0, 0.0));
 	global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 90.0f, rtm::vec3(-900.6, 150.8, 120.74), rtm::vec3(79.7, 14.0, -17.4));
 	global_data.light_dir = rtm::normalize(rtm::vec3(4.5, 42.5, 5.0));
 
+	global_data.treelets = treelet_bvh.treelets.data();
 	global_data.triangles = mesh.triangles;
-	global_data.nodes = bvh.nodes;
+	global_data.ray_buffer = ray_buffer.data();
+	global_data.hit_buffer = hit_buffer.data();
 
 	std::vector<std::thread*> threads(std::thread::hardware_concurrency(), nullptr);
 	auto start = std::chrono::high_resolution_clock::now();

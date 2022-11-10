@@ -147,6 +147,18 @@
     <ClInclude Include="src\arches\units\unit-sfu.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
+    <ClInclude Include="src\arches\units\unit-buffer.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="benchmarks\dual-streaming\src\bvh.hpp">
+      <Filter>benchmarks\dual-streaming\src</Filter>
+    </ClInclude>
+    <ClInclude Include="benchmarks\dual-streaming\src\treelet-bvh.hpp">
+      <Filter>benchmarks\dual-streaming\src</Filter>
+    </ClInclude>
+    <ClInclude Include="benchmarks\dual-streaming\src\intersect.hpp">
+      <Filter>benchmarks\dual-streaming\src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\arches\isa\registers.cpp">

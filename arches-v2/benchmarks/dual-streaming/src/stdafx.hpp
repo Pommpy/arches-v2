@@ -22,7 +22,9 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <vector>
+#include <queue>
 #endif
 
 #include <algorithm>

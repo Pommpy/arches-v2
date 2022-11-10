@@ -14,7 +14,7 @@ public:
 
 	union 
 	{
-		uint8_t* _data_u8;
+		uint8_t*  _data_u8;
 		uint16_t* _data_u16;
 		uint32_t* _data_u32;
 		uint64_t* _data_u64;
@@ -25,12 +25,12 @@ public:
 		UnitMemoryBase(num_clients, simulator)
 	{
 		size_bytes = size;
-		_data_u64 = _new uint64_t[(size_bytes + 7ull) / 8ull];
+		_data_u64 = (uint64_t*)malloc(size);
 	}
 
 	virtual ~UnitMainMemoryBase()
 	{
-		delete[] _data_u64;
+		free(_data_u64);
 	}
 
 	void clear()

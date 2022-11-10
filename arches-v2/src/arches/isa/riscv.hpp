@@ -120,7 +120,7 @@ enum class Type : uint8_t
 	FADD,
 	FSUB,
 	FMUL,
-	FFUSED_MUL_ADD,
+	FFMAD,
 	FDIV,
 	FSQRT,
 

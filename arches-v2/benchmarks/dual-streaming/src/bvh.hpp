@@ -2,16 +2,30 @@
 #include "stdafx.hpp"
 
 #include "aabb.hpp"
-#include "triangle.hpp"
 #include "mesh.hpp"
-#include "node.hpp"
+
+struct BVHNode
+{
+	AABB aabb;
+
+	union
+	{
+		uint32_t data;
+		struct
+		{
+			uint32_t is_leaf : 1;
+			uint32_t lst_chld_ofst : 3;
+			uint32_t fst_chld_ind : 28;
+		};
+	};
+};
 
 #ifdef ARCH_X86
 class BVH
 {
 public:
-	Node* nodes{nullptr};
-	size_t num_nodes{0};
+	BVHNode* nodes{nullptr};
+	uint     num_nodes{0};
 
 	//BUILD
 	struct BuildObject
@@ -117,11 +131,11 @@ public:
 			build_event.build_objects[i].index = i;
 		}
 
-		std::vector<Node>_nodes; _nodes.resize(1);
+		std::vector<BVHNode>_nodes; _nodes.resize(1);
 		std::cout << "BVH Cost: " << (_build(build_event, _nodes, 0) + _nodes[0].aabb.get_cost()) << "\n";
 
 		num_nodes = _nodes.size();
-		nodes = new Node[num_nodes];
+		nodes = new BVHNode[num_nodes];
 		for(uint i = 0; i < num_nodes; ++i)
 			nodes[i] = _nodes[i];
 
@@ -141,7 +155,7 @@ public:
 	}
 
 private:
-	float _build(_BuildEvent& build_event, std::vector<Node>& _nodes, uint node_index)
+	float _build(_BuildEvent& build_event, std::vector<BVHNode>& _nodes, uint node_index)
 	{
 		AABB aabb;
 		for(uint i = 0; i < build_event.num_build_objects; ++i)
@@ -203,7 +217,7 @@ private:
 		}
 	}
 
-	float _build_leaf(_BuildEvent& build_event, std::vector<Node>& _nodes, uint node_index)
+	float _build_leaf(_BuildEvent& build_event, std::vector<BVHNode>& _nodes, uint node_index)
 	{
 		assert(build_event.num_build_objects <= 8 && build_event.num_build_objects >= 1);
 

@@ -35,7 +35,7 @@ namespace Arches {
 
 			_set_index_offset = offset_bits;
 			_tag_offset = offset_bits + set_index_bits;
-			_bank_index_offset = log2i(config.bank_stride * config.line_size);
+			_bank_index_offset = log2i(config.line_size); //line stride for now
 		}
 
 		UnitCache::~UnitCache()

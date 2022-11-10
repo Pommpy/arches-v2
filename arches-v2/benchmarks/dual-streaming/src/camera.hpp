@@ -1,7 +1,7 @@
 #pragma once
 #include "stdafx.hpp"
 
-#include "ray-tracing-include.hpp"
+#include "ray.hpp"
 
 class Camera
 {

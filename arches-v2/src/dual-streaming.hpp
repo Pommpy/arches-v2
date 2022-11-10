@@ -16,7 +16,6 @@
 
 namespace Arches
 {
-
 	static paddr_t align_to(size_t alignment, paddr_t paddr)
 	{
 		return (paddr + alignment - 1) & ~(alignment - 1);
@@ -26,10 +25,11 @@ namespace Arches
 	{
 		Mesh mesh("benchmarks/dual-streaming/res/sponza.obj");
 		BVH  bvh(mesh);
+		TreeletBVH treelet_bvh(bvh, mesh);
 
 		GlobalData global_data;
-		global_data.framebuffer_width = 1024;
-		global_data.framebuffer_height = 1024;
+		global_data.framebuffer_width = 64;
+		global_data.framebuffer_height = 64;
 		global_data.framebuffer_size = global_data.framebuffer_width * global_data.framebuffer_height;
 		heap_address = align_to(4 * 1024, heap_address);
 		global_data.framebuffer = reinterpret_cast<uint32_t*>(heap_address); heap_address += global_data.framebuffer_size * sizeof(uint32_t);
@@ -53,9 +53,9 @@ namespace Arches
 		main_memory->direct_write(mesh.triangles, mesh.num_triangles * sizeof(Triangle), heap_address);
 		global_data.triangles = reinterpret_cast<Triangle*>(heap_address); heap_address += mesh.num_triangles * sizeof(Triangle);
 
-		heap_address = align_to(CACHE_LINE_SIZE, heap_address); heap_address += sizeof(Node);
-		main_memory->direct_write(bvh.nodes, bvh.num_nodes * sizeof(Node), heap_address);
-		global_data.nodes = reinterpret_cast<Node*>(heap_address); heap_address += bvh.num_nodes * sizeof(Node);
+		heap_address = align_to(sizeof(Treelet), heap_address); heap_address += sizeof(Treelet);
+		main_memory->direct_write(treelet_bvh.treelets.data(), treelet_bvh.treelets.size() * sizeof(Treelet), heap_address);
+		global_data.treelets = reinterpret_cast<Treelet*>(heap_address); heap_address += treelet_bvh.treelets.size() * sizeof(Treelet);
 
 		main_memory->direct_write(&global_data, sizeof(GlobalData), GLOBAL_DATA_ADDRESS);
 
@@ -64,18 +64,34 @@ namespace Arches
 
 	static void run_sim_dual_streaming()
 	{
-		uint num_tps_per_tm = 32;
-		uint num_tms_per_l2 = 8;
-		uint num_l2 = 4;
+		uint num_tps_per_tm = 16;
+		uint num_tms_per_l2 = 128;
+		uint num_l2 = 1;
 
 		uint num_tps = num_tps_per_tm * num_tms_per_l2 * num_l2;
 		uint num_tms = num_tms_per_l2 * num_l2;
 		uint num_sfus = static_cast<uint>(ISA::RISCV::Type::NUM_TYPES) * num_tms;
 
+		uint stack_size = 1024;
+		uint global_data_size = 64 * 1024;
+		uint binary_size = 64 * 1024;
+		uint ray_stageing_buffer_size = 4 * 1024;
+		uint scene_buffer_size = 4 * 1024 * 1024;
+		uint hit_record_buffer_size = 4 * 1024 * 1024; //TODO how big is this actually?
+
+		size_t mem_size = 8ull * 1024 * 1024 * 1024; //8GB
+
+		size_t dsmm_global_data_start        = 0x0ull;
+		size_t dsmm_binary_start             = dsmm_global_data_start        + global_data_size;
+		size_t dsmm_ray_staging_buffer_start = dsmm_binary_start             + binary_size;
+		size_t dsmm_scene_buffer_start       = dsmm_ray_staging_buffer_start + ray_stageing_buffer_size * num_tms;
+		size_t dsmm_hit_record_start         = dsmm_scene_buffer_start       + scene_buffer_size;
+		size_t dsmm_heap_start               = dsmm_hit_record_start         + hit_record_buffer_size;
+		size_t dsmm_stack_start              = mem_size                      - stack_size * num_tps;
+
 		Units::UnitCache::Configuration l1_config;
 		l1_config.associativity = 1;
-		l1_config.bank_stride = 1;
-		l1_config.cache_size = 32 * 1024;
+		l1_config.cache_size = 16 * 1024;
 		l1_config.line_size = CACHE_LINE_SIZE;
 		l1_config.num_banks = 8;
 		l1_config.num_incoming_connections = num_tps_per_tm;
@@ -86,57 +102,71 @@ namespace Arches
 
 		Units::UnitCache::Configuration l2_config;
 		l2_config.associativity = 1;
-		l2_config.bank_stride = 1;
 		l2_config.cache_size = 512 * 1024;
 		l2_config.line_size = CACHE_LINE_SIZE;
-		l2_config.num_banks = 16;
+		l2_config.num_banks = 32;
 		l2_config.num_incoming_connections = num_tms_per_l2 * l1_config.num_banks;
 		l2_config.penalty = 3;
 		l2_config.blocking = true;
 
 		Simulator simulator;
-		ELF elf("benchmarks/dual-streaming/bin/riscv/path-tracer");
 
-		Units::UnitDRAM mm(l2_config.num_banks * num_l2, 1024ull * 1024ull * 1024ull, &simulator); mm.clear();
-		Units::UnitAtomicIncrement amoin(num_tps_per_tm * num_tms_per_l2 * num_l2, &simulator);
-		paddr_t heap_address = mm.write_elf(elf);
+		Units::UnitDRAM mm(l2_config.num_banks * num_l2, mem_size, &simulator); mm.clear();
+		simulator.register_unit(&mm);
+
+		ELF elf("benchmarks/dual-streaming/bin/riscv/path-tracer");
+		mm.write_elf(elf);
+
+		paddr_t heap_address = dsmm_heap_start;
 		GlobalData global_data = initilize_buffers(&mm, heap_address);
 
-		simulator.register_unit(&mm);
+		Units::UnitAtomicIncrement amoin(num_tps_per_tm * num_tms_per_l2 * num_l2, &simulator);
 		simulator.register_unit(&amoin);
 
-		//std::vector<Units::UnitCoreSimple*> cores;
 		std::vector<Units::DualStreaming::UnitTP*> tps;
 		std::vector<Units::UnitCache*> l1s;
 		std::vector<Units::UnitCache*> l2s;
-
 		std::vector<Units::UnitSFU*> sfus;
+
 		std::vector<std::vector<Units::UnitSFU*>> sfus_tables;
+
+		std::vector<Units::MemoryUnitMap> tp_mem_maps;
+		std::vector<Units::MemoryUnitMap> l1_mem_maps;
 
 		Units::DualStreaming::UnitTP::Configuration tp_config;
 		tp_config.atomic_inc = &amoin;
 		tp_config.main_mem = &mm;
 		tp_config.tm_index = num_tps_per_tm;
 
-		paddr_t stack_start = 1024ull * 1024ull * 1024ull;
+		paddr_t sp = dsmm_stack_start;
 
 		for(uint k = 0; k < num_l2; ++k)
 		{
 			uint l2_mm_ports = k * l2_config.num_banks;
-			Units::UnitCache* l2 = new Units::UnitCache(l2_config, &mm, l2_mm_ports, &simulator);
+			Units::UnitCache* l2 = _new Units::UnitCache(l2_config, &mm, l2_mm_ports, &simulator);
 			l2s.push_back(l2);
+
+			simulator.start_new_unit_group();
+			simulator.register_unit(l2);
 
 			for(uint j = 0; j < num_tms_per_l2; ++j)
 			{
 				simulator.start_new_unit_group();
 
-				if(j == 0) simulator.register_unit(l2s.back());
-
 				uint l1_l2_ports = j * l1_config.num_banks;
-				Units::UnitCache* l1 = new Units::UnitCache(l1_config, l2, l1_l2_ports, &simulator);
+				Units::UnitCache* l1 = _new Units::UnitCache(l1_config, l2, l1_l2_ports, &simulator);
 				l1s.push_back(l1);
 
 				simulator.register_unit(l1);
+
+				tp_mem_maps.emplace_back();
+				tp_mem_maps.back().add_unit(dsmm_global_data_start, l1);
+				tp_mem_maps.back().add_unit(dsmm_binary_start, l1);
+				tp_mem_maps.back().add_unit(dsmm_ray_staging_buffer_start, l1);
+				tp_mem_maps.back().add_unit(dsmm_scene_buffer_start, l1);
+				tp_mem_maps.back().add_unit(dsmm_hit_record_start, l1);
+				tp_mem_maps.back().add_unit(dsmm_heap_start, l1);
+				tp_mem_maps.back().add_unit(dsmm_stack_start, nullptr);
 
 				sfus_tables.emplace_back(static_cast<uint>(ISA::RISCV::Type::NUM_TYPES), nullptr);
 				Units::UnitSFU** sfu_table = sfus_tables.back().data();
@@ -148,9 +178,9 @@ namespace Arches
 				sfu_table[static_cast<uint>(ISA::RISCV::Type::FSUB)] = sfus.back();
 				simulator.register_unit(sfus.back());
 
-				sfus.push_back(_new Units::UnitSFU(8, 1, 2,  num_tps_per_tm, &simulator));
+				sfus.push_back(_new Units::UnitSFU(8, 1, 2, num_tps_per_tm, &simulator));
 				sfu_table[static_cast<uint>(ISA::RISCV::Type::FMUL)] = sfus.back();
-				sfu_table[static_cast<uint>(ISA::RISCV::Type::FFUSED_MUL_ADD)] = sfus.back();
+				sfu_table[static_cast<uint>(ISA::RISCV::Type::FFMAD)] = sfus.back();
 				simulator.register_unit(sfus.back());
 
 				sfus.push_back(_new Units::UnitSFU(2, 1, 1, num_tps_per_tm, &simulator));
@@ -181,8 +211,11 @@ namespace Arches
 
 					Units::DualStreaming::UnitTP* tp = new Units::DualStreaming::UnitTP(tp_config, &simulator);
 					tps.push_back(tp);
-					tp->int_regs->sp.u64 = stack_start; stack_start -= 1024;
-					tp->stack_end = stack_start;
+
+					sp += stack_size;
+					tp->int_regs->sp.u64 = sp;
+
+					tp->stack_start = dsmm_stack_start;
 					tp->pc = elf.elf_header->e_entry.u64;
 					tp->backing_memory = mm._data_u8;
 
@@ -229,5 +262,4 @@ namespace Arches
 		for(auto& l2 : l2s) delete l2;
 		for(auto& sfu : sfus) delete sfu;
 	}
-
 }

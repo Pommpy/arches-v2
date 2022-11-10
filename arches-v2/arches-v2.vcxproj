@@ -19,7 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="benchmarks\dual-streaming\src\bvh.hpp" />
+    <ClInclude Include="benchmarks\dual-streaming\src\intersect.hpp" />
     <ClInclude Include="benchmarks\dual-streaming\src\ray-tracing-include.hpp" />
+    <ClInclude Include="benchmarks\dual-streaming\src\treelet-bvh.hpp" />
     <ClInclude Include="src\arches\isa\errors.hpp" />
     <ClInclude Include="src\arches\isa\execution-base.hpp" />
     <ClInclude Include="src\arches\isa\registers.hpp" />
@@ -29,6 +32,7 @@
     <ClInclude Include="src\arches\units\trax\unit-trax-tp.hpp" />
     <ClInclude Include="src\arches\units\uint-atomic-increment.hpp" />
     <ClInclude Include="src\arches\units\unit-base.hpp" />
+    <ClInclude Include="src\arches\units\unit-buffer.hpp" />
     <ClInclude Include="src\arches\units\unit-cache.hpp" />
     <ClInclude Include="src\arches\units\unit-core-simple.hpp" />
     <ClInclude Include="src\arches\units\unit-dram.hpp" />
