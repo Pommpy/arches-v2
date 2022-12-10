@@ -34,13 +34,6 @@ namespace Arches
 		heap_address = align_to(4 * 1024, heap_address);
 		global_data.framebuffer = reinterpret_cast<uint32_t*>(heap_address); heap_address += global_data.framebuffer_size * sizeof(uint32_t);
 
-		global_data.tile_width = 32;
-		global_data.tile_height = 32;
-		global_data.tile_size = global_data.tile_width * global_data.tile_height;
-		global_data.num_tiles_width = global_data.framebuffer_width / global_data.tile_width;
-		global_data.num_tiles_height = global_data.framebuffer_height / global_data.tile_height;
-		global_data.num_tiles = global_data.num_tiles_width * global_data.num_tiles_height;
-
 		global_data.samples_per_pixel = 1;
 		global_data.inverse_samples_per_pixel = 1.0f / global_data.samples_per_pixel;
 		global_data.max_path_depth = 1;
@@ -79,7 +72,7 @@ namespace Arches
 		uint scene_buffer_size = 4 * 1024 * 1024;
 		uint hit_record_buffer_size = 4 * 1024 * 1024; //TODO how big is this actually?
 
-		size_t mem_size = 8ull * 1024 * 1024 * 1024; //8GB
+		size_t mem_size = 4ull * 1024ull * 1024ull * 1024ull; //4GB
 
 		size_t dsmm_global_data_start        = 0x0ull;
 		size_t dsmm_binary_start             = dsmm_global_data_start        + global_data_size;
@@ -120,7 +113,7 @@ namespace Arches
 		paddr_t heap_address = dsmm_heap_start;
 		GlobalData global_data = initilize_buffers(&mm, heap_address);
 
-		Units::UnitAtomicIncrement amoin(num_tps_per_tm * num_tms_per_l2 * num_l2, &simulator);
+		Units::UnitAtomicRegfile amoin(num_tps_per_tm * num_tms_per_l2 * num_l2, &simulator);
 		simulator.register_unit(&amoin);
 
 		std::vector<Units::DualStreaming::UnitTP*> tps;

@@ -71,7 +71,7 @@ private:
 	ISA::RISCV::IntegerRegisterFile _int_regs{};
 	ISA::RISCV::FloatingPointRegisterFile _float_regs{};
 
-	UnitAtomicIncrement* atomic_inc;
+	UnitAtomicRegfile* atomic_inc;
 	UnitMemoryBase* mem_higher;
 	UnitMainMemoryBase* main_mem;
 
@@ -90,7 +90,7 @@ private:
 public:
 	//this is how you declare the size of output buffer. In this case we want to send one memory request item on any given cycle
 	//also we must register our input buffers in contructor by convention
-	UnitCoreSimple(UnitMemoryBase* mem_higher, UnitMainMemoryBase* main_mem, UnitAtomicIncrement* atomic_inc, uint tm_index, uint chip_index, Simulator* simulator);
+	UnitCoreSimple(UnitMemoryBase* mem_higher, UnitMainMemoryBase* main_mem, UnitAtomicRegfile* atomic_inc, uint tm_index, uint chip_index, Simulator* simulator);
 
 	void clock_rise() override;
 	void clock_fall() override;

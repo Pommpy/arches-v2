@@ -231,14 +231,6 @@ InstructionInfo isa[32] =
 {
 		InstructionInfo(0b00000, META_DECL { return isa_LOAD[instr.i.funct3]; }),//LOAD
 		InstructionInfo(0b00001, META_DECL { return isa_LOAD_FP[instr.i.funct3]; }),//LOAD-FP
-		/*
-		InstructionInfo(0b00010, "traxamoin", TYP::TRAX, ENC::U, RGF::INT, IMPL_DECL
-		{
-			static uint64_t value = 0;
-			//std::cout << "amoin: " << value << "\n";
-			unit->int_regs->registers[instr.u.rd].u64 = value++;
-		}),//TRAXAMOIN,
-		*/
 		InstructionInfo(0b00010, IMPL_NONE),//custom-0
 		InstructionInfo(0b00011, IMPL_NOTI),//MISC-MEM
 		InstructionInfo(0b00100, META_DECL { return isa_OP_IMM[instr.i.funct3]; }),//OP-IMM
@@ -252,7 +244,7 @@ InstructionInfo isa[32] =
 		InstructionInfo(0b01000, META_DECL { return isa_STORE[instr.s.funct3]; }),//STORE
 		InstructionInfo(0b01001, META_DECL { return isa_STORE_FP[instr.r.funct3]; }),//STORE-FP
 		InstructionInfo(0b01010, IMPL_NONE),//custom-1
-		InstructionInfo(0b01011, IMPL_NOTI),//AMO
+		InstructionInfo(0b01011, META_DECL { return isa_AMO[instr.r.funct3 & 0x1]; }),//AMO
 		InstructionInfo(0b01100, META_DECL { return isa_OP[instr.r.funct7 & 0b01 | instr.r.funct7 >> 4 & 0b10]; }),//OP
 		InstructionInfo(0b01101, "lui", Type::MOVE, Encoding::U, RegFile::INT, IMPL_DECL 
 		{
@@ -613,6 +605,50 @@ InstructionInfo const isa_OP_32_MULDIV[8] =
 };
 
 
+
+//RV64A
+InstructionInfo const isa_AMO[2] =
+{
+	InstructionInfo(0b000,	META_DECL { return isa_AMO_W[instr.r.funct5 >> 2]; }),//
+	InstructionInfo(0b001,	META_DECL { return isa_AMO_D[instr.r.funct5 >> 2]; }),//
+};
+
+template <typename T>
+static void prepare_amo(ExecutionBase* unit, Instruction instr)
+{
+	unit->memory_access_data.size = sizeof(T);
+	unit->memory_access_data.dst_reg = instr.r.rd;
+	unit->memory_access_data.dst_reg_file = 0;
+	unit->memory_access_data.sign_extend = std::is_signed(T);
+	unit->memory_access_data.vaddr = instr.rs1;
+	unit->memory_access_data.store_data = unit->int_regs->registers[instr.rs2].u64;
+}
+
+InstructionInfo const isa_AMO_W[8] =
+{
+	InstructionInfo(0b000, "amoadd.w", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{
+
+	}),//AMOADD.W
+	InstructionInfo(0b001, "amoxor.w", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOXOR.W
+	InstructionInfo(0b010, "amoor.w", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOOR.W
+	InstructionInfo(0b011, "amoand.w", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOAND.W
+	InstructionInfo(0b100, "amomin.w", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMIN.W
+	InstructionInfo(0b101, "amomax.w", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMAX.W
+	InstructionInfo(0b110, "amominu.w", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMIN.W
+	InstructionInfo(0b111, "amomaxu.w", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMAX.W
+};
+
+InstructionInfo const isa_AMO_D[8] =
+{
+	InstructionInfo(0b000, "amoadd.d", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOADD.D
+	InstructionInfo(0b001, "amoxor.d", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOXOR.D
+	InstructionInfo(0b010, "amoor.d", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOOR.D
+	InstructionInfo(0b011, "amoand.d", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOAND.D
+	InstructionInfo(0b100, "amomin.d", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMIN.D
+	InstructionInfo(0b101, "amomax.d", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMAX.D
+	InstructionInfo(0b110, "amominu.d", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMIN.D
+	InstructionInfo(0b111, "amomaxu.d", Type::ATOMIC, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMAX.D
+};
 
 
 

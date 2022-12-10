@@ -15,37 +15,33 @@ struct MemoryRequestItem
 		STORE,
 		LOAD,
 		LOAD_RETURN,
+		AMOADD,
 	};
 
 	//meta data 
-	Type             type{Type::STORE};
-	uint8_t          size{0};
-	uint8_t          offset{0};
+	Type    type{Type::STORE};
+	uint8_t size{0};
+	uint8_t offset{0};
 
-	bool             sign_extend{false};
-	uint8_t          dst_reg{0};
-	uint8_t          dst_reg_file{0};
-	
-	paddr_t          line_paddr{0ull};
-	//union
-	//{
-	//	uint8_t  data[CACHE_LINE_SIZE];//make sure this is 8 byte aligned
-	//
-	//	uint16_t _data_u16[CACHE_LINE_SIZE/2];
-	//	uint32_t _data_u32[CACHE_LINE_SIZE/4];
-	//	uint64_t _data_u64[CACHE_LINE_SIZE/8];
-	//
-	//	float    _data_f32[CACHE_LINE_SIZE/4];
-	//	double   _data_f64[CACHE_LINE_SIZE/8];
-	//};
+	bool    sign_extend{false};
+	uint8_t dst_reg{0};
+	uint8_t dst_reg_file{0};
+
+	bool contains_data{false};
+
+	paddr_t line_paddr{0ull};
+
+	union
+	{
+		uint8_t  data_u8;
+		uint16_t data_u16;
+		uint32_t data_u32;
+		uint64_t data_u64;
+		float    data_f32;
+		double   data_f64;
+		void*    data_;
+	};
 };
-
-//struct MemoryReturnItem
-//{
-//	MemoryRequestItem request;
-//	uint8_t           data[CACHE_LINE_SIZE];//make sure this is 8 byte aligned
-//};
-
 
 class UnitMemoryBase : public UnitBase
 {

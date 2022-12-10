@@ -37,7 +37,10 @@ void static inline ray_gen()
 		Ray ray; Hit hit;
 		global_data.camera.generate_ray_through_pixel(x, y, ray, rng);
 
-		global_data.ray_buffer[index] = ray;
+		global_data.ray_write_buffers->treelet = 0;
+		global_data.ray_write_buffers->ray_id = index;
+		global_data.ray_write_buffers->ray = ray;
+
 		global_data.hit_buffer[index] = hit;
 	}
 }
@@ -54,7 +57,7 @@ void static inline trace_rays()
 
 		Ray ray = global_data.ray_buffer[index];
 		Hit hit = global_data.hit_buffer[index];
-		intersect(global_data.treelets, ray, false, hit);
+		intersect(global_data.treelets, ray, hit);
 		global_data.hit_buffer[index] = hit;
 	}
 }
@@ -120,13 +123,6 @@ int main()
 	global_data.framebuffer_height = 1024;
 	global_data.framebuffer_size = global_data.framebuffer_width * global_data.framebuffer_height;
 	global_data.framebuffer = new uint32_t[global_data.framebuffer_size];
-
-	global_data.tile_width = 8;
-	global_data.tile_height = 8;
-	global_data.tile_size = global_data.tile_width * global_data.tile_height;
-	global_data.num_tiles_width = global_data.framebuffer_width / global_data.tile_width;
-	global_data.num_tiles_height = global_data.framebuffer_height / global_data.tile_height;
-	global_data.num_tiles = global_data.num_tiles_width * global_data.num_tiles_height;
 
 	global_data.samples_per_pixel = 1;
 	global_data.inverse_samples_per_pixel = 1.0f / global_data.samples_per_pixel;

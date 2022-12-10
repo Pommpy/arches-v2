@@ -153,16 +153,46 @@ inline bool intersect(const Triangle& tri, const Ray& ray, Hit& hit)
 #endif
 }
 
-bool inline intersect(const Treelet* treelets, const Ray& ray, bool an_hit, Hit& hit)
+bool inline intersect(const Treelet* treelets, const Ray& ray, Hit& hit)
+{
+	uint treelet_stack_size = 1u;  uint treelet_stack[64];
+	treelet_stack[0] = 0;
+
+	bool is_hit = false;
+	while(treelet_stack_size != 0u)
+	{
+		//TODO in dual streaming this comes from the current scene segment we are traversing
+		uint treelet_index = treelet_stack[--treelet_stack_size];
+		is_hit |= intersect_treelet(treelets[treelet_index], ray, hit, treelet_stack, treelet_stack_size);
+	}
+
+	return is_hit;
+}
+
+bool inline intersect_buckets(const RayBucket& ray_staging_buffer, const Treelet* treelets, const Ray* rays, Hit& hit)
+{
+	uint treelet_stack_size = 1u;  uint treelet_stack[64];
+	treelet_stack[0] = 0;	
+
+	bool is_hit = false;
+	while(1)
+	{
+		uint ray_index = ray_staging_buffer.num_rays;
+		if(ray_index = ~0u) break;
+		Ray ray = rays[ray_index];
+		uint treelet_index = ray_staging_buffer.treelet_id;
+
+		//TODO in dual streaming this comes from the current scene segment we are traversing
+		is_hit |= intersect_treelet(treelets[treelet_index], ray, hit, treelet_stack, treelet_stack_size);
+	}
+
+	return is_hit;
+}
+
+bool inline intersect_treelet(const Treelet& treelet, const Ray& ray, Hit& hit, uint* treelet_stack, uint& treelet_stack_size)
 {
 	rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
-
-	struct TreeletStackEntry
-	{
-		float hit_t;
-		uint treelet;
-	};
-
+	
 	struct NodeStackEntry
 	{
 		float hit_t{T_MAX};
@@ -179,92 +209,70 @@ bool inline intersect(const Treelet* treelets, const Ray& ray, bool an_hit, Hit&
 		};
 	};
 
-	uint treelet_stack_index = 0u;  TreeletStackEntry treelet_stack[64];
-	treelet_stack[0].hit_t = ray.t_min;
-	treelet_stack[0].treelet = 0;
+	uint node_stack_index = 0u; NodeStackEntry node_stack[32];
+	node_stack[0].hit_t = ray.t_min;
+	node_stack[0].is_leaf = 0;
+	node_stack[0].is_treelet_leaf = 0;
+	node_stack[0].child_index = 0;
 
 	bool is_hit = false;
-	while(treelet_stack_index != ~0u)
+	while(node_stack_index != ~0u)
 	{
-		//TODO in dual streaming this comes from the current scene segment we are traversing
-		uint treelet_index = treelet_stack[treelet_stack_index].treelet;
+		NodeStackEntry current_entry = node_stack[node_stack_index--];
+		if(current_entry.hit_t >= hit.t) continue;
 
-		uint node_stack_index = 0u; NodeStackEntry node_stack[32];
-		node_stack[0].hit_t = treelet_stack[treelet_stack_index].hit_t;
-		node_stack[0].is_leaf = 0;
-		node_stack[0].is_treelet_leaf = 0;
-		node_stack[0].child_index = 0;
-
-		treelet_stack_index--;
-
-		while(node_stack_index != ~0u)
+	TRAV:
+		if(!current_entry.is_leaf)
 		{
-			NodeStackEntry current_entry = node_stack[node_stack_index--];
-			if(current_entry.hit_t >= hit.t) continue;
-
-		TRAV:
-			if(!current_entry.is_leaf)
+			if(current_entry.is_treelet_leaf)
 			{
-				if(current_entry.is_treelet_leaf)
-				{
-					//TODO on dual streaming we add to ray bucket
-
-					uint j = ++treelet_stack_index;
-					for(; j != 0; --j)
-					{
-						if(treelet_stack[j - 1].hit_t > current_entry.hit_t) break;
-						treelet_stack[j] = treelet_stack[j - 1];
-					}
-
-					treelet_stack[j].hit_t = current_entry.hit_t;
-					treelet_stack[j].treelet = current_entry.child_index;
-				}
-				else
-				{
-					TreeletNode nodes_local[2];
-					nodes_local[0] = ((TreeletNode*)&treelets[treelet_index]._words[current_entry.child_index])[0];
-					nodes_local[1] = ((TreeletNode*)&treelets[treelet_index]._words[current_entry.child_index])[1];
-
-					float hit_ts[2];
-					hit_ts[0] = intersect(nodes_local[0].aabb, ray, inv_d);
-					hit_ts[1] = intersect(nodes_local[1].aabb, ray, inv_d);
-
-					if(hit_ts[0] < hit_ts[1])
-					{
-
-						if(hit_ts[1] < hit.t) node_stack[++node_stack_index] = {hit_ts[1], nodes_local[1].data};
-						if(hit_ts[0] < hit.t)
-						{
-							current_entry = {hit_ts[0], nodes_local[0].data};
-							goto TRAV;
-						}
-					}
-					else
-					{
-						if(hit_ts[0] < hit.t) node_stack[++node_stack_index] = {hit_ts[0], nodes_local[0].data};
-						if(hit_ts[1] < hit.t)
-						{
-							current_entry = {hit_ts[1], nodes_local[1].data};
-							goto TRAV;
-						}
-					}
-				}
+				treelet_stack[treelet_stack_size++] = current_entry.child_index;
 			}
 			else
 			{
-				TreeletTriangle* tris = (TreeletTriangle*)(&treelets[treelet_index]._words[current_entry.child_index]);
-				for(uint i = 0; i <= current_entry.last_tri_offset; ++i)
+				TreeletNode nodes_local[2];
+				nodes_local[0] = ((TreeletNode*)&treelet._words[current_entry.child_index])[0];
+				nodes_local[1] = ((TreeletNode*)&treelet._words[current_entry.child_index])[1];
+
+				float hit_ts[2];
+				hit_ts[0] = intersect(nodes_local[0].aabb, ray, inv_d);
+				hit_ts[1] = intersect(nodes_local[1].aabb, ray, inv_d);
+
+				if(hit_ts[0] < hit_ts[1])
 				{
-					TreeletTriangle tri = tris[i];
-					if(intersect(tri.tri, ray, hit))
+
+					if(hit_ts[1] < hit.t) node_stack[++node_stack_index] = {hit_ts[1], nodes_local[1].data};
+					if(hit_ts[0] < hit.t)
 					{
-						hit.prim_id = tri.id;
-						is_hit |= true;
+						current_entry = {hit_ts[0], nodes_local[0].data};
+						goto TRAV;
+					}
+				}
+				else
+				{
+					if(hit_ts[0] < hit.t) node_stack[++node_stack_index] = {hit_ts[0], nodes_local[0].data};
+					if(hit_ts[1] < hit.t)
+					{
+						current_entry = {hit_ts[1], nodes_local[1].data};
+						goto TRAV;
 					}
 				}
 			}
 		}
+		else
+		{
+			TreeletTriangle* tris = (TreeletTriangle*)(&treelet._words[current_entry.child_index]);
+			for(uint i = 0; i <= current_entry.last_tri_offset; ++i)
+			{
+				TreeletTriangle tri = tris[i];
+				if(intersect(tri.tri, ray, hit))
+				{
+					hit.prim_id = tri.id;
+					is_hit |= true;
+				}
+			}
+		}
 	}
-
+	
 	return is_hit;
 }

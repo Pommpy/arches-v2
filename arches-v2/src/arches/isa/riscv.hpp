@@ -102,6 +102,8 @@ enum class Type : uint8_t
 	STORE,
 	LOAD,
 
+	ATOMIC,
+
 	JUMP,
 	BRANCH,
 
@@ -190,6 +192,17 @@ class Instruction final {
 						uint32_t        : 5;
 						uint32_t fmt    : 2;
 						uint32_t funct5 : 5;
+					};
+					struct
+					{
+						uint32_t    : 7;
+						uint32_t    : 5;
+						uint32_t    : 3;
+						uint32_t    : 5;
+						uint32_t    : 5;
+						uint32_t rl : 1;
+						uint32_t aq : 1;
+						uint32_t    : 5;
 					};
 				}r;
 
@@ -376,7 +389,9 @@ extern InstructionInfo const isa_OP_32_MULDIV[8];
 
 
 //RV64A
-//extern InstructionInfo const isa_AMO[8]; //TODO this
+extern InstructionInfo const isa_AMO[2];
+extern InstructionInfo const isa_AMO_W[8];
+extern InstructionInfo const isa_AMO_D[8];
 
 
 

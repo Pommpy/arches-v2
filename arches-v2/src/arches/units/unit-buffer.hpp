@@ -14,7 +14,6 @@ public:
 		executing = false;
 	}
 
-	uint32_t counter{0};
 	RoundRobinArbitrator arbitrator;
 
 	uint request_index{~0u};

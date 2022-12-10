@@ -171,8 +171,6 @@ bool UnitTP::_check_dependacies_and_set_valid_bit(const ISA::RISCV::Instruction 
 					for(uint i = 0; i < 20; ++i)
 						if(!_float_regs.valid[i])
 							return false;
-
-					//_float_regs.valid[0] = false; //TODO maybe?
 				}
 			}
 

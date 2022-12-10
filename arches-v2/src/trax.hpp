@@ -96,7 +96,7 @@ static void run_sim_trax()
 
 	//Units::UnitSRAM sram(1024ull * 1024ull * 1024ull, &simulator); sram.clear();
 	Units::UnitDRAM mm(l2_config.num_banks * num_l2, 1024ull * 1024ull * 1024ull, &simulator); mm.clear();
-	Units::UnitAtomicIncrement amoin(num_tps_per_tm * num_tms_per_l2 * num_l2, &simulator);
+	Units::UnitAtomicRegfile amoin(num_tps_per_tm * num_tms_per_l2 * num_l2, &simulator);
 	paddr_t heap_address = mm.write_elf(elf);
 	GlobalData global_data = initilize_buffers(&mm, heap_address);
 

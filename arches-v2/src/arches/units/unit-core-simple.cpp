@@ -2,7 +2,7 @@
 
 namespace Arches { namespace Units {
 
-UnitCoreSimple::UnitCoreSimple(UnitMemoryBase* mem_higher, UnitMainMemoryBase* main_mem, UnitAtomicIncrement* atomic_inc, uint tm_index, uint global_index, Simulator* simulator) :
+UnitCoreSimple::UnitCoreSimple(UnitMemoryBase* mem_higher, UnitMainMemoryBase* main_mem, UnitAtomicRegfile* atomic_inc, uint tm_index, uint global_index, Simulator* simulator) :
 	ExecutionBase(&_int_regs, &_float_regs), UnitBase(simulator),
 	mem_higher(mem_higher), main_mem(main_mem), atomic_inc(atomic_inc),
 	tm_index(tm_index), global_index(global_index)

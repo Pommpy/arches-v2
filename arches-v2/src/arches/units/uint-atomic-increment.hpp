@@ -6,15 +6,18 @@
 
 namespace Arches { namespace Units {
 
-class UnitAtomicIncrement : public UnitMemoryBase
+class UnitAtomicRegfile : public UnitMemoryBase
 {
 public:
-	UnitAtomicIncrement(uint num_clients, Simulator* simulator) : arbitrator(num_clients), UnitMemoryBase(num_clients, simulator)
+	uint32_t iregs[32];
+
+	UnitAtomicRegfile(uint num_clients, Simulator* simulator) : arbitrator(num_clients), UnitMemoryBase(num_clients, simulator)
 	{
 		executing = false;
+		for(uint i = 0; i < 32; ++i)
+			iregs[i] = 0;
 	}
 
-	uint32_t counter{0};
 	RoundRobinArbitrator arbitrator;
 
 	uint request_index{~0u};
@@ -28,7 +31,6 @@ public:
 		if((request_index = arbitrator.pop_request()) != ~0)
 		{
 			request_item = request_bus.get_data(request_index);
-			assert(request_item.type == MemoryRequestItem::Type::LOAD);
 			request_bus.clear_pending(request_index);
 		}
 	}
@@ -37,12 +39,32 @@ public:
 	{
 		if(request_index != ~0)
 		{
-			if((counter & 0x00) == 0x0) printf(" Amoin: %d\r", counter);
-			request_item.line_paddr = counter++;
-			request_item.type = MemoryRequestItem::Type::LOAD_RETURN;
+			uint32_t reg_index = request_item.line_paddr >> 2 & 0b1'1111;
 
-			return_bus.set_data(request_item, request_index);
-			return_bus.set_pending(request_index);
+			switch(request_item.type)
+			{
+			case MemoryRequestItem::Type::STORE:
+				iregs[reg_index] = request_item.data_u32;
+				break;
+
+			case MemoryRequestItem::Type::LOAD:
+				request_item.data_u32 = iregs[reg_index];
+				break;
+
+			case MemoryRequestItem::Type::AMOADD:
+				printf(" amoadd: %d\r", iregs[reg_index]);
+				uint tmp = request_item.data_u32;
+				request_item.data_u32 = iregs[reg_index];
+				iregs[reg_index] += tmp;
+				break;
+			}
+
+			if(request_item.type != MemoryRequestItem::Type::STORE)
+			{
+				request_item.type = MemoryRequestItem::Type::LOAD_RETURN;
+				return_bus.set_data(request_item, request_index);
+				return_bus.set_pending(request_index);
+			}
 		}
 	}
 };

@@ -37,7 +37,7 @@ public:
 
 		UnitMainMemoryBase*  main_mem;
 		UnitMemoryBase*      mem_higher;
-		UnitAtomicIncrement* atomic_inc;
+		UnitAtomicRegfile* atomic_inc;
 		UnitSFU**            sfu_table;
 	};
 
@@ -120,7 +120,7 @@ private:
 	ISA::RISCV::IntegerRegisterFile       _int_regs{};
 	ISA::RISCV::FloatingPointRegisterFile _float_regs{};
 
-	UnitAtomicIncrement* atomic_inc;
+	UnitAtomicRegfile* atomic_inc;
 	UnitMemoryBase*      mem_higher;
 	UnitMainMemoryBase*  main_mem;
 	UnitSFU**            sfu_table;
