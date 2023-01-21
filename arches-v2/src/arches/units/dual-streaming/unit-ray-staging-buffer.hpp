@@ -19,7 +19,7 @@ public:
 	RoundRobinArbitrator arbitrator;
 
 	uint request_index{~0u};
-	MemoryRequestItem request_item;
+	MemoryRequest request_item;
 
 	uint store_index{~0u};
 	uint stores{0};
@@ -47,7 +47,7 @@ public:
 			request_item = request_bus.get_data(request_index);
 			request_bus.clear_pending(request_index);
 
-			if(request_item.type == MemoryRequestItem::Type::STORE)
+			if(request_item.type == MemoryRequest::Type::STORE)
 			{
 				stores++;
 				if(stores == 1) store_index = request_index;
@@ -60,13 +60,13 @@ public:
 	{
 		if(request_index != ~0)
 		{
-			if(request_item.type == MemoryRequestItem::Type::LOAD)
+			if(request_item.type == MemoryRequest::Type::LOAD)
 			{
-				request_item.type = MemoryRequestItem::Type::LOAD_RETURN;
+				request_item.type = MemoryRequest::Type::LOAD_RETURN;
 				return_bus.set_data(request_item, request_index);
 				return_bus.set_pending(request_index);
 			}
-			else if(request_item.type == MemoryRequestItem::Type::STORE) //ray write
+			else if(request_item.type == MemoryRequest::Type::STORE) //ray write
 			{
 				uint offset = request_item.line_paddr & 0xfff / 4;
 				assert(offset < 9);

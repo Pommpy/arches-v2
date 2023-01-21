@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="benchmarks\describo\src\mesh.hpp" />
+    <ClInclude Include="benchmarks\describo\src\ray-tracing-include.hpp" />
     <ClInclude Include="benchmarks\dual-streaming\src\bvh.hpp" />
     <ClInclude Include="benchmarks\dual-streaming\src\intersect.hpp" />
     <ClInclude Include="benchmarks\dual-streaming\src\ray-tracing-include.hpp" />
@@ -28,20 +30,19 @@
     <ClInclude Include="src\arches\isa\registers.hpp" />
     <ClInclude Include="src\arches\isa\riscv.hpp" />
     <ClInclude Include="src\arches\simulator\simulator.hpp" />
-    <ClInclude Include="src\arches\units\dual-streaming\unit-ds-tp.hpp" />
     <ClInclude Include="src\arches\units\dual-streaming\unit-ray-staging-buffer.hpp" />
     <ClInclude Include="src\arches\units\dual-streaming\unit-scene-buffer.hpp" />
     <ClInclude Include="src\arches\units\dual-streaming\unit-stream-scheduler.hpp" />
-    <ClInclude Include="src\arches\units\trax\unit-trax-tp.hpp" />
     <ClInclude Include="src\arches\units\uint-atomic-increment.hpp" />
+    <ClInclude Include="src\arches\units\uint-tile-scheduler.hpp" />
     <ClInclude Include="src\arches\units\unit-base.hpp" />
     <ClInclude Include="src\arches\units\unit-buffer.hpp" />
     <ClInclude Include="src\arches\units\unit-cache.hpp" />
-    <ClInclude Include="src\arches\units\unit-core-simple.hpp" />
     <ClInclude Include="src\arches\units\unit-dram.hpp" />
     <ClInclude Include="src\arches\units\unit-main-memory-base.hpp" />
     <ClInclude Include="src\arches\units\unit-memory-base.hpp" />
     <ClInclude Include="src\arches\units\unit-sfu.hpp" />
+    <ClInclude Include="src\arches\units\unit-tp.hpp" />
     <ClInclude Include="src\arches\units\usimm\configfile.h" />
     <ClInclude Include="src\arches\units\usimm\memory_controller.h" />
     <ClInclude Include="src\arches\units\usimm\params.h" />
@@ -59,6 +60,7 @@
     <ClInclude Include="src\arches\util\stb_image.h" />
     <ClInclude Include="src\arches\util\stb_image_write.h" />
     <ClInclude Include="src\arches\util\string.hpp" />
+    <ClInclude Include="src\describo.hpp" />
     <ClInclude Include="src\dual-streaming.hpp" />
     <ClInclude Include="src\riscv\trax\src\ray-tracing-include.hpp" />
     <ClInclude Include="src\stdafx.hpp" />
@@ -68,11 +70,9 @@
     <ClCompile Include="src\arches\isa\registers.cpp" />
     <ClCompile Include="src\arches\isa\riscv.cpp" />
     <ClCompile Include="src\arches\simulator\simulator.cpp" />
-    <ClCompile Include="src\arches\units\dual-streaming\unit-ds-tp.cpp" />
-    <ClCompile Include="src\arches\units\trax\unit-trax-tp.cpp" />
     <ClCompile Include="src\arches\units\unit-cache.cpp" />
-    <ClCompile Include="src\arches\units\unit-core-simple.cpp" />
     <ClCompile Include="src\arches\units\unit-dram.cpp" />
+    <ClCompile Include="src\arches\units\unit-tp.cpp" />
     <ClCompile Include="src\arches\units\usimm\memory_controller.cc" />
     <ClCompile Include="src\arches\units\usimm\scheduler.cc" />
     <ClCompile Include="src\arches\units\usimm\usimm.cc" />

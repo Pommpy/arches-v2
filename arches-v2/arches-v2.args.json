@@ -1,0 +1,42 @@
+{
+  "FileVersion": 2,
+  "Id": "1d54ac3c-405d-4f2d-8996-b409e163aa4c",
+  "Items": [
+    {
+      "Id": "cee46157-b33f-4727-9404-8b6c1572e46e",
+      "Command": "./benchmarks/describo/bin/riscv/ray-caster"
+    },
+    {
+      "Id": "95d58f19-cab5-4d97-bb28-bbfa174bba4f",
+      "Command": "./benchmarks/describo/res/cloth.obj"
+    },
+    {
+      "Id": "eb5acb70-9008-4729-9edd-20440e05105d",
+      "Command": "0.0"
+    },
+    {
+      "Id": "f88183c2-2d81-4cee-9dc6-222379538b4d",
+      "Command": "0.0"
+    },
+    {
+      "Id": "f3f9366f-44ad-439f-b11e-086e2241eb5a",
+      "Command": "6.0"
+    },
+    {
+      "Id": "9305f175-1094-41ce-8170-3f5731f1af2b",
+      "Command": "0"
+    },
+    {
+      "Id": "6da684ca-3dfe-4e8b-ad6f-7bc3cce4985f",
+      "Command": "./test.prof"
+    },
+    {
+      "Id": "26f0babf-f4ac-4f7c-8d39-747478c4200f",
+      "Command": "./test.png"
+    },
+    {
+      "Id": "ee1ba9e5-cf18-44ec-ae1a-051a57127377",
+      "Command": "> ./out.log"
+    }
+  ]
+}

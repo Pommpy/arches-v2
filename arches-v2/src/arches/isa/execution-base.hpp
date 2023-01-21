@@ -6,7 +6,16 @@
 
 #include "registers.hpp"
 
+#include "../units/unit-memory-base.hpp"
+
 namespace Arches { namespace ISA { namespace RISCV {
+
+	struct RegAddr
+	{
+		uint8_t reg : 5;
+		uint8_t reg_file : 2;
+		uint8_t sign_ext : 1;
+	};
 
 	class ExecutionBase
 	{
@@ -20,43 +29,30 @@ namespace Arches { namespace ISA { namespace RISCV {
 
 		struct
 		{
-			Arches::vaddr_t vaddr{0};
+			paddr_t vaddr;
+			Units::MemoryRequest::Type type;
+			RegAddr dst;
+			uint8_t size;
 
-			union
-			{
-				struct
-				{
-					uint8_t dst_reg;
-					uint8_t dst_reg_file;
-					bool    sign_extend;
-				};
-				union
-				{
-					uint64_t store_data;
-					uint8_t  store_data_u8[8];
-				};
-			};
-
-			uint8_t size{0};
-		}
-		memory_access_data;	
+			uint8_t store_data[CACHE_LINE_SIZE];
+		}mem_req;
 
 		ExecutionBase(IntegerRegisterFile* int_regs, FloatingPointRegisterFile* float_regs) : int_regs(int_regs), float_regs(float_regs) {}
 
-		void _write_register(uint dst_reg, uint dst_reg_file, uint size, bool sign_extend, const uint8_t* data)
+		void _write_register(RegAddr dst, uint8_t size, const uint8_t* data)
 		{
-			if(dst_reg_file == 0)
+			if(dst.reg_file == 0)
 			{
 				//TODO fix. This is not portable.
 				//int_regs->registers[dst_reg].u64 = 0x0ull;
-				if(!sign_extend)
+				if(!dst.sign_ext)
 				{
 					switch(size)
 					{
-					case 1: int_regs->registers[dst_reg].u64 = *((uint8_t*)data); break;
-					case 2: int_regs->registers[dst_reg].u64 = *((uint16_t*)data); break;
-					case 4: int_regs->registers[dst_reg].u64 = *((uint32_t*)data); break;
-					case 8: int_regs->registers[dst_reg].u64 = *((uint64_t*)data); break;
+					case 1: int_regs->registers[dst.reg].u64 = *((uint8_t*)data); break;
+					case 2: int_regs->registers[dst.reg].u64 = *((uint16_t*)data); break;
+					case 4: int_regs->registers[dst.reg].u64 = *((uint32_t*)data); break;
+					case 8: int_regs->registers[dst.reg].u64 = *((uint64_t*)data); break;
 						nodefault;
 					}
 				}
@@ -64,21 +60,18 @@ namespace Arches { namespace ISA { namespace RISCV {
 				{
 					switch(size)
 					{
-					case 1: int_regs->registers[dst_reg].s64 = *((int8_t*)data); break;
-					case 2: int_regs->registers[dst_reg].s64 = *((int16_t*)data); break;
-					case 4: int_regs->registers[dst_reg].s64 = *((int32_t*)data); break;
-					case 8: int_regs->registers[dst_reg].s64 = *((int64_t*)data); break;
+					case 1: int_regs->registers[dst.reg].s64 = *((int8_t*)data); break;
+					case 2: int_regs->registers[dst.reg].s64 = *((int16_t*)data); break;
+					case 4: int_regs->registers[dst.reg].s64 = *((int32_t*)data); break;
+					case 8: int_regs->registers[dst.reg].s64 = *((int64_t*)data); break;
 						nodefault;
 					}
 				}
-
-				int_regs->valid[dst_reg] = true;
 			}
-			else if(dst_reg_file == 1)
+			else if(dst.reg_file == 1)
 			{
 				assert(size == 4);
-				float_regs->registers[dst_reg].f32 = *((float*)data);
-				float_regs->valid[dst_reg] = true;
+				float_regs->registers[dst.reg].f32 = *((float*)data);
 			}
 		}
 

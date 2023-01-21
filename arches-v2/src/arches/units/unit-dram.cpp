@@ -7,7 +7,7 @@ namespace Arches { namespace Units {
 UnitDRAM::UnitDRAM(uint num_clients, uint64_t size, Simulator* simulator) : 
 	UnitMainMemoryBase(num_clients, size, simulator), arbitrator(num_clients)
 {
-	char* usimm_config_file = (char*)REL_PATH_BIN_TO_SAMPLES"gddr5_amd_map1_128col_8ch.cfg";
+	char* usimm_config_file = (char*)REL_PATH_BIN_TO_SAMPLES"gddr5.cfg";
 	char* usimm_vi_file = (char*)REL_PATH_BIN_TO_SAMPLES"1Gb_x16_amd2GHz.vi";
 
 	if (usimm_setup(usimm_config_file, usimm_vi_file) < 0) assert(false); //usimm faild to initilize
@@ -29,21 +29,25 @@ void UnitDRAM::print_usimm_stats(uint32_t const L2_line_size,
 	printUsimmStats(L2_line_size, word_size, cycle_count);
 }
 
-void UnitDRAM::UsimmNotifyEvent(paddr_t const address, cycles_t write_cycle, uint32_t request_id)
+float UnitDRAM::total_power_in_watts()
 {
-	assert((write_cycle - _current_cycle) >= 0);
-	_request_return_queue.emplace(request_id, write_cycle);
+	return getUsimmPower() / 1000.0f;
 }
 
-bool UnitDRAM::_load(const MemoryRequestItem& request_item, uint request_index)
+void UnitDRAM::UsimmNotifyEvent(paddr_t const address, cycles_t write_cycle, uint32_t request_id)
 {
-	paddr_t line_paddr = request_item.line_paddr;
 
+	_request_return_queue.emplace(request_id, write_cycle);
+	assert((write_cycle - _current_cycle) >= 0);
+}
+
+bool UnitDRAM::_load(const MemoryRequest& request_item, uint request_index)
+{
 	//iterface with usimm
-	dram_address_t const dram_addr = calcDramAddr(line_paddr);
+	dram_address_t const dram_addr = calcDramAddr(request_item.paddr);
 
 	arches_request_t req;
-	req.arches_addr = line_paddr;
+	req.arches_addr = request_item.paddr;
 	req.listener = this;
 	req.id = _next_request_id;
 
@@ -54,7 +58,7 @@ bool UnitDRAM::_load(const MemoryRequestItem& request_item, uint request_index)
 	assert(request.retType == reqInsertRet_tt::RRT_WRITE_QUEUE || request.retType == reqInsertRet_tt::RRT_READ_QUEUE);
 
 	_request_map[_next_request_id].request = request_item;
-	_request_map[_next_request_id].request.type = MemoryRequestItem::Type::LOAD_RETURN;
+	_request_map[_next_request_id].request.type = MemoryRequest::Type::LOAD_RETURN;
 	//std::memcpy(_request_map[_next_request_id].request.data, &_data_u8[line_paddr], CACHE_LINE_SIZE);
 	_request_map[_next_request_id].bus_index = request_index;
 	
@@ -64,20 +68,19 @@ bool UnitDRAM::_load(const MemoryRequestItem& request_item, uint request_index)
 		_request_return_queue.emplace(req.id, request.completionTime / DRAM_CLOCK_MULTIPLIER);
 	}
 
+	//printf("Load(%d): %lld(%d, %d, %d, %lld, %d)\n", req.id, request_item.paddr, dram_addr.channel, dram_addr.rank, dram_addr.bank, dram_addr.row, dram_addr.column);
+
 	_next_request_id++;
 	return true;
 }
 
-bool UnitDRAM::_store(const MemoryRequestItem& request_item, uint request_index)
+bool UnitDRAM::_store(const MemoryRequest& request_item, uint request_index)
 {
-	paddr_t paddr = request_item.line_paddr;
-	//std::memcpy(&_data_u8[request_item.line_paddr + request_item.offset], &request_item.data[request_item.offset], request_item.size);
-
 	//interface with usimm
-	dram_address_t const dram_addr = calcDramAddr(paddr);
+	dram_address_t const dram_addr = calcDramAddr(request_item.paddr);
 
 	arches_request_t req;
-	req.arches_addr = paddr;
+	req.arches_addr = request_item.paddr;
 	req.listener = this;
 	req.id = _next_request_id;
 
@@ -86,6 +89,8 @@ bool UnitDRAM::_store(const MemoryRequestItem& request_item, uint request_index)
 
 	assert(!request.retLatencyKnown);
 	assert(request.retType == reqInsertRet_tt::RRT_WRITE_QUEUE);
+
+	//printf("Store(%d): %lld(%d, %d, %d, %lld, %d)\n", req.id, request_item.paddr, dram_addr.channel, dram_addr.rank, dram_addr.bank, dram_addr.row, dram_addr.column);
 
 	_next_request_id++;
 	return true;
@@ -99,14 +104,14 @@ void UnitDRAM::clock_rise()
 	uint request_index;
 	while((request_index = arbitrator.pop_request()) != ~0)
 	{
-		const MemoryRequestItem& request = request_bus.get_data(request_index);
-		if(request.type == MemoryRequestItem::Type::STORE)
+		const MemoryRequest& request = request_bus.get_data(request_index);
+		if(request.type == MemoryRequest::Type::STORE)
 		{
 			if(_store(request, request_index))
 				request_bus.clear_pending(request_index);
 			else break;
 		}
-		else if(request.type == MemoryRequestItem::Type::LOAD)
+		else if(request.type == MemoryRequest::Type::LOAD)
 		{
 			if(_load(request, request_index))
 				request_bus.clear_pending(request_index);
@@ -122,21 +127,18 @@ void UnitDRAM::clock_fall()
 
 	++_current_cycle;
 
-	while(!_request_return_queue.empty() && _request_return_queue.top().return_cycle <= _current_cycle)
+	if(!_request_return_queue.empty() && _current_cycle >= (_request_return_queue.top().return_cycle))
 	{
 		uint request_id = _request_return_queue.top().request_id;
-		_request_return_queue.pop();
-
 		auto it = _request_map.find(request_id);
-		if(it != _request_map.end())
+		assert(it != _request_map.end());
+
+		if(!return_bus.get_pending(it->second.bus_index))
 		{
 			return_bus.set_data(it->second.request, it->second.bus_index);
 			return_bus.set_pending(it->second.bus_index);
+			_request_return_queue.pop();
 			_request_map.erase(it);
-		}
-		else
-		{
-			printf("DRAM error couldn't find request_id: %d\n", request_id);
 		}
 	}
 

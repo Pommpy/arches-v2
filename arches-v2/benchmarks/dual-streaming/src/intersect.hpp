@@ -153,46 +153,10 @@ inline bool intersect(const Triangle& tri, const Ray& ray, Hit& hit)
 #endif
 }
 
-bool inline intersect(const Treelet* treelets, const Ray& ray, Hit& hit)
-{
-	uint treelet_stack_size = 1u;  uint treelet_stack[64];
-	treelet_stack[0] = 0;
-
-	bool is_hit = false;
-	while(treelet_stack_size != 0u)
-	{
-		//TODO in dual streaming this comes from the current scene segment we are traversing
-		uint treelet_index = treelet_stack[--treelet_stack_size];
-		is_hit |= intersect_treelet(treelets[treelet_index], ray, hit, treelet_stack, treelet_stack_size);
-	}
-
-	return is_hit;
-}
-
-bool inline intersect_buckets(const RayBucket& ray_staging_buffer, const Treelet* treelets, const Ray* rays, Hit& hit)
-{
-	uint treelet_stack_size = 1u;  uint treelet_stack[64];
-	treelet_stack[0] = 0;	
-
-	bool is_hit = false;
-	while(1)
-	{
-		uint ray_index = ray_staging_buffer.num_rays;
-		if(ray_index = ~0u) break;
-		Ray ray = rays[ray_index];
-		uint treelet_index = ray_staging_buffer.treelet_id;
-
-		//TODO in dual streaming this comes from the current scene segment we are traversing
-		is_hit |= intersect_treelet(treelets[treelet_index], ray, hit, treelet_stack, treelet_stack_size);
-	}
-
-	return is_hit;
-}
-
 bool inline intersect_treelet(const Treelet& treelet, const Ray& ray, Hit& hit, uint* treelet_stack, uint& treelet_stack_size)
 {
 	rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
-	
+
 	struct NodeStackEntry
 	{
 		float hit_t{T_MAX};
@@ -201,10 +165,10 @@ bool inline intersect_treelet(const Treelet& treelet, const Ray& ray, Hit& hit, 
 			uint32_t data;
 			struct
 			{
-				uint32_t is_leaf         : 1;
+				uint32_t is_leaf : 1;
 				uint32_t is_treelet_leaf : 1;
 				uint32_t last_tri_offset : 3;
-				uint32_t child_index     : 27;
+				uint32_t child_index : 27;
 			};
 		};
 	};
@@ -273,6 +237,43 @@ bool inline intersect_treelet(const Treelet& treelet, const Ray& ray, Hit& hit, 
 			}
 		}
 	}
-	
+
 	return is_hit;
 }
+
+bool inline intersect(const Treelet* treelets, const Ray& ray, Hit& hit)
+{
+	uint treelet_stack_size = 1u;  uint treelet_stack[64];
+	treelet_stack[0] = 0;
+
+	bool is_hit = false;
+	while(treelet_stack_size != 0u)
+	{
+		//TODO in dual streaming this comes from the current scene segment we are traversing
+		uint treelet_index = treelet_stack[--treelet_stack_size];
+		is_hit |= intersect_treelet(treelets[treelet_index], ray, hit, treelet_stack, treelet_stack_size);
+	}
+
+	return is_hit;
+}
+
+bool inline intersect_buckets(const RayBucket& ray_staging_buffer, const Treelet* treelets, const Ray* rays, Hit& hit)
+{
+	uint treelet_stack_size = 1u;  uint treelet_stack[64];
+	treelet_stack[0] = 0;	
+
+	bool is_hit = false;
+	while(1)
+	{
+		uint ray_index = ray_staging_buffer.num_rays;
+		if(ray_index = ~0u) break;
+		Ray ray = rays[ray_index];
+		uint treelet_index = ray_staging_buffer.treelet_id;
+
+		//TODO in dual streaming this comes from the current scene segment we are traversing
+		is_hit |= intersect_treelet(treelets[treelet_index], ray, hit, treelet_stack, treelet_stack_size);
+	}
+
+	return is_hit;
+}
+

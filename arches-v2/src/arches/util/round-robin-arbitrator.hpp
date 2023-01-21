@@ -24,6 +24,13 @@ public:
 		request_mask[mask_index] |= mask;
 	}
 
+	bool empty()
+	{
+		for(auto& a : request_mask)
+			if(a) return false;
+		return true;
+	}
+
 	uint pop_request()
 	{
 		uint index = current_index;

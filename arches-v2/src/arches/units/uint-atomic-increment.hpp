@@ -21,7 +21,7 @@ public:
 	RoundRobinArbitrator arbitrator;
 
 	uint request_index{~0u};
-	MemoryRequestItem request_item;
+	MemoryRequest request_item;
 
 	void clock_rise() override
 	{
@@ -39,29 +39,29 @@ public:
 	{
 		if(request_index != ~0)
 		{
-			uint32_t reg_index = request_item.line_paddr >> 2 & 0b1'1111;
+			uint32_t reg_index = (request_item.paddr >> 2) & 0b1'1111;
 
 			switch(request_item.type)
 			{
-			case MemoryRequestItem::Type::STORE:
+			case MemoryRequest::Type::STORE:
 				iregs[reg_index] = request_item.data_u32;
 				break;
 
-			case MemoryRequestItem::Type::LOAD:
+			case MemoryRequest::Type::LOAD:
 				request_item.data_u32 = iregs[reg_index];
 				break;
 
-			case MemoryRequestItem::Type::AMOADD:
-				printf(" amoadd: %d\r", iregs[reg_index]);
+			case MemoryRequest::Type::AMO_ADD:
+				//printf(" amoadd: %d\r", iregs[reg_index]);
 				uint tmp = request_item.data_u32;
 				request_item.data_u32 = iregs[reg_index];
 				iregs[reg_index] += tmp;
 				break;
 			}
 
-			if(request_item.type != MemoryRequestItem::Type::STORE)
+			if(request_item.type != MemoryRequest::Type::STORE)
 			{
-				request_item.type = MemoryRequestItem::Type::LOAD_RETURN;
+				request_item.type = MemoryRequest::Type::LOAD_RETURN;
 				return_bus.set_data(request_item, request_index);
 				return_bus.set_pending(request_index);
 			}

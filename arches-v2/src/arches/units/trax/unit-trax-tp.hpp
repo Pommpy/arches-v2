@@ -12,19 +12,6 @@
 
 #include "../unit-sfu.hpp"
 
-namespace Arches { namespace ISA { namespace RISCV { namespace TRaX {
-
-//TRAXAMOIN
-const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::CUSTOM0, Encoding::U, RegFile::INT, IMPL_DECL
-{
-	unit->memory_access_data.dst_reg_file = 0;
-	unit->memory_access_data.dst_reg = instr.i.rd;
-	unit->memory_access_data.sign_extend = false;
-	unit->memory_access_data.size = 4;
-});
-
-}}}}
-
 namespace Arches { namespace Units { namespace TRaX {
 
 class UnitTP : public UnitBase, public ISA::RISCV::ExecutionBase
@@ -37,7 +24,7 @@ public:
 
 		UnitMainMemoryBase*  main_mem;
 		UnitMemoryBase*      mem_higher;
-		UnitAtomicRegfile* atomic_inc;
+		UnitMemoryBase*      atomic_unit;
 		UnitSFU**            sfu_table;
 	};
 
@@ -114,13 +101,16 @@ public:
 		}
 	}log;
 
-	paddr_t stack_end;
+	paddr_t stack_start;
 
 private:
 	ISA::RISCV::IntegerRegisterFile       _int_regs{};
 	ISA::RISCV::FloatingPointRegisterFile _float_regs{};
 
-	UnitAtomicRegfile* atomic_inc;
+	UnitMemoryBase* atomic_unit;
+
+	uint last_traxamoin{0};
+
 	UnitMemoryBase*      mem_higher;
 	UnitMainMemoryBase*  main_mem;
 	UnitSFU**            sfu_table;
@@ -146,7 +136,7 @@ public:
 	void clock_fall() override;
 
 private:
-	void _process_load_return(const MemoryRequestItem& return_item);
+	void _process_load_return(const MemoryRequest& return_item);
 	bool _check_dependacies_and_set_valid_bit(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info);
 };
 

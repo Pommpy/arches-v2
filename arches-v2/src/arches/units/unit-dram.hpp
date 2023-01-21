@@ -13,7 +13,7 @@ class UnitDRAM : public UnitMainMemoryBase, public UsimmListener
 private:
 	struct _Request
 	{
-		MemoryRequestItem request;
+		MemoryRequest request;
 		uint              bus_index;
 	};
 	std::unordered_map<uint32_t, _Request> _request_map;
@@ -46,12 +46,13 @@ public:
 
 	bool usimm_busy();
 	void print_usimm_stats(uint32_t const L2_line_size, uint32_t const word_size, cycles_t cycle_count);
+	float total_power_in_watts();
 
 	virtual void UsimmNotifyEvent(paddr_t const address, cycles_t write_cycle, uint32_t request_id);
 
 private:
-	bool _load(const MemoryRequestItem& request_item, uint request_index);
-	bool _store(const MemoryRequestItem& request_item, uint request_index);
+	bool _load(const MemoryRequest& request_item, uint request_index);
+	bool _store(const MemoryRequest& request_item, uint request_index);
 };
 
 }}

@@ -3,17 +3,17 @@
 namespace Arches {
 	namespace Units {
 
-		UnitCache::UnitCache(Configuration config, UnitMemoryBase* mem_higher, uint mem_higher_bank0_request_index, Simulator* simulator) : UnitMemoryBase(config.num_incoming_connections, simulator)
+		UnitCache::UnitCache(Configuration config, UnitMemoryBase* mem_higher, uint mem_higher_request_index, Simulator* simulator) : UnitMemoryBase(config.num_incoming_connections, simulator)
 		{
 			_configuration = config;
 
 			_blocking = config.blocking;
 
 			_cache_state.resize(config.cache_size / config.line_size);
-			_banks.resize(config.num_banks, {config.num_incoming_connections, config.num_lse, config.num_mshr});
+			_banks.resize(config.num_banks, {config.num_mshr});
 
 			_mem_higher = mem_higher;
-			_mem_higher_bank0_request_index = mem_higher_bank0_request_index;
+			_mem_higher_request_index = mem_higher_request_index;
 			
 			_num_incoming_connections = config.num_incoming_connections;
 
@@ -104,156 +104,196 @@ namespace Arches {
 			_cache_state[replacement_index].tag = _get_tag(paddr);
 		}
 
+		void UnitCache::_try_return(const MemoryRequest& rtrn, uint64_t& mask)
+		{
+			assert(rtrn.type == MemoryRequest::Type::LOAD_RETURN);
+			assert(rtrn.size == CACHE_LINE_SIZE);
+			assert(rtrn.paddr == _get_block_addr(rtrn.paddr));
+
+			//return to all pending ports
+			for(uint i = 0; i < return_bus.size(); ++i)
+			{
+				uint64_t imask = (0x1ull << i);
+				if((mask & imask) == 0x0ull || return_bus.get_pending(i)) continue;
+
+				return_bus.set_data(rtrn, i);
+				return_bus.set_pending(i);
+
+				mask &= ~imask;
+			}
+		}
+
 		void UnitCache::_proccess_load_return()
 		{
-			for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
+			if(!_mem_higher->return_bus.get_pending(_mem_higher_request_index)) return;
+
+			const MemoryRequest& rtrn = _mem_higher->return_bus.get_data(_mem_higher_request_index);
+
+			paddr_t block_addr = _get_block_addr(rtrn.paddr);
+			uint bank_index = _get_bank(rtrn.paddr);
+			_Bank& bank = _banks[bank_index];
+
+			uint mshr_index = bank.get_mshr(block_addr);
+			MSHR& mshr = bank.mshrs[mshr_index];
+
+			uint64_t req_mask = mshr.request_mask;
+
+			if(_blocking)
 			{
-				uint mem_higher_return_index = _mem_higher_bank0_request_index + bank_index;
-				if(_mem_higher->return_bus.get_pending(mem_higher_return_index))
+				//TODO blocking version
+			}
+			else
+			{
+				if(bank.busy)
 				{
-					const MemoryRequestItem& return_item = _mem_higher->return_bus.get_data(mem_higher_return_index);
-					_mem_higher->return_bus.clear_pending(mem_higher_return_index);
+					//can't proccess on this cycle
+					if(!bank.stalled_for_mshr) return;
 
-					assert(return_item.type == MemoryRequestItem::Type::LOAD_RETURN);
-					_insert_cache_line(return_item.line_paddr);
+					//othweise we are stalled for mshr so we swap the current reuest with the returned mshr and return the data to mem lower
 
-					_Bank& bank = _banks[bank_index];
-					if(_blocking)
-					{
-						bank.block_for_load = false;
-						bank.cycles_remaining = 1;
-					}
-					else
-					{
-						//get the miss status handling register and clear it then mark all the lses as ready to return
-						uint mshr_index = bank.get_mshr(return_item.line_paddr);
-						if(mshr_index != ~0u)
-						{
-							bank.mshrs[mshr_index].issued = false;
-							bank.mshrs[mshr_index].valid = false;
-
-							//then we need to copy the line and mark that load/store entry as ready to return
-							for(uint lse_index = 0; lse_index < bank.lses.size(); ++lse_index)
-							{
-								if(bank.lses[lse_index].valid && bank.lses[lse_index].mshr_index == mshr_index)
-								{
-									assert(bank.lses[lse_index].request.line_paddr == bank.mshrs[mshr_index].line_paddr);
-									bank.lses[lse_index].request.type = MemoryRequestItem::Type::LOAD_RETURN;
-									bank.lses[lse_index].mshr_index = ~0u; //clear index since mshr in no longer valid
-									bank.lses[lse_index].ready = true;
-
-									//bank.return_arbitrator.push_request(lse_index);
-								}
-							}
-						}
-						else
-						{
-							//shouldn't happen
-							printf("error\n");
-							__debugbreak();
-						}
-					}
+					bank.free_mshr(mshr_index);
+					mshr_index = bank.allocate_mshr(_get_block_addr(bank.request.paddr), bank.request_mask);
+					bank.stalled_for_mshr = false;
 				}
+				else
+				{
+					bank.free_mshr(mshr_index);
+				}
+
+				bank.request.paddr = block_addr;
+				bank.request.size = _line_size;
+				bank.request.type = MemoryRequest::Type::LOAD_RETURN;
+				bank.request_mask = req_mask;
+
+				//activate bank to return data this cycle
+				bank.cycles_remaining = 0;
+				bank.busy = true;
+
+				_mem_higher->return_bus.clear_pending(_mem_higher_request_index);
+				_insert_cache_line(block_addr);
 			}
 		}
 
 		void UnitCache::_proccess_requests()
 		{
 			//loop till all entries incoming connection have been checked
-			for(uint request_index = 0; request_index < _num_incoming_connections; ++request_index)
+			
+			for(uint i = 0; i < _num_incoming_connections; ++i)
 			{
-				if(request_bus.get_pending(request_index))
-				{
-					const MemoryRequestItem& request_item = request_bus.get_data(request_index);
-					uint32_t bank_index = _get_bank(request_item.line_paddr);
-					_banks[bank_index].request_arbitrator.push_request(request_index);
-				}
-			}
-		}
+				uint request_index = (_port_priority_index + i) % _num_incoming_connections;
+				if(!request_bus.get_pending(request_index)) continue;
 
-		void UnitCache::_update_banks_rise()
-		{
-			for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
-			{
+				const MemoryRequest& request = request_bus.get_data(request_index);
+				uint32_t bank_index = _get_bank(request.paddr);
 				_Bank& bank = _banks[bank_index];
 
-				if(!bank.active)
+				if(request.type == MemoryRequest::Type::STORE) //place stores directly in WC. since they are uncacheed we dont need to aquire the bank
 				{
-					//if bank isn't busy and there are no pending requests to that bank then we can skip it
-					bank.request_index = bank.request_arbitrator.pop_request();
-					if(bank.request_index == ~0u) continue;
+					paddr_t block_addr = _get_block_addr(request.paddr);
+					uint offset = request.paddr - block_addr;
 
-					bank.cycles_remaining = _penalty;
-					bank.active = true;
+					if(!bank.wcb.mask || block_addr == bank.wcb.block_addr)
+					{
+						bank.wcb.block_addr = block_addr;
+						bank.wcb.mask |= generate_nbit_mask(request.size) << offset;
+						request_bus.clear_pending(request_index);
+					}
+				}
+				else
+				{
+					if(!bank.busy)
+					{
+						//if bank isn't busy and there are no pending requests to that bank then we can skip it
+						bank.cycles_remaining = _penalty;
+						bank.busy = true;
 
-					bank.current_request = request_bus.get_data(bank.request_index);
-					request_bus.clear_pending(bank.request_index);
+						bank.request = request;
+						bank.request_mask = 0x1ull << request_index;
+						request_bus.clear_pending(request_index);
+					}
+					else
+					{
+						if(request.type == MemoryRequest::Type::LOAD) assert(request.size == CACHE_LINE_SIZE);
+
+						if((bank.request.type == MemoryRequest::Type::LOAD || bank.request.type == MemoryRequest::Type::LOAD_RETURN) &&
+							request.type == MemoryRequest::Type::LOAD && request.paddr == bank.request.paddr && request.size == bank.request.size)
+						{
+							//merge requests to the same address
+							bank.request_mask |= 0x1ull << request_index;
+							request_bus.clear_pending(request_index);
+						}
+						else
+						{
+							log.log_bank_conflict();
+						}
+					}
 				}
 			}
+
+			_port_priority_index = (_port_priority_index + 1) % _num_incoming_connections;
 		}
 
 		void UnitCache::_update_banks_fall_blocking()
 		{
+			assert(false);
+		#if 0
+			//TODO FIX
 			for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
 			{
 				_Bank& bank = _banks[bank_index];
-				if(!bank.active) continue;
-				if(bank.block_for_load) continue;
+				if(!bank.busy || bank.block_for_load) continue;
 
-				uint mem_higher_request_index = _mem_higher_bank0_request_index + bank_index;
 				if(bank.block_for_store)
 				{
 					//check if last request has been accepted
-					if(!_mem_higher->request_bus.get_pending(mem_higher_request_index))
+					if(!_mem_higher->request_bus.get_pending(_mem_higher_request_index))
 					{
 						bank.block_for_store = false;
-						bank.active = false;
+						bank.busy = false;
 					}
 					continue;
 				}
 
-				if(bank.current_request.type == MemoryRequestItem::Type::STORE)
+				if(bank.request.type == MemoryRequest::Type::STORE)
 				{
 					//forward store
-					_mem_higher->request_bus.set_data(bank.current_request, mem_higher_request_index);
-					_mem_higher->request_bus.set_pending(mem_higher_request_index);
+					_mem_higher->request_bus.set_data(bank.request, _mem_higher_request_index);
+					_mem_higher->request_bus.set_pending(_mem_higher_request_index);
 					bank.block_for_store = true;
+					continue;
 				}
-				else if(--bank.cycles_remaining == 0) //run bank
+				else if(bank.request.type == MemoryRequest::Type::LOAD)
 				{
+					if(bank.cycles_remaining > 0) bank.cycles_remaining--;
+					if(bank.cycles_remaining != 0) continue;
+
 					//check if we have the data
-					assert(_get_offset(bank.current_request.line_paddr) == 0);
-					if(_get_cache_line(bank.current_request.line_paddr))
+					paddr_t block_addr = _get_block_addr(bank.request.paddr);
+					if(_get_cache_line(block_addr))
 					{
-						//if we do have the data return it to pending unit and release bank
-						//check if last request has been accepted
-						if(!return_bus.get_pending(bank.request_index))
-						{
-							log.log_hit();
+						log.log_hit();
 
-							//std::memcpy(bank.request.data, line_data, _line_size);
-							bank.current_request.type = MemoryRequestItem::Type::LOAD_RETURN;
+						//if we do have the data return it to pending units and release bank if we did
+						bank.request.type = MemoryRequest::Type::LOAD_RETURN;
+						_try_return(bank.request, bank.request_mask);
 
-							return_bus.set_data(bank.current_request, bank.request_index);
-							return_bus.set_pending(bank.request_index);
-
-							//free bank
-							bank.active = false;
-						}
-						else
-						{
-							//stall
-							bank.cycles_remaining = 1;
-						}
+						//free bank if we were able to return all requests else stall
+						if(bank.request_mask != 0ull) bank.busy = false;
 					}
 					else
 					{
 						//issue to mem_higher and stall
-						if(!_mem_higher->request_bus.get_pending(mem_higher_request_index))
+						if(!_mem_higher->request_bus.get_pending(_mem_higher_request_index))
 						{
 							log.log_miss();
-							_mem_higher->request_bus.set_data(bank.current_request, mem_higher_request_index);
-							_mem_higher->request_bus.set_pending(mem_higher_request_index);
+
+							MemoryRequest request;
+							request.type = MemoryRequest::Type::LOAD;
+							request.size = CACHE_LINE_SIZE;
+							request.paddr = _get_block_addr(bank.request.paddr);
+
+							_mem_higher->request_bus.set_data(request, _mem_higher_request_index);
+							_mem_higher->request_bus.set_pending(_mem_higher_request_index);
 							bank.block_for_load = true;
 						}
 						else
@@ -263,177 +303,123 @@ namespace Arches {
 					}
 				}
 			}
+		#endif
 		}
 
 		void UnitCache::_update_banks_fall()
 		{
-			for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
+			for(uint i = 0; i < _banks.size(); ++i)
 			{
+				uint bank_index = (_bank_priority_index + i) % _banks.size();
 				_Bank& bank = _banks[bank_index];
-				if(!bank.active) continue;
+				if(!bank.busy) continue;
 
-				if(bank.current_request.type == MemoryRequestItem::Type::STORE)
+				if(bank.request.type == MemoryRequest::Type::STORE)
 				{
-					//stores go around the cache so we just need to add an lse
-					uint lse_index = bank.get_free_lse();
-					if(lse_index != ~0u)
-					{
-						bank.lses[lse_index].mshr_index = ~0u; //wasn't a miss
-						bank.lses[lse_index].request_index = ~0u; //don't need
-						bank.lses[lse_index].request = bank.current_request;
-						bank.lses[lse_index].valid = true;
-						bank.lses[lse_index].ready = true;
-						//bank.return_arbitrator.push_request(lse_index);
-
-						//free bank
-						bank.active = false;
-					}
-					else //stall since lse is full (try again next cycle)
-					{
-						log.log_lse_stall();
-					}
+					assert(false);
 				}
-				else if(bank.current_request.type == MemoryRequestItem::Type::LOAD)
+				else if(bank.request.type == MemoryRequest::Type::LOAD)
 				{
 					if(bank.cycles_remaining > 0) bank.cycles_remaining--;
-					if(bank.cycles_remaining == 0) //run bank
+					if(bank.cycles_remaining != 0) continue;
+
+					//check if we have the data
+					paddr_t block_addr = _get_block_addr(bank.request.paddr);
+					if(_get_cache_line(block_addr))
 					{
-						//check if we have the data
-						assert(_get_offset(bank.current_request.line_paddr) == 0);
-						if(_get_cache_line(bank.current_request.line_paddr))
-						{
-							//if we do have the data return it to pending unit and release bank
-							uint lse_index = bank.get_free_lse();
-							if(lse_index != ~0u)
-							{
-								bank.current_request.type = MemoryRequestItem::Type::LOAD_RETURN;
+						log.log_hit();
 
-								bank.lses[lse_index].mshr_index = ~0u; //wasn't a miss
-								bank.lses[lse_index].request_index = bank.request_index;
-								bank.lses[lse_index].request = bank.current_request;
-								bank.lses[lse_index].valid = true;
-								bank.lses[lse_index].ready = true;
-								//bank.return_arbitrator.push_request(lse_index);
+						//try to return data
+						bank.request.type = MemoryRequest::Type::LOAD_RETURN;
+						_try_return(bank.request, bank.request_mask);
 
-								//free bank
-								bank.active = false;
-								log.log_hit();
-							}
-							else //stall since lse is full(try again next cycle)
-							{
-								log.log_lse_stall();
-							}
-						}
-						else
-						{
-							//if we dont have the data try to update mshr and lse if we can't then we stall (aka block)
-							uint mshr_index = bank.get_mshr(bank.current_request.line_paddr);
-							if(mshr_index == ~0u) mshr_index = bank.get_free_mshr();
-							uint lse_index = bank.get_free_lse();
-
-							if(lse_index != ~0u && mshr_index != ~0u)
-							{
-
-								if(!bank.mshrs[mshr_index].valid)
-								{
-									bank.mshrs[mshr_index].line_paddr = bank.current_request.line_paddr;
-									bank.mshrs[mshr_index].valid = true;
-									bank.mshrs[mshr_index].issued = false;
-								}
-
-								bank.lses[lse_index].mshr_index = mshr_index;
-								bank.lses[lse_index].request_index = bank.request_index;
-								bank.lses[lse_index].request = bank.current_request;
-								bank.lses[lse_index].valid = true;
-								bank.lses[lse_index].ready = false;
-
-								//free bank
-								bank.active = false;
-								log.log_miss();
-							}
-							else //stall since lse or mshr is full(try again next cycle)
-							{
-								if(lse_index == ~0u) log.log_lse_stall();
-								if(mshr_index == ~0u) log.log_mshr_stall();
-							}
-						}
+						//if we succed to return to all clients we free the bank otherwise we will try again next cycle
+						if(bank.request_mask == 0x0ull) bank.busy = false;
+						continue;
 					}
+
+					uint mshr_index = bank.get_mshr(block_addr, bank.request_mask);
+					if(mshr_index != ~0u)
+					{
+						log.log_half_miss(); //we already have an outstanding miss so this is a half miss
+						bank.busy = false; //free bank
+						continue;
+					}
+
+					mshr_index = bank.allocate_mshr(block_addr, bank.request_mask);
+					if(mshr_index != ~0u)
+					{
+						log.log_miss();
+						bank.busy = false; //free bank
+						continue;
+					}
+
+					//stall since mshr is full (try again next cycle)
+					log.log_mshr_stall();
+					bank.stalled_for_mshr = true;
+				}
+				else if(bank.request.type == MemoryRequest::Type::LOAD_RETURN)
+				{
+					//try to return data for the line we just recived
+					_try_return(bank.request, bank.request_mask);
+					if(bank.request_mask == 0x0ull) bank.busy = false;
 				}
 			}
 
-			for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
+			if(!_mem_higher->request_bus.get_pending(_mem_higher_request_index))
 			{
-				_Bank& bank = _banks[bank_index];
-				uint mem_higher_request_index = _mem_higher_bank0_request_index + bank_index;
-
-				//try to issue next ls entry
-				for(uint lse_index = 0; lse_index < bank.lses.size(); ++lse_index)
+				for(uint i = 0; i < _banks.size(); ++i)
 				{
-					if(bank.lses[lse_index].ready)
-					{
-						//stores have higher priority than loads
-						if(bank.lses[lse_index].request.type == MemoryRequestItem::Type::STORE) //store
-						{
-							if(!_mem_higher->request_bus.get_pending(mem_higher_request_index))
-							{
-								_mem_higher->request_bus.set_data(bank.lses[lse_index].request, mem_higher_request_index);
-								_mem_higher->request_bus.set_pending(mem_higher_request_index);
+					uint bank_index = (_bank_priority_index + i) % _banks.size();
+					_Bank& bank = _banks[bank_index];
 
-								bank.lses[lse_index].ready = false;
-								bank.lses[lse_index].valid = false;
-							}
-						}
-						else if(bank.lses[lse_index].request.type == MemoryRequestItem::Type::LOAD_RETURN) //load_return
-						{
-							//check if last return has been accepted
-							uint request_index = bank.lses[lse_index].request_index;
-							if(!return_bus.get_pending(request_index))
-							{
-								return_bus.set_data(bank.lses[lse_index].request, request_index);
-								return_bus.set_pending(request_index);
-
-								bank.lses[lse_index].ready = false;
-								bank.lses[lse_index].valid = false;
-							}
-						}
-					}
-				}
-
-				//try to issue next miss
-				if(!_mem_higher->request_bus.get_pending(mem_higher_request_index))
-				{
+					//try to issue next mshr
 					for(uint mshr_index = 0; mshr_index < bank.mshrs.size(); ++mshr_index)
 					{
-						if(bank.mshrs[mshr_index].valid && !bank.mshrs[mshr_index].issued)
-						{
-							MemoryRequestItem request;
-							request.size = _line_size;
-							request.line_paddr = bank.mshrs[mshr_index].line_paddr;
-							request.type = MemoryRequestItem::Type::LOAD;
+						if(bank.mshrs[mshr_index].state != MSHR::VALID) continue;
 
-							_mem_higher->request_bus.set_data(request, mem_higher_request_index);
-							_mem_higher->request_bus.set_pending(mem_higher_request_index);
+						MemoryRequest request;
+						request.type = MemoryRequest::Type::LOAD;
+						request.size = _line_size;
+						request.paddr = bank.mshrs[mshr_index].block_addr;
 
-							bank.mshrs[mshr_index].issued = true;
+						_mem_higher->request_bus.set_data(request, _mem_higher_request_index);
+						_mem_higher->request_bus.set_pending(_mem_higher_request_index);
 
-							break;
-						}
+						bank.mshrs[mshr_index].state = MSHR::ISSUED;
+						goto UPDATE_BANK_PRIORITY;
+					}
+
+					if(bank.wcb.mask)
+					{
+						MemoryRequest request;
+						request.type = MemoryRequest::Type::STORE;
+						request.paddr = bank.wcb.block_addr;
+						request.size = _line_size;
+
+						_mem_higher->request_bus.set_data(request, _mem_higher_request_index);
+						_mem_higher->request_bus.set_pending(_mem_higher_request_index);
+
+						bank.wcb.mask = 0x0ull;
+						goto UPDATE_BANK_PRIORITY;
 					}
 				}
 			}
+
+		UPDATE_BANK_PRIORITY:
+			_bank_priority_index = (_bank_priority_index + 1) % _banks.size();
 		}
 
 		void UnitCache::clock_rise()
 		{
 			_proccess_load_return();
 			_proccess_requests();
-			_update_banks_rise();
 		}
 
 		void UnitCache::clock_fall()
 		{
 			if(_blocking) _update_banks_fall_blocking();
-			else         _update_banks_fall();
+			else          _update_banks_fall();
 		}
 	}
 }

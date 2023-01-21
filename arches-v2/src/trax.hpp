@@ -14,7 +14,21 @@
 
 #include "../benchmarks/trax/src/ray-tracing-include.hpp"
 
+
 namespace Arches {
+
+namespace ISA { namespace RISCV { namespace TRaX {
+
+//TRAXAMOIN
+const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::CUSTOM0, Encoding::U, RegFile::INT, IMPL_DECL
+{
+	unit->memory_request.dst_reg_file = 0;
+	unit->memory_request.dst_reg = instr.i.rd;
+	unit->memory_request.sign_extend = false;
+	unit->memory_request.size = 4;
+});
+
+}}}
 
 static paddr_t align_to(size_t alignment, paddr_t paddr)
 {
@@ -71,6 +85,8 @@ static void run_sim_trax()
 	uint num_tms = num_tms_per_l2 * num_l2;
 	uint num_sfus = static_cast<uint>(ISA::RISCV::Type::NUM_TYPES) * num_tms;
 
+	ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE0] = ISA::RISCV::TRaX::traxamoin;
+
 	Units::UnitCache::Configuration l1_config;
 	l1_config.associativity = 4;
 	l1_config.cache_size = 32 * 1024;
@@ -112,7 +128,7 @@ static void run_sim_trax()
 	std::vector<std::vector<Units::UnitSFU*>> sfus_tables;
 
 	Units::TRaX::UnitTP::Configuration tp_config;
-	tp_config.atomic_inc = &amoin;
+	tp_config.atomic_unit = &amoin;
 	tp_config.main_mem = &mm;
 	tp_config.tm_index = num_tps_per_tm;
 
@@ -175,7 +191,7 @@ static void run_sim_trax()
 				Units::TRaX::UnitTP* tp = new Units::TRaX::UnitTP(tp_config, &simulator);
 				tps.push_back(tp);
 				tp->int_regs->sp.u64 = stack_start; stack_start -= 1024;
-				tp->stack_end = stack_start;
+				tp->stack_start = stack_start;
 				tp->pc = elf.elf_header->e_entry.u64;
 				tp->backing_memory = mm._data_u8;
 

@@ -5,6 +5,8 @@
 #include "unit-base.hpp"
 #include "unit-memory-base.hpp"
 
+#define WCB_SIZE 16
+
 namespace Arches {
 	namespace Units {
 
@@ -18,33 +20,32 @@ namespace Arches {
 				uint associativity{1};
 				uint num_banks{1};
 				uint num_incoming_connections{1};
-				bool blocking{false};
 				uint penalty{1};
-				uint num_lse{1};
+				bool blocking{false};
 				uint num_mshr{1};
+
+				float dynamic_read_energy;
+				float bank_leakge_power;
 			};
 
 			class Log
 			{
-			private:
+			public:
 				uint64_t _hits;
-				uint64_t _hit_under_misses;
+				uint64_t _half_miss;
 				uint64_t _misses;
 
-				uint64_t _lse_stalls;
 				uint64_t _mshr_stalls;
 
 				uint64_t _bank_conflicts;
 
-			public:
 				Log() { reset(); }
 
 				void reset()
 				{
 					_hits = 0;
 					_misses = 0;
-					_hit_under_misses = 0;
-					_lse_stalls = 0;
+					_half_miss = 0;
 					_mshr_stalls = 0;
 					_bank_conflicts = 0;
 				}
@@ -53,33 +54,34 @@ namespace Arches {
 				{
 					_hits += other._hits;
 					_misses += other._misses;
-					_hit_under_misses += other._hit_under_misses;
-					_lse_stalls += other._lse_stalls;
+					_half_miss += other._half_miss;;
 					_mshr_stalls += other._mshr_stalls;
 					_bank_conflicts += other._bank_conflicts;
 				}
 
-				void log_hit(bool under_miss = false) { _hits++; if(under_miss) _hit_under_misses++; } //TODO hit under miss logging
+				void log_hit() { _hits++; } //TODO hit under miss logging
+				void log_half_miss() { _half_miss++; }
 				void log_miss() { _misses++; }
 
-				void log_bank_conflict() { _bank_conflicts++; } //TODO bank conflict logging
-				void log_lse_stall() { _lse_stalls++; }
+				void log_bank_conflict() { _bank_conflicts++; }
 				void log_mshr_stall() { _mshr_stalls++; }
 
+				uint64_t get_total() { return _misses + _hits; }
 
-				void print_log(uint units = 1)
+				void print_log(FILE* stream = stdout, uint units = 1)
 				{
-					uint64_t total = _misses + _hits;
+					uint64_t total = get_total();
 					float hit_rate = static_cast<float>(_hits) / total;
 					float miss_rate = static_cast<float>(_misses) / total;
 
-					printf("Total: %lld\n", total / units);
-					printf("Hits: %lld\n", _hits / units);
-					printf("Misses: %lld\n", _misses / units);
-					printf("Hit Rate: %.2f%%\n", hit_rate * 100.0f);
-					printf("Miss Rate: %.2f%%\n", miss_rate * 100.0f);
-					printf("LSE Stalls: %lld\n", _lse_stalls / units);
-					printf("MSHR Stalls: %lld\n", _mshr_stalls / units);
+					fprintf(stream, "Total: %lld\n", total / units);
+					fprintf(stream, "Hits: %lld\n", _hits / units);
+					fprintf(stream, "Misses: %lld\n", _misses / units);
+					fprintf(stream, "Half Misses: %lld\n", _half_miss / units);
+					fprintf(stream, "Hit Rate: %.2f%%\n", hit_rate * 100.0f);
+					fprintf(stream, "Miss Rate: %.2f%%\n", miss_rate * 100.0f);
+					fprintf(stream, "Bank Conflicts: %lld\n", _bank_conflicts / units);
+					fprintf(stream, "MSHR Stalls: %lld\n", _mshr_stalls / units);
 				}
 			}log;
 
@@ -91,65 +93,84 @@ namespace Arches {
 				uint64_t valid   : 1;
 			};
 
-			struct MSHR
+			struct WCB
 			{
-				paddr_t line_paddr{0x0ull};
-				bool valid{false};
-				bool issued{false};
+				paddr_t block_addr;
+				uint64_t mask;
 			};
 
-			struct LSE
-			{			
-				uint mshr_index{~0u};
-				uint request_index{~0u};
-				bool valid{false};
-				bool ready{false}; //returned from memory so we can start returning to mem lower
-				MemoryRequestItem request;
+			struct MSHR
+			{
+				paddr_t block_addr{0x0ull};
+				uint64_t request_mask{0x0ull};
+
+				enum
+				{
+					FREE,
+					VALID,
+					ISSUED,
+				};
+
+				uint8_t state{FREE};
 			};
 
 			struct _Bank
 			{
 				std::vector<MSHR> mshrs;
-				std::vector<LSE>  lses;
+				WCB wcb;
 
-				RoundRobinArbitrator request_arbitrator;
-				//RoundRobinArbitrator return_arbitrator{NUM_LSE};
+				MemoryRequest request; //current request
+				uint64_t request_mask{0x0ull};
 
-				MemoryRequestItem current_request; //current request
 				uint cycles_remaining{0u};
-				uint request_index{~0u};
-				bool active{false};
+				bool busy{false};
+				bool stalled_for_mshr{false};
 
 				//only for blocking cache
 				bool block_for_store{false};
 				bool block_for_load{false};
 
-				_Bank(uint num_ports, uint num_lse, uint num_mshr) : request_arbitrator(num_ports), lses(num_lse), mshrs(num_mshr) {}
+				_Bank(uint num_mshr) { mshrs.resize(num_mshr); }
 
-				uint get_mshr(paddr_t line_paddr)
+				uint get_mshr(paddr_t line_paddr, uint64_t req_mask = 0x0ull)
 				{
 					for(uint i = 0; i < mshrs.size(); ++i)
-						if(mshrs[i].valid && mshrs[i].line_paddr == line_paddr) 
+						if(mshrs[i].state != MSHR::FREE && mshrs[i].block_addr == line_paddr)
+						{
+							mshrs[i].request_mask |= req_mask;
 							return i;
+						}
+
 					return ~0u;
 				}
 
-				uint get_free_mshr()
+				uint allocate_mshr(paddr_t line_paddr, uint64_t req_mask)
 				{
 					for(uint i = 0; i < mshrs.size(); ++i)
-						if(!mshrs[i].valid)
+						if(mshrs[i].state == MSHR::FREE)
+						{
+							mshrs[i].block_addr = line_paddr;
+							mshrs[i].request_mask = req_mask;
+							mshrs[i].state = MSHR::VALID;
 							return i;
+						}
+
+					//failed to allocate mshrs are full
 					return ~0u;
 				}
 
-				uint get_free_lse()
+				void free_mshr(uint index)
 				{
-					for(uint i = 0; i < lses.size(); ++i)
-						if(!lses[i].valid)
-							return i;
-					return ~0u;
+					uint i;
+					for(i = index; i < (mshrs.size() - 1); ++i)
+						mshrs[i] = mshrs[i + 1];
+
+					mshrs[i].state = MSHR::FREE;
 				}
 			};
+
+			uint _bank_priority_index{0};
+			uint _port_priority_index{0};
 
 			Configuration _configuration; //nice for debugging
 
@@ -165,7 +186,7 @@ namespace Arches {
 			uint _num_incoming_connections;
 
 			UnitMemoryBase* _mem_higher;
-			uint _mem_higher_bank0_request_index;
+			uint _mem_higher_request_index;
 
 		public:
 			UnitCache(Configuration config, UnitMemoryBase* mem_higher, uint bus_index_start, Simulator* simulator);
@@ -176,10 +197,10 @@ namespace Arches {
 		private:
 			void _proccess_load_return();
 			void _proccess_requests();
-			void _update_banks_rise();
 			void _update_banks_fall();
 			void _update_banks_fall_blocking();
 
+			void _try_return(const MemoryRequest& rtrn, uint64_t& mask);
 			bool _get_cache_line(paddr_t paddr);
 			void _insert_cache_line(paddr_t paddr);
 
@@ -193,7 +214,7 @@ namespace Arches {
 				return static_cast<uint32_t>((paddr >> _bank_index_offset) & _bank_index_mask); 
 			}
 
-			paddr_t _get_cache_line_start_paddr(paddr_t paddr) { return paddr & ~offset_mask; }
+			paddr_t _get_block_addr(paddr_t paddr) { return paddr & ~offset_mask; }
 		};
 	}
 }

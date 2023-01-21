@@ -148,7 +148,7 @@ private:
 			aabb.add_aabb(build_event.build_objects[i].aabb);
 
 		std::vector<_BuildEvent> build_events = {build_event};
-		for(uint i = 0; i < 1; ++i)
+		for(uint i = 0; i < 2; ++i)
 		{
 			std::vector<_BuildEvent> new_build_events;
 			for(auto& build_event : build_events)

@@ -7,7 +7,7 @@ class Camera
 {
 private:
 	uint _height, _width;
-	rtm::vec2 _inv_size_x2;
+	rtm::vec2 _recip_size;
 	rtm::vec3 _position;
 	rtm::vec3 _x, _y, _z;
 
@@ -45,7 +45,7 @@ public:
 
 		_height = height;
 		_width = width;
-		_inv_size_x2 = rtm::vec2(2.0f) / rtm::vec2(static_cast<float>(width, static_cast<float>(height)));
+		_recip_size = rtm::vec2(2.0f) / rtm::vec2(static_cast<float>(width, static_cast<float>(height)));
 	}
 	#endif
 
@@ -54,7 +54,7 @@ public:
 
 	void generate_ray_through_pixel(uint i, uint j, Ray& ray, RNG& rng) const
 	{
-		rtm::vec2 uv = (rtm::vec2(static_cast<float>(i), static_cast<float>(j)) + rtm::vec2(0.5f)) * _inv_size_x2 - rtm::vec2(1.0f);
+		rtm::vec2 uv = (rtm::vec2(static_cast<float>(i), static_cast<float>(j)) + rtm::vec2(0.5f)) * _recip_size - rtm::vec2(1.0f);
 		ray.d = rtm::normalize(_x * uv.x + _y * uv.y - _z);
 		ray.o = _position;
 	}

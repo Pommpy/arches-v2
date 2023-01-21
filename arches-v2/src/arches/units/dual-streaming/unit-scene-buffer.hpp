@@ -21,7 +21,7 @@ public:
 	RoundRobinArbitrator arbitrator;
 
 	uint request_index{~0u};
-	MemoryRequestItem request_item;
+	MemoryRequest request_item;
 
 	std::set<paddr_t> segments;
 	std::vector<paddr_t> segment_map;
@@ -60,10 +60,10 @@ public:
 	{
 		if(request_index != ~0)
 		{
-			assert(request_item.type == MemoryRequestItem::Type::LOAD);
+			assert(request_item.type == MemoryRequest::Type::LOAD);
 			assert(segments.contains(request_item.line_paddr & 0xffff));
 
-			request_item.type = MemoryRequestItem::Type::LOAD_RETURN;
+			request_item.type = MemoryRequest::Type::LOAD_RETURN;
 			return_bus.set_data(request_item, request_index);
 			return_bus.set_pending(request_index);
 		}

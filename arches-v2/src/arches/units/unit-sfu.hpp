@@ -2,6 +2,7 @@
 #include "../../stdafx.hpp"
 
 #include "unit-base.hpp"
+#include "../isa/execution-base.hpp"
 
 namespace Arches { namespace Units {
 
@@ -10,8 +11,7 @@ class UnitSFU : public UnitBase
 public:
 	struct Request
 	{
-		uint8_t dst_reg;
-		uint8_t dst_reg_file;
+		ISA::RISCV::RegAddr dst;
 	};
 
 public:

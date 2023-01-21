@@ -15,6 +15,7 @@ private:
 		uint8_t data[64];
 	};
 
+	uint8_t  _pending_set_changed;
 	uint8_t* _pending;
 	T*       _data;
 	uint     _size;
@@ -22,6 +23,7 @@ private:
 public:
 	ConnectionGroup(uint size) : _size(size)
 	{
+		_pending_set_changed = 0;
 		_size = size;
 		_pending = (uint8_t*)(_new _64Aligned[(size + 63) / 64]);
 		_data = (T*)(_new _64Aligned[(size * sizeof(T) + 63) / 64]);
@@ -38,6 +40,15 @@ public:
 	
 	size_t size() const { return _size; }
 
+	bool pending_set_changed()
+	{
+		if(_pending_set_changed)
+		{
+			_pending_set_changed = 0;
+			return true;
+		}
+		return false;
+	}
 	bool get_pending(size_t index) const 
 	{ 
 		assert(index < _size);
@@ -48,14 +59,15 @@ public:
 		assert(index < _size);
 		assert(_pending[index] == 0);
 		_pending[index] = 1;
+		//_pending_set_changed = 1;
 	}
 	void clear_pending(size_t index)
 	{
 		assert(index < _size);
 		assert(_pending[index] == 1);
 		_pending[index] = 0;
+		//_pending_set_changed = 1;
 	}
-
 	const T& get_data(size_t index) const 
 	{
 		assert(index < _size);

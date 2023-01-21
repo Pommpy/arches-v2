@@ -17,7 +17,7 @@ public:
 	RoundRobinArbitrator arbitrator;
 
 	uint request_index{~0u};
-	MemoryRequestItem request_item;
+	MemoryRequest request_item;
 
 	void clock_rise() override
 	{
@@ -27,7 +27,7 @@ public:
 		if((request_index = arbitrator.pop_request()) != ~0)
 		{
 			request_item = request_bus.get_data(request_index);
-			assert(request_item.type == MemoryRequestItem::Type::LOAD);
+			assert(request_item.type == MemoryRequest::Type::LOAD);
 			request_bus.clear_pending(request_index);
 		}
 	}
@@ -36,7 +36,7 @@ public:
 	{
 		if(request_index != ~0)
 		{
-			request_item.type = MemoryRequestItem::Type::LOAD_RETURN;
+			request_item.type = MemoryRequest::Type::LOAD_RETURN;
 			return_bus.set_data(request_item, request_index);
 			return_bus.set_pending(request_index);
 		}

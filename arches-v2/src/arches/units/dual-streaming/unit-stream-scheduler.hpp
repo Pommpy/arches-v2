@@ -95,8 +95,8 @@ public:
 	bool has_segment_return;
 	bool has_bucket_return;
 
-	MemoryRequestItem segment_return;
-	MemoryRequestItem bucket_return;
+	MemoryRequest segment_return;
+	MemoryRequest bucket_return;
 
 	void process_load_returns()
 	{
@@ -129,14 +129,14 @@ public:
 		if(request_index != ~0u)
 		{
 			//we have a request for a new scene segment this means we can decrement buckets in flight for the scene sgment whose bucket was previouly in the ray staging buffer
-			MemoryRequestItem request = request_bus.get_data(request_index);
+			MemoryRequest request = request_bus.get_data(request_index);
 
-			if(request.type == MemoryRequestItem::Type::STORE)
+			if(request.type == MemoryRequest::Type::STORE)
 			{
 				//TODO figure out how to enqueue ray_writes
 				//maybe the line address can encode ray ID and target bucket and in that way we can coalesc the rays or we can send a full ray at a time from the staging buffer like a cache line transfer
 			}
-			else if(request.type == MemoryRequestItem::Type::LOAD)
+			else if(request.type == MemoryRequest::Type::LOAD)
 			{
 				request_bus.clear_pending(request_index);
 
@@ -200,10 +200,10 @@ public:
 				//advance stream
 				if(scene_stream.offset < 64 * 1024)
 				{
-					MemoryRequestItem request;
+					MemoryRequest request;
 					request.size = CACHE_LINE_SIZE;
-					request.type = MemoryRequestItem::Type::LOAD;
-					request.line_paddr = scene_stream.base_address + scene_stream.offset;
+					request.type = MemoryRequest::Type::LOAD;
+					request.paddr = scene_stream.base_address + scene_stream.offset;
 
 					main_mem->request_bus.set_data(request, 0);
 					main_mem->request_bus.set_pending(0);
@@ -246,9 +246,9 @@ public:
 				//advance stream
 				if(ray_bucket_stream.offset < 2 * 1024)
 				{
-					MemoryRequestItem request;
+					MemoryRequest request;
 					request.size = CACHE_LINE_SIZE;
-					request.type = MemoryRequestItem::Type::LOAD;
+					request.type = MemoryRequest::Type::LOAD;
 					request.line_paddr = ray_bucket_stream.base_address + ray_bucket_stream.offset;
 
 					main_mem->request_bus.set_data(request, 1);
@@ -314,9 +314,9 @@ public:
 				//advance stream
 				if(ray_write_stream.offset < 10 * 4)
 				{
-					MemoryRequestItem request;
+					MemoryRequest request;
 					request.size = 4;
-					request.type = MemoryRequestItem::Type::STORE;
+					request.type = MemoryRequest::Type::STORE;
 					request.line_paddr = scene_stream.base_address + scene_stream.offset;
 
 					main_mem->request_bus.set_data(request, 2);
@@ -354,9 +354,9 @@ public:
 					bucket_states[segment].fill = 0;
 
 					//TODO write the new bucket address to the last bucket address
-					MemoryRequestItem request;
+					MemoryRequest request;
 					request.size = 8;
-					request.type = MemoryRequestItem::Type::STORE;
+					request.type = MemoryRequest::Type::STORE;
 					request.line_paddr = scene_stream.base_address + scene_stream.offset;
 
 					main_mem->request_bus.set_data(request, 2);

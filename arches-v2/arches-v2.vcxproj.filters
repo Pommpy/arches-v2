@@ -37,8 +37,11 @@
     <Filter Include="arches\units\util">
       <UniqueIdentifier>{136ef3ef-4008-4896-8341-c5df009e6691}</UniqueIdentifier>
     </Filter>
-    <Filter Include="arches\units\trax">
-      <UniqueIdentifier>{2595a594-c1b6-4ee3-8d8d-fefecd2ac7db}</UniqueIdentifier>
+    <Filter Include="benchmarks\describo">
+      <UniqueIdentifier>{13c19245-b4e6-4238-ba93-667a29abc3d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="benchmarks\describo\src">
+      <UniqueIdentifier>{83c1544b-aa74-4f93-b0af-6d7e5da00b7f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -58,9 +61,6 @@
       <Filter>arches\simulator</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\units\unit-base.hpp">
-      <Filter>arches\units</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\unit-core-simple.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\units\unit-main-memory-base.hpp">
@@ -127,9 +127,6 @@
     <ClInclude Include="src\arches\util\round-robin-arbitrator.hpp">
       <Filter>arches\units\util</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\units\trax\unit-trax-tp.hpp">
-      <Filter>arches\units\trax</Filter>
-    </ClInclude>
     <ClInclude Include="src\arches\units\unit-cache.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
@@ -140,9 +137,6 @@
     <ClInclude Include="src\dual-streaming.hpp" />
     <ClInclude Include="benchmarks\dual-streaming\src\ray-tracing-include.hpp">
       <Filter>benchmarks\dual-streaming\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\dual-streaming\unit-ds-tp.hpp">
-      <Filter>arches\units\dual-streaming</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\units\unit-sfu.hpp">
       <Filter>arches\units</Filter>
@@ -167,6 +161,19 @@
     </ClInclude>
     <ClInclude Include="src\arches\units\dual-streaming\unit-stream-scheduler.hpp">
       <Filter>arches\units\dual-streaming</Filter>
+    </ClInclude>
+    <ClInclude Include="src\describo.hpp" />
+    <ClInclude Include="benchmarks\describo\src\ray-tracing-include.hpp">
+      <Filter>benchmarks\describo\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\uint-tile-scheduler.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-tp.hpp">
+      <Filter>arches\units</Filter>
+    </ClInclude>
+    <ClInclude Include="benchmarks\describo\src\mesh.hpp">
+      <Filter>benchmarks\describo\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -207,16 +214,10 @@
     <ClCompile Include="src\arches\units\usimm\usimm.cc">
       <Filter>arches\units\usimm</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\unit-core-simple.cpp">
+    <ClCompile Include="src\arches\units\unit-cache.cpp">
       <Filter>arches\units</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\trax\unit-trax-tp.cpp">
-      <Filter>arches\units\trax</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arches\units\dual-streaming\unit-ds-tp.cpp">
-      <Filter>arches\units\dual-streaming</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arches\units\unit-cache.cpp">
+    <ClCompile Include="src\arches\units\unit-tp.cpp">
       <Filter>arches\units</Filter>
     </ClCompile>
   </ItemGroup>
