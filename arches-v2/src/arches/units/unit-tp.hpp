@@ -5,10 +5,12 @@
 #include "unit-base.hpp"
 #include "unit-memory-base.hpp"
 #include "unit-main-memory-base.hpp"
-#include "uint-atomic-increment.hpp"
+#include "uint-atomic-reg-file.hpp"
 
 #include "../isa/execution-base.hpp"
 #include "../isa/registers.hpp"
+
+#include "../util/bit-manipulation.hpp"
 
 #include "unit-sfu.hpp"
 
@@ -19,18 +21,86 @@ class UnitTP : public UnitBase, public ISA::RISCV::ExecutionBase
 public:
 	struct Configuration
 	{
-		vaddr_t pc;
-		vaddr_t sp;
+		vaddr_t pc{0x0};
+		vaddr_t sp{0x0};
 
-		uint8_t* backing_memory;
+		uint8_t* backing_memory{nullptr};
 
-		uint tp_index;
-		uint tm_index;
+		uint tp_index{0};
+		uint tm_index{0};
 
-		MemoryUnitMap*       mu_map;
-		UnitSFU**            sfu_table;
+		uint stack_size{512};
+
+		MemoryUnitMap mem_map{};
+
+		UnitSFU**     sfu_table{nullptr};
 	};
 
+private:
+	struct _LSE
+	{
+		enum class State : uint8_t
+		{
+			FREE,
+			VALID,
+			ISSUED,
+			COMMITED,
+		};
+
+		paddr_t vaddr{0x0ull};
+		uint8_t size;
+		uint8_t offset;
+
+		State state{State::FREE};
+		MemoryRequest::Type type;
+		ISA::RISCV::RegAddr dst;
+		uint8_t unit_index;
+
+		uint8_t data[CACHE_LINE_SIZE];
+	};
+
+	ISA::RISCV::IntegerRegisterFile       _int_regs{};
+	ISA::RISCV::FloatingPointRegisterFile _float_regs{};
+
+	uint8_t _float_regs_pending[32];
+	uint8_t _int_regs_pending[32];
+
+	std::vector<_LSE> _lsq{12};
+	uint _oldest_lse{0};
+	uint _next_lse{0};
+	bool _stalled_for_lsq{false};
+
+	uint _tp_index;
+	uint _tm_index;
+
+	ISA::RISCV::Instruction _last_instr{0};
+	ISA::RISCV::InstructionInfo _last_instr_info;
+
+	MemoryUnitMap mem_map;
+
+	UnitSFU* _last_issue_sfu{nullptr};
+	UnitSFU** sfu_table;
+
+	std::map<UnitSFU*, uint> _issued_sfus;
+	std::map<uint, uint> _issued_mus_indices;
+
+	std::vector<uint8_t> _stack_mem;
+	uint64_t _stack_mask;
+
+public:
+	UnitTP(const Configuration& config);
+
+	void clock_rise() override;
+	void clock_fall() override;
+
+private:
+	void _process_load_return(const MemoryRequest& return_item);
+	uint8_t _check_dependancies(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info);
+	void _clear_register_pending(const ISA::RISCV::RegAddr& dst);
+	paddr_t _get_load_port_address(paddr_t paddr) { return paddr & ~0x1full; };
+	void _drain_lsq();
+
+public:
 	class Log
 	{
 	protected:
@@ -93,7 +163,7 @@ public:
 		void log_resource_stall(const ISA::RISCV::InstructionInfo& info)
 		{
 			_resource_stall_counters[static_cast<size_t>(info.type)]++;
-				
+
 			log_cycle();
 		}
 
@@ -182,72 +252,6 @@ public:
 			}
 		}
 	}log;
-
-	paddr_t stack_start;
-
-private:
-	ISA::RISCV::IntegerRegisterFile       _int_regs{};
-	ISA::RISCV::FloatingPointRegisterFile _float_regs{};
-
-	struct alignas(64)
-	{
-		uint8_t _float_regs_pending[32];
-		uint8_t _int_regs_pending[32];
-	};
-
-	struct LSE
-	{
-		enum class State : uint8_t
-		{
-			FREE,
-			VALID,
-			ISSUED,
-			COMMITED,
-		};
-
-		paddr_t port_addr{0x0ull};
-		uint8_t size;
-		uint8_t offset;
-
-		State state {State::FREE};
-		MemoryRequest::Type type;
-		ISA::RISCV::RegAddr dst;
-		uint8_t unit_index;
-
-		uint64_t store_data_u64;
-	};
-
-
-	std::vector<LSE> lsq{12};
-	uint oldest_lse{0};
-	uint next_lse{0};
-	bool stalled_for_lsq{false};
-
-	uint tp_index;
-	uint tm_index;
-
-	ISA::RISCV::Instruction _last_instr{0};
-	ISA::RISCV::InstructionInfo _last_instr_info;
-
-	UnitSFU* _last_issue_sfu{nullptr};
-
-	MemoryUnitMap* mu_map;
-	UnitSFU** sfu_table;
-
-	std::map<UnitSFU*, uint> _issued_sfus;
-	std::map<uint, uint> _issued_mus_indices;
-
-public:
-	UnitTP(const Configuration& config, Simulator* simulator);
-
-	void clock_rise() override;
-	void clock_fall() override;
-
-private:
-	void _process_load_return(const MemoryRequest& return_item);
-	uint8_t _check_dependancies(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info);
-	void _clear_register_pending(const ISA::RISCV::RegAddr& dst);
-	paddr_t _get_load_port_address(paddr_t paddr) { return paddr & ~0x1full; };
 };
 
 }}

@@ -5,11 +5,8 @@
 
 class RNG
 {
-private:
-	uint32_t rng_state{ 2147483647u };
-	//the basis for this rng system came from https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
-	//A integer hash function outlined here https://gist.github.com/badboy/6267743
-	uint32_t hash(uint32_t u)
+public:
+	static uint32_t hash(uint32_t u)
 	{
 		u = (u + 0x7ed55d16u) + (u << 12u);
 		u = (u ^ 0xc761c23cu) ^ (u >> 19u);
@@ -21,7 +18,7 @@ private:
 	}
 
 	//Robert Jenkins' one a time hash funcion for size 1 https://en.wikipedia.org/wiki/Jenkins_hash_function
-	uint32_t hashf(uint32_t u)
+	static uint32_t fast_hash(uint32_t u)
 	{
 		u += u << 10;
 		u ^= u >> 6;
@@ -30,6 +27,11 @@ private:
 		u += u << 15;
 		return u;
 	}
+private:
+	uint32_t rng_state{ 2147483647u };
+	//the basis for this rng system came from https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+	//A integer hash function outlined here https://gist.github.com/badboy/6267743
+
 
 	//Mask off the lower 21 bits of u to make a mantisa then OR it with the bit pattern for 1.0
 	//then make a float from these bit and substract 1.0 to give a number betweeon 0.0 and 1.0
@@ -53,7 +55,7 @@ public:
 	float randf()
 	{
 		uint32_t r = rng_state;
-		rng_state = hashf(rng_state);
+		rng_state = fast_hash(rng_state);
 		return build_float(r);
 	}
 
@@ -64,7 +66,7 @@ public:
 	uint32_t randi()
 	{
 		uint32_t r = rng_state;
-		rng_state = hashf(rng_state);
+		rng_state = fast_hash(rng_state);
 		return r;
 	}
 };

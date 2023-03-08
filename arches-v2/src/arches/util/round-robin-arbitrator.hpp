@@ -6,45 +6,45 @@
 class RoundRobinArbitrator
 {
 private:
-	std::vector<uint8_t> request_mask;
-	uint size{0};
+	std::vector<uint8_t> pending;
 	uint current_index{0};
 
 public:
-	RoundRobinArbitrator(uint size)
+	RoundRobinArbitrator(uint size) : pending(size, 0)
 	{
-		this->size = size;
-		request_mask.resize((size + 7) / 8);
-	}
 
-	void push_request(uint index)
-	{
-		uint mask_index = index >> 3;
-		uint mask = 0x1ull << (index & 0x7ull);
-		request_mask[mask_index] |= mask;
 	}
 
 	bool empty()
 	{
-		for(auto& a : request_mask)
-			if(a) return false;
+		for(uint i = 0; i < pending.size(); ++i)
+			if(pending[i]) return false;
 		return true;
 	}
 
-	uint pop_request()
+	void add(uint index)
+	{
+		pending[index] = 1;
+	}
+
+	void remove(uint index)
+	{
+		pending[index] = 0;
+	}
+
+	uint next()
 	{
 		uint index = current_index;
 		do
 		{
-			uint mask_index = index >> 3;
-			uint mask = 0x1ull << (index & 0x7ull);
-			if(request_mask[mask_index] & mask)
+			if(pending[index])
 			{
-				request_mask[mask_index] &= ~mask;
-				current_index = (index + 1) % size;
+				current_index = index + 1;
+				if(current_index == pending.size()) current_index = 0;
 				return index;
 			}
-			index = (index + 1) % size;
+			
+			if(++index == pending.size()) index = 0;
 		} 
 		while(index != current_index);
 

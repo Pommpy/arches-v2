@@ -91,7 +91,7 @@
       <Filter>arches\units\util</Filter>
     </ClInclude>
     <ClInclude Include="src\stdafx.hpp" />
-    <ClInclude Include="src\arches\units\uint-atomic-increment.hpp">
+    <ClInclude Include="src\arches\units\uint-atomic-reg-file.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\units\unit-dram.hpp">
@@ -155,9 +155,6 @@
     </ClInclude>
     <ClInclude Include="src\arches\units\unit-buffer.hpp">
       <Filter>arches\units</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\dual-streaming\unit-scene-buffer.hpp">
-      <Filter>arches\units\dual-streaming</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\units\dual-streaming\unit-stream-scheduler.hpp">
       <Filter>arches\units\dual-streaming</Filter>

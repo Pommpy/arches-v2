@@ -57,11 +57,25 @@ enum class Type : uint8_t
 {
 	NA,
 
+	//memory
 	LOAD,
 	STORE,
 
-	AMO,
+	AMO_ADD,
+	AMO_XOR,
+	AMO_OR,
+	AMO_AND,
+	AMO_MIN,
+	AMO_MAX,
+	AMO_MINU,
+	AMO_MAXU,
 
+	TRAXAMOIN,
+	LBRAY,
+	SBRAY,
+	CSHIT,
+
+	//non-memory
 	SYS,
 
 	JUMP,
@@ -87,14 +101,8 @@ enum class Type : uint8_t
 	FSQRT,
 	FRCP,
 
-	CUSTOM0,
-	CUSTOM1,
-	CUSTOM2,
-	CUSTOM3,
-	CUSTOM4,
-	CUSTOM5,
-	CUSTOM6,
-	CUSTOM7,
+	BOXISECT,
+	TRIISECT,
 
 	NUM_TYPES,
 };
@@ -106,7 +114,19 @@ const std::string instr_type_names[] =
 	"LOAD",
 	"STORE",
 
-	"AMO",
+	"AMO_ADD",
+	"AMO_XOR",
+	"AMO_OR",
+	"AMO_AND",
+	"AMO_MIN",
+	"AMO_MAX",
+	"AMO_MINU",
+	"AMO_MAXU",
+
+	"TRAXAMOIN",
+	"LBRAY",
+	"SBRAY",
+	"CSHIT",
 
 	"SYS",
 
@@ -133,14 +153,8 @@ const std::string instr_type_names[] =
 	"FSQRT",
 	"FRCP",
 
-	"CUSTOM0",
-	"CUSTOM1",
-	"CUSTOM2",
-	"CUSTOM3",
-	"CUSTOM4",
-	"CUSTOM5",
-	"CUSTOM6",
-	"CUSTOM7",
+	"BOXISECT",
+	"TRIISECT",
 };
 
 enum class Encoding : uint8_t

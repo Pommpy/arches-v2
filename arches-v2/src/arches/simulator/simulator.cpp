@@ -10,6 +10,7 @@ void Simulator::register_unit(Units::UnitBase * unit)
 {
 	_units.push_back(unit);
 	_unit_groups.back().end++;
+	unit->simulator = this;
 }
 
 void Simulator::start_new_unit_group()
@@ -46,16 +47,13 @@ void Simulator::_clock_fall()
 {
 	UNIT_LOOP
 		_units[i]->clock_fall();
-		if(_units[i]->executing) _done = false;
 	UNIT_LOOP_END
 }
 
 void Simulator::execute()
 {
-	_done = false;
-	while(!_done)
+	while(units_executing > 0)
 	{
-		_done = true;
 		_clock_rise();
 		_clock_fall();
 		current_cycle++;

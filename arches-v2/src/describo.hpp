@@ -4,7 +4,7 @@
 
 #include "arches/units/unit-dram.hpp"
 #include "arches/units/unit-cache.hpp"
-#include "arches/units/uint-atomic-increment.hpp"
+#include "arches/units/uint-atomic-reg-file.hpp"
 #include "arches/units/uint-tile-scheduler.hpp"
 
 #include "arches/units/unit-sfu.hpp"
@@ -22,18 +22,18 @@ namespace ISA { namespace RISCV { namespace DTRaX {
 
 const static InstructionInfo isa_custom0[8] =
 {
-InstructionInfo(0x0, "traxamoin", Type::AMO, Encoding::U, RegFile::INT, IMPL_DECL
+InstructionInfo(0x0, "traxamoin", Type::TRAXAMOIN, Encoding::U, RegFile::INT, IMPL_DECL
 {
-	unit->mem_req.type = Units::MemoryRequest::Type::AMO_LOAD;
+	unit->mem_req.type = Units::MemoryRequest::Type::TRAXAMOIN;
 	unit->mem_req.size = 4;
 
-	unit->mem_req.dst.reg = instr.i.rd;
+	unit->mem_req.dst.reg = instr.rd;
 	unit->mem_req.dst.reg_file = 0;
 	unit->mem_req.dst.sign_ext = false;
 
 	unit->mem_req.vaddr = 0;
 }),
-InstructionInfo(0x1, "boxisect", Type::CUSTOM1, Encoding::U, RegFile::FLOAT, IMPL_DECL
+InstructionInfo(0x1, "boxisect", Type::BOXISECT, Encoding::U, RegFile::FLOAT, IMPL_DECL
 {
 	Register32 * fr = unit->float_regs->registers;
 
@@ -59,9 +59,9 @@ InstructionInfo(0x1, "boxisect", Type::CUSTOM1, Encoding::U, RegFile::FLOAT, IMP
 	aabb.max.y = fr[15].f32;
 	aabb.max.z = fr[16].f32;
 
-	unit->float_regs->registers[instr.u.rd].f32 = intersect(aabb, ray, inv_d);
+	unit->float_regs->registers[instr.rd].f32 = intersect(aabb, ray, inv_d);
 }),
-InstructionInfo(0x2, "triisect", Type::CUSTOM2, Encoding::U, RegFile::INT, IMPL_DECL
+InstructionInfo(0x2, "triisect", Type::TRIISECT, Encoding::U, RegFile::INT, IMPL_DECL
 {
 	Register32 * fr = unit->float_regs->registers;
 
@@ -95,53 +95,9 @@ InstructionInfo(0x2, "triisect", Type::CUSTOM2, Encoding::U, RegFile::INT, IMPL_
 	fr[1].f32 = hit.bc[0];
 	fr[2].f32 = hit.bc[1];
 }),
-InstructionInfo(0x3, "evdb", Type::CUSTOM3, Encoding::U, RegFile::INT, IMPL_DECL
-{
-	Register32 * fr = unit->float_regs->registers;
-
-	Ray ray;
-	ray.o.x = fr[3].f32;
-	ray.o.y = fr[4].f32;
-	ray.o.z = fr[5].f32;
-	ray.drdt = fr[6].f32;
-	ray.d.x = fr[7].f32;
-	ray.d.y = fr[8].f32;
-	ray.d.z = fr[9].f32;
-	ray.radius = fr[10].f32;
-
-	Triangle tri;
-	tri.vrts[0].x = fr[11].f32;
-	tri.vrts[0].y = fr[12].f32;
-	tri.vrts[0].z = fr[13].f32;
-	tri.vrts[1].x = fr[14].f32;
-	tri.vrts[1].y = fr[15].f32;
-	tri.vrts[1].z = fr[16].f32;
-	tri.vrts[2].x = fr[17].f32;
-	tri.vrts[2].y = fr[18].f32;
-	tri.vrts[2].z = fr[19].f32;
-
-	float max_db_over_max_error = fr[20].f32;
-
-	rtm::vec3 es = evalute_deformation_bounds(unit->int_regs->registers[instr.u.rd].u32, max_db_over_max_error, tri, ray);
-
-	fr[0].f32 = es[0];
-	fr[1].f32 = es[1];
-	fr[2].f32 = es[2];
-}),
-InstructionInfo(0x4, "ivrts", Type::CUSTOM4, Encoding::U, RegFile::INT, IMPL_DECL
-{
-	Register32 * fr = unit->float_regs->registers;
-}),
-InstructionInfo(0x5, "cciao", Type::CUSTOM5, Encoding::U, RegFile::INT, IMPL_DECL
-{
-}),
-InstructionInfo(0x6, "iaotovi", Type::CUSTOM6, Encoding::U, RegFile::INT, IMPL_DECL
-{
-}),
-
 };
 
-const static InstructionInfo custom0(CUSTOM_OPCODE0, META_DECL{return isa_custom0[instr.u.imm];});
+const static InstructionInfo custom0(CUSTOM_OPCODE0, META_DECL{return isa_custom0[instr.r.funct3];});
 
 }}}
 
@@ -251,12 +207,11 @@ static void run_sim_describo(int argc, char* argv[])
 
 	Units::UnitCache::Configuration l1_config;
 	l1_config.associativity = 2;
-	l1_config.cache_size = 16 * 1024;
-	l1_config.line_size = CACHE_LINE_SIZE;
+	l1_config.size = 16 * 1024;
+	l1_config.block_size = CACHE_LINE_SIZE;
 	l1_config.num_banks = 4;
-	l1_config.num_incoming_connections = num_tps_per_tm;
+	l1_config.num_ports = num_tps_per_tm;
 	l1_config.penalty = 1;
-	l1_config.blocking = false;
 	l1_config.num_mshr = 4;
 
 	//from cacti (22nm)
@@ -265,12 +220,11 @@ static void run_sim_describo(int argc, char* argv[])
 
 	Units::UnitCache::Configuration l2_config;
 	l2_config.associativity = 4;
-	l2_config.cache_size = 2 * 1024 * 1024;
-	l2_config.line_size = CACHE_LINE_SIZE;
+	l2_config.size = 2 * 1024 * 1024;
+	l2_config.block_size = CACHE_LINE_SIZE;
 	l2_config.num_banks = 32;
-	l2_config.num_incoming_connections = num_tms_per_l2;
+	l2_config.num_ports = num_tms_per_l2;
 	l2_config.penalty = 4;
-	l2_config.blocking = false;
 	l2_config.num_mshr = 4;
 	
 	//from cacti (22nm)
@@ -372,11 +326,11 @@ static void run_sim_describo(int argc, char* argv[])
 			simulator.register_unit(&sfus.back());
 
 			sfus.emplace_back(1, 1, 4, num_tps_per_tm, &simulator);
-			sfu_table[static_cast<uint>(ISA::RISCV::Type::CUSTOM1)] = &sfus.back();
+			sfu_table[static_cast<uint>(ISA::RISCV::Type::BOXISECT)] = &sfus.back();
 			simulator.register_unit(&sfus.back());
 
 			sfus.emplace_back(2, 18, 31, num_tps_per_tm, &simulator);
-			sfu_table[static_cast<uint>(ISA::RISCV::Type::CUSTOM2)] = &sfus.back();
+			sfu_table[static_cast<uint>(ISA::RISCV::Type::TRIISECT)] = &sfus.back();
 			simulator.register_unit(&sfus.back());
 
 		#else
@@ -424,7 +378,7 @@ static void run_sim_describo(int argc, char* argv[])
 			mu_maps.back().add_unit(stack_start, nullptr, 0);
 
 			tp_config.sfu_table = sfu_table;
-			tp_config.mu_map = mu_map;
+			tp_config.mem_map = mu_map;
 
 			tp_config.tm_index = (k * num_tms_per_l2 + j);
 
@@ -456,7 +410,7 @@ static void run_sim_describo(int argc, char* argv[])
 	for(auto& l2 : l2s)
 		l2_log.accumulate(l2.log);
 
-	mm.print_usimm_stats(l2_config.line_size, 4, simulator.current_cycle);
+	mm.print_usimm_stats(l2_config.block_size, 4, simulator.current_cycle);
 
 	printf("\nL2\n");
 	l2_log.print_log();

@@ -23,9 +23,9 @@ private:
 
 	std::vector<UnitGroup> _unit_groups;
 	std::vector<Units::UnitBase*> _units;
-	std::atomic_bool              _done{true};
 
 public:
+	std::atomic_uint units_executing{0};
 	cycles_t current_cycle{0};
 
 	Simulator() { _unit_groups.emplace_back(0u, 0u); }

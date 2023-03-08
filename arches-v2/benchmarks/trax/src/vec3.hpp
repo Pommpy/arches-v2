@@ -9,7 +9,7 @@ class vec3
 public:
 	union
 	{
-		float e[3]{0.0f, 0.0f, 0.0f};
+		float e[3];
 		struct
 		{
 			float x;
@@ -24,9 +24,9 @@ public:
 		};
 	};
 
-	vec3() {}
+	vec3() = default;
 	explicit vec3(float e0, float e1, float e2) { e[0] = e0; e[1] = e1; e[2] = e2; }
-	explicit vec3(float e0) { e[0] = e0; e[1] = e0; e[2] = e0; }
+	vec3(float e0) { e[0] = e0; e[1] = e0; e[2] = e0; }
 
 	inline const vec3& operator+() const { return *this; }
 	inline vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
@@ -42,19 +42,19 @@ public:
 	inline vec3& operator=(const vec3 &v2);
 };
 
-inline float squared_length(const vec3 &v)
+inline float length2(const vec3 &v)
 {
 	return (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 }
 
 inline float inv_length(const vec3 &v)
 {
-	return fast_inv_sqrtf(squared_length(v));
+	return fast_inv_sqrtf(length2(v));
 }
 
 inline float length(const vec3 &v)
 {
-	return fast_sqrtf(squared_length(v));
+	return fast_sqrtf(length2(v));
 }
 
 inline vec3 operator+(const vec3  &v1, const vec3 &v2)

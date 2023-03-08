@@ -22,21 +22,6 @@ uint32_t inline atomicinc()
 	return 0;
 }
 
-uint32_t inline write_ray(uint tm_index, uint ray_id)
-{
-	#ifdef ARCH_RISCV
-	uint32_t value = 0;
-	asm volatile("traxamoin %[rd]\n\t" : [rd] "=r" (value));
-	return value;
-	#endif
-
-	#ifdef ARCH_X86
-	return atomicinc_i++;
-	#endif
-
-	return 0;
-}
-
 #ifdef ARCH_X86
 void reset_atomicinc()
 {

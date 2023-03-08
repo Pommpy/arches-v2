@@ -31,9 +31,8 @@
     <ClInclude Include="src\arches\isa\riscv.hpp" />
     <ClInclude Include="src\arches\simulator\simulator.hpp" />
     <ClInclude Include="src\arches\units\dual-streaming\unit-ray-staging-buffer.hpp" />
-    <ClInclude Include="src\arches\units\dual-streaming\unit-scene-buffer.hpp" />
     <ClInclude Include="src\arches\units\dual-streaming\unit-stream-scheduler.hpp" />
-    <ClInclude Include="src\arches\units\uint-atomic-increment.hpp" />
+    <ClInclude Include="src\arches\units\uint-atomic-reg-file.hpp" />
     <ClInclude Include="src\arches\units\uint-tile-scheduler.hpp" />
     <ClInclude Include="src\arches\units\unit-base.hpp" />
     <ClInclude Include="src\arches\units\unit-buffer.hpp" />

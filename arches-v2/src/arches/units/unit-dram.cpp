@@ -5,7 +5,7 @@
 namespace Arches { namespace Units {
 
 UnitDRAM::UnitDRAM(uint num_clients, uint64_t size, Simulator* simulator) : 
-	UnitMainMemoryBase(num_clients, size, simulator), arbitrator(num_clients)
+	UnitMainMemoryBase(num_clients, size)
 {
 	char* usimm_config_file = (char*)REL_PATH_BIN_TO_SAMPLES"gddr5.cfg";
 	char* usimm_vi_file = (char*)REL_PATH_BIN_TO_SAMPLES"1Gb_x16_amd2GHz.vi";
@@ -59,7 +59,7 @@ bool UnitDRAM::_load(const MemoryRequest& request_item, uint request_index)
 
 	_request_map[_next_request_id].request = request_item;
 	_request_map[_next_request_id].request.type = MemoryRequest::Type::LOAD_RETURN;
-	//std::memcpy(_request_map[_next_request_id].request.data, &_data_u8[line_paddr], CACHE_LINE_SIZE);
+	_request_map[_next_request_id].request.data = &_data_u8[request_item.paddr];
 	_request_map[_next_request_id].bus_index = request_index;
 	
 	if (request.retLatencyKnown)
@@ -92,30 +92,38 @@ bool UnitDRAM::_store(const MemoryRequest& request_item, uint request_index)
 
 	//printf("Store(%d): %lld(%d, %d, %d, %lld, %d)\n", req.id, request_item.paddr, dram_addr.channel, dram_addr.rank, dram_addr.bank, dram_addr.row, dram_addr.column);
 
+	std::memcpy(&_data_u8[request_item.paddr], request_item.data, request_item.size);
+
 	_next_request_id++;
 	return true;
 }
 
 void UnitDRAM::clock_rise()
 {
-	for(uint i = 0; i < request_bus.size(); ++i)
-		if(request_bus.get_pending(i)) arbitrator.push_request(i);
+	uint request_priority_index = request_bus.get_next_pending();
+	if(request_priority_index == ~0u) return;
 
-	uint request_index;
-	while((request_index = arbitrator.pop_request()) != ~0)
+	for(uint i = 0; i < request_bus.size(); ++i)
 	{
+		uint request_index = (request_priority_index + i) % request_bus.size();
+		if(!request_bus.get_pending(request_index)) continue;
+
 		const MemoryRequest& request = request_bus.get_data(request_index);
 		if(request.type == MemoryRequest::Type::STORE)
 		{
 			if(_store(request, request_index))
 				request_bus.clear_pending(request_index);
-			else break;
 		}
 		else if(request.type == MemoryRequest::Type::LOAD)
 		{
 			if(_load(request, request_index))
 				request_bus.clear_pending(request_index);
-			else break;
+		}
+
+		if(!_busy)
+		{
+			_busy = true;
+			simulator->units_executing++;
 		}
 	}
 }
@@ -142,6 +150,11 @@ void UnitDRAM::clock_fall()
 		}
 	}
 
+	if(_busy && !usimmIsBusy())
+	{
+		_busy = false;
+		simulator->units_executing--;
+	}
 }
 
 }}

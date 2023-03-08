@@ -87,7 +87,6 @@ public:
 				}
 				else root_node_queue.push(node);
 			}
-			printf("%ld:%ld\n", treelet_assignments.size() - 1, bytes_left);
 			bytes += sizeof(Treelet) - bytes_left;
 		}
 

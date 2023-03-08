@@ -29,8 +29,8 @@ inline static float cos_32(float x)
 {
 	//x = x % twopi; // Get rid of values > 2* pi
 	x = std::abs(x); // cos(-x) = cos(x)
-	uint quad = static_cast<uint>(x * (2.0f / PI)); // Get quadrant # (0 to 3)
-	//uint quad = static_cast<uint>(x / (PI / 2.0f)); // Get quadrant # (0 to 3
+	uint32_t quad = static_cast<uint>(x * (2.0f / PI)); // Get quadrant # (0 to 3)
+	//uint32_t quad = static_cast<uint>(x / (PI / 2.0f)); // Get quadrant # (0 to 3
 	switch (quad)
 	{
 	case 0: return cos_32s(x);

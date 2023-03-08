@@ -5,6 +5,7 @@
 #include "../unit-memory-base.hpp"
 #include "../unit-main-memory-base.hpp"
 #include "../unit-buffer.hpp"
+#include "../dual-streaming/unit-ray-staging-buffer.hpp"
 
 #include "../../../../benchmarks/dual-streaming/src/ray.hpp"
 
@@ -13,10 +14,12 @@ namespace Arches { namespace Units { namespace DualStreaming {
 class UnitStreamScheduler : public UnitMemoryBase
 {
 public:
-	struct Config
+	struct Configuration
 	{
 		paddr_t scene_start;
 		paddr_t bucket_start;
+
+		uint num_tms;
 		uint bucket_size;
 		uint segment_size;
 		uint ray_size;
@@ -24,8 +27,8 @@ public:
 
 	struct RayWriteQueueEntry
 	{
-		uint segment;
 		BucketRay bucket_ray;
+		uint segment;
 	};
 
 	struct RayReadQueueEntry
@@ -88,6 +91,7 @@ public:
 	RoundRobinArbitrator request_arbitrator;
 
 	UnitMainMemoryBase* main_mem;
+	UnitRayStagingBuffer** ray_staging_buffers;
 
 	paddr_t scene_segments;
 	paddr_t next_bucket;
@@ -98,6 +102,16 @@ public:
 	MemoryRequest segment_return;
 	MemoryRequest bucket_return;
 
+private:
+	paddr_t _scene_start;
+	paddr_t _bucket_start;
+
+	uint _num_tms;
+	uint _bucket_size;
+	uint _segment_size;
+	uint _ray_size;
+
+public:
 	void process_load_returns()
 	{
 		//accept load returns
@@ -121,17 +135,13 @@ public:
 	void process_requests()
 	{
 		//check for requests to fill an empty staging buffer or write a ray
-		for(uint i = 0; i < request_bus.size(); ++i)
-			if(request_bus.get_pending(i)) 
-				request_arbitrator.push_request(i);
-
-		uint request_index = request_arbitrator.pop_request();
+		uint request_index = request_arbitrator.next();
 		if(request_index != ~0u)
 		{
 			//we have a request for a new scene segment this means we can decrement buckets in flight for the scene sgment whose bucket was previouly in the ray staging buffer
 			MemoryRequest request = request_bus.get_data(request_index);
 
-			if(request.type == MemoryRequest::Type::STORE)
+			if(request.type == MemoryRequest::Type::SBRAY)
 			{
 				//TODO figure out how to enqueue ray_writes
 				//maybe the line address can encode ray ID and target bucket and in that way we can coalesc the rays or we can send a full ray at a time from the staging buffer like a cache line transfer
@@ -140,7 +150,7 @@ public:
 			{
 				request_bus.clear_pending(request_index);
 
-				uint last_segment_index = request.data_u32;
+				uint last_segment_index = *(uint32_t*)request.data;
 				if(last_segment_index != ~0u)
 				{
 					SceneSegmentState& last_segment_state = segment_states[last_segment_index];
@@ -249,7 +259,7 @@ public:
 					MemoryRequest request;
 					request.size = CACHE_LINE_SIZE;
 					request.type = MemoryRequest::Type::LOAD;
-					request.line_paddr = ray_bucket_stream.base_address + ray_bucket_stream.offset;
+					request.paddr = ray_bucket_stream.base_address + ray_bucket_stream.offset;
 
 					main_mem->request_bus.set_data(request, 1);
 					main_mem->request_bus.set_pending(1);
@@ -312,12 +322,12 @@ public:
 			if(!main_mem->return_bus.get_pending(2))
 			{
 				//advance stream
-				if(ray_write_stream.offset < 10 * 4)
+				if(ray_write_stream.offset < _ray_size)
 				{
 					MemoryRequest request;
 					request.size = 4;
 					request.type = MemoryRequest::Type::STORE;
-					request.line_paddr = scene_stream.base_address + scene_stream.offset;
+					request.paddr = scene_stream.base_address + scene_stream.offset;
 
 					main_mem->request_bus.set_data(request, 2);
 					main_mem->request_bus.set_pending(2);
@@ -344,7 +354,7 @@ public:
 					if(free_buckets.empty())
 					{
 						free_buckets.push(next_bucket);
-						next_bucket += 2 * 1024;
+						next_bucket += _bucket_size;
 					}
 
 					paddr_t new_bucket_address = free_buckets.top();
@@ -357,7 +367,7 @@ public:
 					MemoryRequest request;
 					request.size = 8;
 					request.type = MemoryRequest::Type::STORE;
-					request.line_paddr = scene_stream.base_address + scene_stream.offset;
+					request.paddr = scene_stream.base_address + scene_stream.offset;
 
 					main_mem->request_bus.set_data(request, 2);
 					main_mem->request_bus.set_pending(2);
@@ -375,21 +385,27 @@ public:
 		}
 	}
 
-	UnitStreamScheduler(UnitMainMemoryBase* main_mem, uint num_tms, Simulator* simulator) : UnitMemoryBase(num_tms + 1, simulator), request_arbitrator(num_tms)
+	UnitStreamScheduler(Configuration config) :  UnitMemoryBase(config.num_tms + 1), request_arbitrator(this->request_bus.pending, this->request_bus.size())
 	{
+		_scene_start = config.scene_start;
+		_bucket_start = config.bucket_start;
 
+		_num_tms = config.num_tms;
+		_bucket_size = config.bucket_size;
+		_segment_size = config.segment_size;
+		_ray_size = config.ray_size;
 	}
 
 	void clock_rise() override
 	{
-		process_load_returns();
-		process_requests();
+		//process_load_returns();
+		//process_requests();
 	}
 
 	void clock_fall() override
 	{
-		forward_load_returns();
-		update_streams();
+		//forward_load_returns();
+		//update_streams();
 	}
 };
 

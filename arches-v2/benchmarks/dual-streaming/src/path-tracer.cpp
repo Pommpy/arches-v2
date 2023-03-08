@@ -5,12 +5,13 @@
 
 #ifdef ARCH_X86
 //replace arbitrary address with the global data we allocate when running nativly
+AtomicRegFile atomic_reg_file;
 GlobalData global_data;
 #define _KERNEL_AGRS ;
 #endif
 
 #ifdef ARCH_RISCV
-#define _KERNEL_AGRS const GlobalData& global_data = *reinterpret_cast<const GlobalData*>(GLOBAL_DATA_ADDRESS);
+#define _KERNEL_AGRS const GlobalData& global_data = *reinterpret_cast<const GlobalData*>(GLOBAL_DATA_ADDRESS); AtomicRegFile& atomic_reg_file = *reinterpret_cast<AtomicRegFile*>(ATOMIC_REG_FILE_ADDRESS);
 #endif
 
 static uint32_t encode_pixel(rtm::vec3 in)
@@ -27,59 +28,52 @@ static uint32_t encode_pixel(rtm::vec3 in)
 void static inline ray_gen()
 {
 	_KERNEL_AGRS;
-	for(uint index = atomicinc(); index < global_data.framebuffer_size; index = atomicinc())
+	for(uint index = atomic_reg_file.regs[0].fetch_add(1, std::memory_order_relaxed); index < global_data.framebuffer_size; index = atomic_reg_file.regs[0].fetch_add(1, std::memory_order_relaxed))
 	{
 		uint fb_index = index;
 		uint x = index % global_data.framebuffer_width;
 		uint y = index / global_data.framebuffer_width;	
 		RNG rng(fb_index);	
 
-		Ray ray; Hit hit;
-		global_data.camera.generate_ray_through_pixel(x, y, ray, rng);
-
-		global_data.ray_write_buffers->treelet = 0;
-		global_data.ray_write_buffers->ray_id = index;
-		global_data.ray_write_buffers->ray = ray;
-
-		global_data.hit_buffer[index] = hit;
+		BucketRay bray;
+		global_data.camera.generate_ray_through_pixel(x, y, bray.ray, rng);
+		bray.id = index;
+		
+		global_data.hit_records[index].t = T_MAX;
+		_sbray(bray, 0, global_data.ray_staging_buffer);
 	}
 }
 
 void static inline trace_rays()
 {
 	_KERNEL_AGRS;
-	for(uint index = atomicinc(); index < global_data.framebuffer_size; index = atomicinc())
+	for(uint index = atomic_reg_file.regs[1].fetch_add(1, std::memory_order_relaxed); index < global_data.framebuffer_size; index = atomic_reg_file.regs[1].fetch_add(1, std::memory_order_relaxed))
 	{
 		uint fb_index = index;
 		uint x = index % global_data.framebuffer_width;
 		uint y = index / global_data.framebuffer_width;	
 		RNG rng(fb_index);	
 
-		Ray ray = global_data.ray_buffer[index];
-		Hit hit = global_data.hit_buffer[index];
-		intersect(global_data.treelets, ray, hit);
-		global_data.hit_buffer[index] = hit;
+		intersect_buckets(global_data.ray_staging_buffer, global_data.scene_buffer, global_data.hit_records);
 	}
 }
 
 void static inline shade()
 {
 	_KERNEL_AGRS;
-	for(uint index = atomicinc(); index < global_data.framebuffer_size; index = atomicinc())
+	for(uint index = atomic_reg_file.regs[2].fetch_add(1, std::memory_order_relaxed); index < global_data.framebuffer_size; index = atomic_reg_file.regs[2].fetch_add(1, std::memory_order_relaxed))
 	{
 		uint fb_index = index;
 		uint x = index % global_data.framebuffer_width;
 		uint y = index / global_data.framebuffer_width;	
 		RNG rng(fb_index);
 
-		Ray ray = global_data.ray_buffer[index];
-		Hit hit = global_data.hit_buffer[index];
+		Hit hit = global_data.hit_records[index];
 
 		rtm::vec3 output(0.0f);
-		if(hit.t < ray.t_max)
+		if(~hit.prim_id)
 		{
-			rtm::vec3 normal = global_data.triangles[hit.prim_id].get_normal();
-			float shading = std::max(rtm::dot(global_data.light_dir, normal), 0.0f);
+			float shading = std::min(hit.t, 1.0f);
 			output = rtm::vec3(0.8f * shading);
 		}
 
@@ -134,8 +128,7 @@ int main()
 
 	global_data.treelets = treelet_bvh.treelets.data();
 	global_data.triangles = mesh.triangles;
-	global_data.ray_buffer = ray_buffer.data();
-	global_data.hit_buffer = hit_buffer.data();
+	global_data.hit_records = hit_buffer.data();
 
 	std::vector<std::thread*> threads(std::thread::hardware_concurrency(), nullptr);
 	auto start = std::chrono::high_resolution_clock::now();

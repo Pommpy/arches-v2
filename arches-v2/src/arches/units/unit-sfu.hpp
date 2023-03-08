@@ -15,11 +15,10 @@ public:
 	};
 
 public:
-	UnitSFU(uint issue_width, uint issue_rate, uint latency, uint num_clients, Simulator* simulator) :
-		UnitBase(simulator), request_bus(num_clients), return_bus(num_clients),
-		 issue_width(issue_width), issue_rate(issue_rate), latency(latency), _arbitrator(num_clients)
+	UnitSFU(uint issue_width, uint issue_rate, uint latency, uint num_clients) :
+		UnitBase(), request_bus(num_clients), return_bus(num_clients),
+		 issue_width(issue_width), issue_rate(issue_rate), latency(latency)
 	{
-		executing = false;
 		issue_counters.resize(issue_width, 0);
 	}
 
@@ -33,8 +32,6 @@ public:
 	std::vector<uint> issue_counters;
 
 private:
-	RoundRobinArbitrator _arbitrator;
-
 	cycles_t current_cycle{0};
 	
 	struct Return
@@ -50,14 +47,11 @@ private:
 
 	void clock_rise() override
 	{
-		for(uint i = 0; i < request_bus.size(); ++i)
-			if(request_bus.get_pending(i)) _arbitrator.push_request(i);
-
 		for(uint i = 0; i < issue_width; ++i)
 		{
 			if(issue_counters[i] == 0)
 			{
-				uint request_index = _arbitrator.pop_request();
+				uint request_index = request_bus.get_next_pending();
 				if(request_index == ~0u) break;
 
 				Request request_item = request_bus.get_data(request_index);

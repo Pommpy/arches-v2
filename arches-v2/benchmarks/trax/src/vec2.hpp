@@ -8,7 +8,7 @@ class vec2
 public:
 	union
 	{
-		float e[2]{0.0f, 0.0f};
+		float e[2];
 		struct
 		{
 			float x;
@@ -20,9 +20,10 @@ public:
 			float v;
 		};
 	};
-	vec2() {}
+	
+	vec2() = default;
 	explicit vec2(float e0, float e1) { e[0] = e0; e[1] = e1; }
-	explicit vec2(float e0) { e[0] = e0; e[1] = e0; }
+	vec2(float e0) { e[0] = e0; e[1] = e0; }
 
 	inline const vec2& operator+() const { return *this; }
 	inline vec2 operator-() const { return vec2(-e[0], -e[1]); }

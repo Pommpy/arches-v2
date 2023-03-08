@@ -15,15 +15,18 @@ private:
 		uint8_t data[64];
 	};
 
-	uint8_t  _pending_set_changed;
-	uint8_t* _pending;
+	//TODO add arbitrator directly to the calss
+	//Should be much more efficent since each line has one byte and they are alligne they will likely be on the same line and byte compare with zero is super cheap if they are l1 hits
 	T*       _data;
+	uint8_t* _pending;
 	uint     _size;
+	uint     _arb_index;
 
 public:
+
 	ConnectionGroup(uint size) : _size(size)
 	{
-		_pending_set_changed = 0;
+		_arb_index = 0;
 		_size = size;
 		_pending = (uint8_t*)(_new _64Aligned[(size + 63) / 64]);
 		_data = (T*)(_new _64Aligned[(size * sizeof(T) + 63) / 64]);
@@ -39,16 +42,8 @@ public:
 	}
 	
 	size_t size() const { return _size; }
-
-	bool pending_set_changed()
-	{
-		if(_pending_set_changed)
-		{
-			_pending_set_changed = 0;
-			return true;
-		}
-		return false;
-	}
+	
+	//return true if a request was added since the last time this function was called. This might be a decent optimization
 	bool get_pending(size_t index) const 
 	{ 
 		assert(index < _size);
@@ -59,19 +54,34 @@ public:
 		assert(index < _size);
 		assert(_pending[index] == 0);
 		_pending[index] = 1;
-		//_pending_set_changed = 1;
+	}
+	uint get_next_pending()
+	{
+		uint index = _arb_index;
+		do
+		{
+			if(_pending[index])
+			{
+				_arb_index = index + 1;
+				if(_arb_index == _size) _arb_index = 0;
+				return index;
+			}
+
+			if(++index == _size) index = 0;
+		} while(index != _arb_index);
+
+		return ~0u;
 	}
 	void clear_pending(size_t index)
 	{
 		assert(index < _size);
 		assert(_pending[index] == 1);
 		_pending[index] = 0;
-		//_pending_set_changed = 1;
 	}
-	const T& get_data(size_t index) const 
+	const T& get_data(size_t index) const
 	{
 		assert(index < _size);
-		return _data[index];
+		return _data[index]; 
 	}
 	void set_data(const T& data, size_t index)
 	{
@@ -82,13 +92,10 @@ public:
 };
 
 //avoid false sharing by aligning to cache line
-class alignas(64) UnitBase
+class UnitBase
 {
 public:
-	bool executing{false};
-
-	UnitBase(Simulator* simulator) {}
-
+	Simulator* simulator{nullptr};
 	virtual void clock_rise() = 0;
 	virtual void clock_fall() = 0;
 };

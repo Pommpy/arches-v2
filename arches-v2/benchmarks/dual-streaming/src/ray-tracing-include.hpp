@@ -9,12 +9,18 @@
 #include "intersect.hpp"
 
 #define GLOBAL_DATA_ADDRESS 256ull
+#define ATOMIC_REG_FILE_ADDRESS 128ull
 
 struct RayWriteBuffer
 {
 	uint treelet;
 	uint ray_id;
 	Ray ray;
+};
+
+struct AtomicRegFile
+{
+	std::atomic_uint32_t regs[32];
 };
 
 struct GlobalData
@@ -31,10 +37,12 @@ struct GlobalData
 	Camera camera;
 	rtm::vec3 light_dir;
 
+	//heap data pointers
 	Triangle* triangles;
-	Treelet*  treelets;
+	Treelet* treelets;
 
-	volatile RayBucket*      ray_staging_buffers;
-	volatile RayWriteBuffer* ray_write_buffer;
-	volatile Hit*            hit_record_updater;
+	//mem mapped address used to issue mem instr
+	Hit* hit_records;
+	Treelet* scene_buffer;
+	void* ray_staging_buffer;
 };

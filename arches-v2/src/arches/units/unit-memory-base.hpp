@@ -12,13 +12,30 @@ struct MemoryRequest
 {
 	enum class Type : uint8_t
 	{
-		STORE,
-		LOAD,
-		LOAD_RETURN,
+		//must match the first part of ISA::RISCV::Type f
+		//TODO: We should figure a way to make this and the isa RISCV enum the same structure. Right now this isn't maintainable. Also it should be impmnetation dependent somehow so that we can have diffrent isntruction based on impl.
 
-		AMO_LOAD,
+		NA,
+
+		LOAD,
+		STORE,
+
 		AMO_ADD,
-		AMO_RETURN,
+		AMO_XOR,
+		AMO_OR,
+		AMO_AND,
+		AMO_MIN,
+		AMO_MAX,
+		AMO_MINU,
+		AMO_MAXU,
+
+		TRAXAMOIN,
+		LBRAY,
+		SBRAY,
+		CSHIT,
+
+		//other non instruction mem ops
+		LOAD_RETURN,
 	};
 
 	//meta data 
@@ -31,18 +48,11 @@ struct MemoryRequest
 		vaddr_t vaddr;
 	};
 
-	union
-	{
-		uint8_t _data[8];
-
-		uint8_t  data_u8;
-		uint16_t data_u16;
-		uint32_t data_u32;
-		uint64_t data_u64;
-
-		float    data_f32;
-		double   data_f64;
-	};
+	//Only atomic instructions actually pass or recive data.
+	//The data pointed to by this must precist until the pending line in cleared.
+	//Coppying data into the request would be very inefficent (especially when passing full blocks of data).
+	//Hence why we handle it by passing a pointer the data can then be coppied directly by the reciver
+	void* data{nullptr};
 };
 
 class UnitMemoryBase : public UnitBase
@@ -53,7 +63,7 @@ public:
 	uint                        offset_bits{ 0 }; //how many bits are used for the offset. Needed by the core to align loads to line boundries properly
 	uint64_t                    offset_mask{ 0 };
 
-	UnitMemoryBase(uint num_clients, Simulator* simulator) : request_bus(num_clients), return_bus(num_clients), UnitBase(simulator)
+	UnitMemoryBase(uint num_clients) : request_bus(num_clients), return_bus(num_clients), UnitBase()
  	{
 		
 	}
@@ -91,7 +101,7 @@ public:
 		{
 			uint middle = (start + end) / 2;
 			if(paddr >= ranges[middle]) start = middle;
-			else                        end = middle;
+			else                        end   = middle;
 		}
 
 		return start;
@@ -102,7 +112,7 @@ public:
 		return units[index].unit;
 	}
 
-	uint get_offset(uint index)
+	uint get_port(uint index)
 	{
 		return units[index].offset;
 	}

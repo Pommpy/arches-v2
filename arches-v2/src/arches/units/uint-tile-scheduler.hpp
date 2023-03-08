@@ -11,11 +11,9 @@ class UnitTileScheduler : public UnitMemoryBase
 {
 public:
 	UnitTileScheduler(uint num_tp, uint num_tm, uint frame_width, uint frame_height, uint tile_width, uint tile_height,  Simulator* simulator) :
-		frame_width(frame_width), frame_height(frame_height), tile_width(tile_width), tile_height(tile_height), UnitMemoryBase(num_tp, simulator),
+		frame_width(frame_width), frame_height(frame_height), tile_width(tile_width), tile_height(tile_height), UnitMemoryBase(num_tp),
 		tp_per_tm(num_tp / num_tm), bank_states(num_tm, tp_per_tm)
 	{
-		executing = false;
-
 		num_tiles_width = frame_width / tile_width;
 		num_tiles_height = frame_height / tile_height;
 		num_tiles = num_tiles_width * num_tiles_height;
@@ -52,6 +50,8 @@ public:
 		uint tile_index{~0u};
 		uint tile_fill{~0u};
 
+		uint32_t return_reg;
+
 		Bank(uint clients) : arbitrator(clients)
 		{
 
@@ -67,11 +67,13 @@ public:
 			for(uint j = 0; j < tp_per_tm; ++j)
 			{
 				if(request_bus.get_pending(i * tp_per_tm + j)) 
-					bank_states[i].arbitrator.push_request(j);
+					bank_states[i].arbitrator.add(j);
 			}
 
-			if((bank_states[i].request_index = bank_states[i].arbitrator.pop_request()) != ~0)
+			if((bank_states[i].request_index = bank_states[i].arbitrator.next()) != ~0u)
 			{
+				bank_states[i].arbitrator.remove(bank_states[i].request_index);
+
 				bank_states[i].request_index += i * tp_per_tm;
 				bank_states[i].request_item = request_bus.get_data(bank_states[i].request_index);
 				request_bus.clear_pending(bank_states[i].request_index);
@@ -105,19 +107,20 @@ public:
 					uint y = (tile_y * tile_height) + sub_tile_index / tile_width;
 
 					uint index = x + y * frame_width;
-					bank.request_item.data_u32 = index; //todo value
+
+					bank.return_reg = index;
+					bank.request_item.data = &bank.return_reg;
 				}
 				else
 				{
-					bank.request_item.data_u32 = ~0u;
+					bank.return_reg = ~0u;
+					bank.request_item.data = &bank.return_reg;
 				}
 
 				num_requests++;
-				if((num_requests % 4096) == 0) 
-					printf(" pixels rendered: %d\r", num_requests);
+				printf(" pixels rendered: %d\r", num_requests);
 
-				//AMO_RETURNS carry data unlike normal load returns
-				bank.request_item.type = MemoryRequest::Type::AMO_RETURN;
+				bank.request_item.type = MemoryRequest::Type::LOAD_RETURN;
 				return_bus.set_data(bank.request_item, bank.request_index);
 				return_bus.set_pending(bank.request_index);
 			}

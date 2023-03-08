@@ -29,11 +29,12 @@ namespace Arches { namespace ISA { namespace RISCV {
 
 		struct
 		{
-			paddr_t vaddr;
 			Units::MemoryRequest::Type type;
 			RegAddr dst;
 			uint8_t size;
+			bool cached;
 
+			paddr_t vaddr;
 			uint8_t store_data[CACHE_LINE_SIZE];
 		}mem_req;
 

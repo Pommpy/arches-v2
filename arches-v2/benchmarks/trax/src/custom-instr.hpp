@@ -4,13 +4,13 @@
 #include "ray-tracing-include.hpp"
 
 #ifdef ARCH_X86
-static std::atomic_uint atomicinc_i;
+static std::atomic_uint32_t atomicinc_i;
 #endif
 
 uint32_t inline atomicinc()
 {
 	#ifdef ARCH_RISCV
-	uint32_t value = 0;
+	uint32_t value;
 	asm volatile("traxamoin %[rd]\n\t" : [rd] "=r" (value));
 	return value;
 	#endif
@@ -30,7 +30,7 @@ void reset_atomicinc()
 #endif
 
 #ifdef ARCH_X86
-void dump_framebuffer(uint32_t* framebuffer_address, const char* path, uint width, uint height)
+void dump_framebuffer(uint32_t* framebuffer_address, const char* path, uint32_t width, uint32_t height)
 {
 	FILE* file = fopen(path, "wb");
 	fprintf(file,"P6\n%u %u\n255\n", width, height);

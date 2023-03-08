@@ -46,44 +46,11 @@ int32_t get_immediate_J(Instruction instr)
 		(instr.j.imm_19_12 << 12) | (instr.j.imm_11 << 11) | (instr.j.imm_10_1 << 1);
 }
 
-/*
-template <typename T> inline static void _issue_int_load (ExecutionBase* unit, Instruction const& instr) 
-{
-	WorkItem item;
-	item.type = WorkItem::TYPE::LOAD;
-
-	item.load.size = sizeof(T);
-	item.load.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + get_immediate_I(instr);
-
-	//The sign of this value encodes whether the load should be sign-extended or not when it completes.  It also encodes the width of the load so that only one `switch`-statement is necessary to decide what to do.
-	item.load.dst_unit_data.s8[0] = std::is_signed_v<T> ? -static_cast<int16_t>(sizeof(T)) : static_cast<int16_t>(sizeof(T));
-	item.load.dst_unit_data.u8[1] = instr.i.rd; //Destination register.
-	item.load.dst_unit_data.u8[2] = static_cast<uint8_t>(RegFile::INT); //Destination register file
-	item.load.dst_stack_index = 0;
-	item.load.dst_stack[item.load.dst_stack_index] = unit->id;
-
-	unit->send_output_to(unit->mem_higher,item,1);
-}
-
-template <typename T> inline static void _issue_int_store(ExecutionBase* unit, Instruction const& instr)
-{
-	WorkItem item;
-	item.type = WorkItem::TYPE::STORE;
-
-	item.store.size = sizeof(T);
-	item.store.vaddr = unit->int_regs->registers[instr.s.rs1].u64 + get_immediate_S(instr);
-	item.store.data.u64[0] = unit->int_regs->registers[instr.s.rs2].u64;
-
-	item.store.prev_id = unit->id;
-
-	unit->send_output_to(unit->mem_higher, item, 1);
-}
-*/
-
 template <typename T> inline static void _prepare_load(ExecutionBase* unit, Instruction const& instr)
 {
 	unit->mem_req.type = Units::MemoryRequest::Type::LOAD;
 	unit->mem_req.size = sizeof(T);
+	unit->mem_req.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + get_immediate_I(instr);
 
 	unit->mem_req.dst.reg = instr.i.rd;
 	if(typeid(T) == typeid(float) || typeid(T) == typeid(double))
@@ -96,35 +63,15 @@ template <typename T> inline static void _prepare_load(ExecutionBase* unit, Inst
 		unit->mem_req.dst.reg_file = static_cast<uint8_t>(RegFile::INT);
 		unit->mem_req.dst.sign_ext = std::is_signed_v<T>;
 	}
-
-	unit->mem_req.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + get_immediate_I(instr);
-	
-	unit->_write_register(unit->mem_req.dst, unit->mem_req.size, &unit->backing_memory[unit->mem_req.vaddr]);
 }
 
 template <typename T> inline static void _prepare_store(ExecutionBase* unit, Instruction const& instr)
 {
 	unit->mem_req.type = Units::MemoryRequest::Type::STORE;
 	unit->mem_req.size = sizeof(T);
-
 	unit->mem_req.vaddr = unit->int_regs->registers[instr.s.rs1].u64 + get_immediate_S(instr);
 	
-	uint8_t* target = &unit->backing_memory[unit->mem_req.vaddr];
-	if(typeid(T) == typeid(float))
-	{
-		*(float*)target = unit->float_regs->registers[instr.s.rs2].f32;
-	}
-	else
-	{
-		switch(sizeof(T))
-		{
-		case 1: *(uint8_t*)target = unit->int_regs->registers[instr.s.rs2].u8;  break;
-		case 2: *(uint16_t*)target = unit->int_regs->registers[instr.s.rs2].u16; break;
-		case 4: *(uint32_t*)target = unit->int_regs->registers[instr.s.rs2].u32; break;
-		case 8: *(uint64_t*)target = unit->int_regs->registers[instr.s.rs2].u64; break;
-			nodefault;
-		}
-	}
+	std::memcpy(unit->mem_req.store_data, &unit->int_regs->registers[instr.s.rs2], sizeof(T));
 }
 
 #define CALLBACK_GETSTR(STR) [](Instruction const& /*instr*/) { return STR; }
@@ -524,93 +471,103 @@ template <typename T>
 static void prepare_amo(ExecutionBase* unit, Instruction instr)
 {
 	unit->mem_req.size = sizeof(T);
+	unit->mem_req.vaddr = unit->int_regs->registers[instr.rs1].u64;
+
 	unit->mem_req.dst.reg = instr.r.rd;
 	unit->mem_req.dst.reg_file = 0;
-	unit->mem_req.dst.sign_ext = std::is_signed(T);
-	unit->mem_req.vaddr = instr.rs1;
-	*(uint64_t*)unit->mem_req.store_data = unit->int_regs->registers[instr.rs2].u64;
+	unit->mem_req.dst.sign_ext = std::is_signed_v<T>;
+
+	std::memcpy(unit->mem_req.store_data, &unit->int_regs->registers[instr.rs2], sizeof(T));
 }
 
 InstructionInfo const isa_AMO_W[8] =
 {
-	InstructionInfo(0b000, "amoadd.w", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{
-
+	InstructionInfo(0b000, "amoadd.w", Type::AMO_ADD, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_ADD;
+		prepare_amo<int32_t>(unit, instr);
 	}),//AMOADD.W
-	InstructionInfo(0b001, "amoxor.w", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOXOR.W
-	InstructionInfo(0b010, "amoor.w", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOOR.W
-	InstructionInfo(0b011, "amoand.w", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOAND.W
-	InstructionInfo(0b100, "amomin.w", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMIN.W
-	InstructionInfo(0b101, "amomax.w", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMAX.W
-	InstructionInfo(0b110, "amominu.w", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMIN.W
-	InstructionInfo(0b111, "amomaxu.w", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMAX.W
+	InstructionInfo(0b001, "amoxor.w", Type::AMO_XOR, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_XOR;
+		prepare_amo<int32_t>(unit, instr);
+	}),//AMOXOR.W
+	InstructionInfo(0b010, "amoor.w", Type::AMO_OR, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_OR;
+		prepare_amo<int32_t>(unit, instr);
+	}),//AMOOR.W
+	InstructionInfo(0b011, "amoand.w", Type::AMO_AND, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_AND;
+		prepare_amo<int32_t>(unit, instr);
+	}),//AMOAND.W
+	InstructionInfo(0b100, "amomin.w", Type::AMO_MIN, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MIN;
+		prepare_amo<int32_t>(unit, instr);
+	}),//AMOMIN.W
+	InstructionInfo(0b101, "amomax.w", Type::AMO_MAX, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MAX;
+		prepare_amo<int32_t>(unit, instr);
+	}),//AMOMAX.W
+	InstructionInfo(0b110, "amominu.w", Type::AMO_MINU, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MINU;
+		prepare_amo<uint32_t>(unit, instr);
+	}),//AMOMIN.W
+	InstructionInfo(0b111, "amomaxu.w", Type::AMO_MAXU, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MAXU;
+		prepare_amo<uint32_t>(unit, instr);
+	}),//AMOMAX.W
 };
 
 InstructionInfo const isa_AMO_D[8] =
 {
-	InstructionInfo(0b000, "amoadd.d", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOADD.D
-	InstructionInfo(0b001, "amoxor.d", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOXOR.D
-	InstructionInfo(0b010, "amoor.d", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOOR.D
-	InstructionInfo(0b011, "amoand.d", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOAND.D
-	InstructionInfo(0b100, "amomin.d", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMIN.D
-	InstructionInfo(0b101, "amomax.d", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMAX.D
-	InstructionInfo(0b110, "amominu.d", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMIN.D
-	InstructionInfo(0b111, "amomaxu.d", Type::AMO, Encoding::R, RegFile::INT, IMPL_DECL{}),//AMOMAX.D
+	InstructionInfo(0b000, "amoadd.d", Type::AMO_ADD, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_ADD;
+		prepare_amo<int64_t>(unit, instr);
+	}),//AMOADD.D
+	InstructionInfo(0b001, "amoxor.d", Type::AMO_XOR, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_XOR;
+		prepare_amo<int64_t>(unit, instr);
+	}),//AMOXOR.D
+	InstructionInfo(0b010, "amoor.d", Type::AMO_OR, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_OR;
+		prepare_amo<int64_t>(unit, instr);
+	}),//AMOOR.D
+	InstructionInfo(0b011, "amoand.d", Type::AMO_AND, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_AND;
+		prepare_amo<int64_t>(unit, instr);
+	}),//AMOAND.D
+	InstructionInfo(0b100, "amomin.d", Type::AMO_MIN, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MIN;
+		prepare_amo<int64_t>(unit, instr);
+	}),//AMOMIN.D
+	InstructionInfo(0b101, "amomax.d", Type::AMO_MAX, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MAX;
+		prepare_amo<int64_t>(unit, instr);
+	}),//AMOMAX.D
+	InstructionInfo(0b110, "amominu.d", Type::AMO_MINU, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MINU;
+		prepare_amo<uint64_t>(unit, instr);
+	}),//AMOMIN.D
+	InstructionInfo(0b111, "amomaxu.d", Type::AMO_MAXU, Encoding::R, RegFile::INT, IMPL_DECL{
+		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MAXU;
+		prepare_amo<uint64_t>(unit, instr);
+	}),//AMOMAX.D
 };
 
 
-
 //RV64F
-/*
-template <typename T> inline static void _issue_float_load(ExecutionBase* unit, Instruction const& instr) 
-{
-	WorkItem item;
-	item.type = WorkItem::TYPE::LOAD;
-
-	item.load.size = item.load.size = sizeof(T);
-	item.load.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + get_immediate_I(instr);
-
-	//The sign of this value encodes whether the load should be sign-extended or not when it completes.  It also encodes the width of the load so that only one `switch`-statement is necessary to decide what to do.
-	item.load.dst_unit_data.s8[0] = std::is_signed_v<T> ? -static_cast<int16_t>(sizeof(T)) : static_cast<int16_t>(sizeof(T));
-	item.load.dst_unit_data.u8[1] = instr.i.rd; //Destination register.
-	item.load.dst_unit_data.u8[2] = static_cast<uint8_t>(RegFile::FLOAT); //Destination register file
-	
-	item.load.dst_stack_index = 0;
-	item.load.dst_stack[item.load.dst_stack_index] = unit->id;
-
-	unit->send_output_to(unit->mem_higher, item, 1);
-}
-
-template <typename T> inline static void _issue_float_store(ExecutionBase* unit, Instruction const& instr) 
-{
-	WorkItem item;
-	item.type = WorkItem::TYPE::STORE;
-
-	item.store.size = sizeof(T);
-	item.store.vaddr = unit->int_regs->registers[instr.s.rs1].u64 + get_immediate_S(instr);
-	item.store.data.u64[0] = unit->float_regs->registers[instr.s.rs2].u64;
-
-	item.store.prev_id = unit->id;
-
-	unit->send_output_to(unit->mem_higher, item, 1);
-}
-*/
-
 InstructionInfo const isa_LOAD_FP[4] = //i.funct3
 {
 	InstructionInfo(0b000, "flb", Type::LOAD, Encoding::I, RegFile::FLOAT, RegFile::INT, IMPL_DECL{
 		assert(false);
-		//_issue_float_load<uint8_t >(unit,instr);
 	}),//LB
 	InstructionInfo(0b001, "flh", Type::LOAD, Encoding::I, RegFile::FLOAT, RegFile::INT, IMPL_DECL{
 		assert(false);
-		//_issue_float_load<uint16_t >(unit,instr);
 	}),//LH
 	InstructionInfo(0b010, "flw", Type::LOAD, Encoding::I, RegFile::FLOAT, RegFile::INT, IMPL_DECL{
-		_prepare_load<float> (unit,instr);
+		_prepare_load<float> (unit, instr);
 	}),//LW
 	InstructionInfo(0b011, "fld", Type::LOAD, Encoding::I, RegFile::FLOAT, RegFile::INT, IMPL_DECL{
 		assert(false);
-		//_issue_float_load<uint64_t >(unit,instr);
+		_prepare_load<double>(unit, instr);
 	})//LD
 };
 

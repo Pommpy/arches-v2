@@ -18,8 +18,6 @@ private:
 	};
 	std::unordered_map<uint32_t, _Request> _request_map;
 
-	RoundRobinArbitrator arbitrator;
-
 	struct ReturnItem
 	{
 		uint              request_id;
@@ -32,6 +30,9 @@ private:
 			return l.return_cycle > r.return_cycle;
 		}
 	};
+
+	bool _busy{false};
+
 	std::priority_queue<ReturnItem> _request_return_queue;
 
 	uint32_t _next_request_id{0};

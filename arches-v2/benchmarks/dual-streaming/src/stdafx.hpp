@@ -27,6 +27,7 @@
 #include <queue>
 #endif
 
+#include <atomic>
 #include <algorithm>
 #include <cfloat>
 #include <cstdint>

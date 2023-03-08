@@ -21,8 +21,8 @@ public:
 	};
 
 public:
-	UnitMainMemoryBase(uint num_clients, size_t size, Simulator* simulator) :
-		UnitMemoryBase(num_clients, simulator)
+	UnitMainMemoryBase(uint num_clients, size_t size) :
+		UnitMemoryBase(num_clients)
 	{
 		size_bytes = size;
 		_data_u64 = (uint64_t*)malloc(size);

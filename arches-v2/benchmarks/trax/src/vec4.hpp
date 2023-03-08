@@ -9,7 +9,7 @@ class vec4
 public:
 	union
 	{
-		float e[4]{0.0f, 0.0f, 0.0f, 0.0f};
+		float e[4];
 		struct
 		{
 			float x;
@@ -26,9 +26,9 @@ public:
 		};
 	};
 
-	vec4() {}
+	vec4() = default;
 	explicit vec4(float e0, float e1, float e2, float e3) { e[0] = e0; e[1] = e1; e[2] = e2; e[3] = e3; }
-	explicit vec4(float e0) { e[0] = e0; e[1] = e0; e[2] = e0; e[3] = e0; }
+	vec4(float e0) { e[0] = e0; e[1] = e0; e[2] = e0; e[3] = e0; }
 
 	inline const vec4& operator+() const { return *this; }
 	inline vec4 operator-() const { return vec4(-e[0], -e[1], -e[2], -e[3]); }
