@@ -4,11 +4,11 @@
   "Items": [
     {
       "Id": "cee46157-b33f-4727-9404-8b6c1572e46e",
-      "Command": "./benchmarks/describo/bin/riscv/ray-caster"
+      "Command": "./benchmarks/describo/bin/riscv/path-tracer"
     },
     {
       "Id": "95d58f19-cab5-4d97-bb28-bbfa174bba4f",
-      "Command": "./benchmarks/describo/res/cloth.obj"
+      "Command": "./benchmarks/describo/res/bunny_rm"
     },
     {
       "Id": "eb5acb70-9008-4729-9edd-20440e05105d",
@@ -20,7 +20,7 @@
     },
     {
       "Id": "f3f9366f-44ad-439f-b11e-086e2241eb5a",
-      "Command": "6.0"
+      "Command": "4.0"
     },
     {
       "Id": "9305f175-1094-41ce-8170-3f5731f1af2b",

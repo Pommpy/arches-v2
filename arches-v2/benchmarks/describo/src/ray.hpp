@@ -19,4 +19,6 @@ struct Hit
 	float t;
 	rtm::vec2 bc;
 	uint32_t id;
+
+	uint32_t patch_index;
 };

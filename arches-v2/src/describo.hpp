@@ -22,7 +22,7 @@ namespace ISA { namespace RISCV { namespace DTRaX {
 
 const static InstructionInfo isa_custom0[8] =
 {
-InstructionInfo(0x0, "traxamoin", Type::AMO, Encoding::U, RegFile::INT, IMPL_DECL
+InstructionInfo(0x1, "traxamoin", Type::AMO, Encoding::U, RegFile::INT, IMPL_DECL
 {
 	unit->mem_req.type = Units::MemoryRequest::Type::AMO_LOAD;
 	unit->mem_req.size = 4;
@@ -33,7 +33,7 @@ InstructionInfo(0x0, "traxamoin", Type::AMO, Encoding::U, RegFile::INT, IMPL_DEC
 
 	unit->mem_req.vaddr = 0;
 }),
-InstructionInfo(0x1, "boxisect", Type::CUSTOM1, Encoding::U, RegFile::FLOAT, IMPL_DECL
+InstructionInfo(0x2, "boxisect", Type::CUSTOM1, Encoding::U, RegFile::FLOAT, IMPL_DECL
 {
 	Register32 * fr = unit->float_regs->registers;
 
@@ -61,7 +61,7 @@ InstructionInfo(0x1, "boxisect", Type::CUSTOM1, Encoding::U, RegFile::FLOAT, IMP
 
 	unit->float_regs->registers[instr.u.rd].f32 = intersect(aabb, ray, inv_d);
 }),
-InstructionInfo(0x2, "triisect", Type::CUSTOM2, Encoding::U, RegFile::INT, IMPL_DECL
+InstructionInfo(0x3, "triisect", Type::CUSTOM2, Encoding::U, RegFile::INT, IMPL_DECL
 {
 	Register32 * fr = unit->float_regs->registers;
 
@@ -95,53 +95,9 @@ InstructionInfo(0x2, "triisect", Type::CUSTOM2, Encoding::U, RegFile::INT, IMPL_
 	fr[1].f32 = hit.bc[0];
 	fr[2].f32 = hit.bc[1];
 }),
-InstructionInfo(0x3, "evdb", Type::CUSTOM3, Encoding::U, RegFile::INT, IMPL_DECL
-{
-	Register32 * fr = unit->float_regs->registers;
-
-	Ray ray;
-	ray.o.x = fr[3].f32;
-	ray.o.y = fr[4].f32;
-	ray.o.z = fr[5].f32;
-	ray.drdt = fr[6].f32;
-	ray.d.x = fr[7].f32;
-	ray.d.y = fr[8].f32;
-	ray.d.z = fr[9].f32;
-	ray.radius = fr[10].f32;
-
-	Triangle tri;
-	tri.vrts[0].x = fr[11].f32;
-	tri.vrts[0].y = fr[12].f32;
-	tri.vrts[0].z = fr[13].f32;
-	tri.vrts[1].x = fr[14].f32;
-	tri.vrts[1].y = fr[15].f32;
-	tri.vrts[1].z = fr[16].f32;
-	tri.vrts[2].x = fr[17].f32;
-	tri.vrts[2].y = fr[18].f32;
-	tri.vrts[2].z = fr[19].f32;
-
-	float max_db_over_max_error = fr[20].f32;
-
-	rtm::vec3 es = evalute_deformation_bounds(unit->int_regs->registers[instr.u.rd].u32, max_db_over_max_error, tri, ray);
-
-	fr[0].f32 = es[0];
-	fr[1].f32 = es[1];
-	fr[2].f32 = es[2];
-}),
-InstructionInfo(0x4, "ivrts", Type::CUSTOM4, Encoding::U, RegFile::INT, IMPL_DECL
-{
-	Register32 * fr = unit->float_regs->registers;
-}),
-InstructionInfo(0x5, "cciao", Type::CUSTOM5, Encoding::U, RegFile::INT, IMPL_DECL
-{
-}),
-InstructionInfo(0x6, "iaotovi", Type::CUSTOM6, Encoding::U, RegFile::INT, IMPL_DECL
-{
-}),
-
 };
 
-const static InstructionInfo custom0(CUSTOM_OPCODE0, META_DECL{return isa_custom0[instr.u.imm];});
+const static InstructionInfo custom0(CUSTOM_OPCODE0, META_DECL{return isa_custom0[instr.u.imm >> 3];});
 
 }}}
 
@@ -165,7 +121,7 @@ static T* write_vector(Units::UnitMainMemoryBase* main_memory, size_t alignment,
 	return write_array(main_memory, alignment, v.data(), v.size(), heap_address);
 }
 
-static GlobalData initilize_buffers(std::string mesh_path, rtm::vec3 camera_pos, Units::UnitMainMemoryBase* main_memory, paddr_t& heap_address)
+static GlobalData initilize_buffers(std::string exe_path, std::string mesh_path, rtm::vec3 camera_pos, Units::UnitMainMemoryBase* main_memory, paddr_t& heap_address)
 {
 	GlobalData global_data;
 	global_data.framebuffer_width = 1024;
@@ -179,9 +135,10 @@ static GlobalData initilize_buffers(std::string mesh_path, rtm::vec3 camera_pos,
 	//Camera camera(global_data.framebuffer_width, global_data.framebuffer_height, 35.0f, rtm::vec3(0.0f, 0.0f, 6.0f));
 	global_data.camera = camera;
 
-	if(mesh_path.back() == '2')
+	Mesh mesh(mesh_path + ".obj");
+	if(exe_path.back() == '1')
 	{
-		TesselationTree tt(mesh_path);
+		TesselationTree1 tt(mesh_path + ".tt1");
 
 		BVH blas;
 		std::vector<BuildObject> build_objects;
@@ -190,25 +147,81 @@ static GlobalData initilize_buffers(std::string mesh_path, rtm::vec3 camera_pos,
 		blas.build(build_objects);
 		tt.reorder(build_objects);
 
-		printf("Vertices: %lld\n", tt.vertices.size());
 		printf("Headers: %lld\n", tt.headers.size());
+		printf("Vertices: %lld\n", tt.vertices.size());
+		printf("Triangles: %lld\n", tt.triangles.size());
 		printf("Nodes: %lld\n", tt.nodes.size() + blas.nodes.size());
 		printf("Total Size: %lld bytes\n",
 			tt.vertices.size() * sizeof(rtm::vec3) +
-			tt.headers.size() * sizeof(TesselationTree::Header) +
-			tt.nodes.size() * sizeof(TesselationTree::Node) +
+			tt.headers.size() * sizeof(TesselationTree1::Header) +
+			tt.nodes.size() * sizeof(TesselationTree1::Node) +
+			tt.triangles.size() * sizeof(CompactTri) +
 			blas.nodes.size() * sizeof(BVH::Node)
 		);
 
-		global_data.tt.blas = write_vector(main_memory, CACHE_LINE_SIZE, blas.nodes, heap_address);
-		global_data.tt.headers = write_vector(main_memory, CACHE_LINE_SIZE, tt.headers, heap_address);
-		global_data.tt.nodes = write_vector(main_memory, CACHE_LINE_SIZE, tt.nodes, heap_address);
-		global_data.tt.vertices = write_vector(main_memory, CACHE_LINE_SIZE, tt.vertices, heap_address);
+		global_data.tt1.blas = write_vector(main_memory, CACHE_LINE_SIZE, blas.nodes, heap_address);
+		global_data.tt1.headers = write_vector(main_memory, CACHE_LINE_SIZE, tt.headers, heap_address);
+		global_data.tt1.nodes = write_vector(main_memory, CACHE_LINE_SIZE, tt.nodes, heap_address);
+		global_data.tt1.vertices = write_vector(main_memory, CACHE_LINE_SIZE, tt.vertices, heap_address);
+		global_data.tt1.triangles = write_vector(main_memory, CACHE_LINE_SIZE, tt.triangles, heap_address);
+	}
+	else if(exe_path.back() == '2')
+	{
+		TesselationTree2 tt(mesh_path + ".tt2");
+
+		BVH blas;
+		std::vector<BuildObject> build_objects;
+		for(uint i = 0; i < tt.size(); ++i)
+			build_objects.push_back(tt.get_build_object(i));
+		blas.build(build_objects);
+		tt.reorder(build_objects);
+
+		printf("Headers: %lld\n", tt.headers.size());
+		printf("Vertices: %lld\n", tt.vertices.size());
+		printf("Nodes: %lld\n", tt.nodes.size() + blas.nodes.size());
+		printf("Total Size: %lld bytes\n",
+			tt.vertices.size() * sizeof(rtm::vec3) +
+			tt.headers.size() * sizeof(TesselationTree2::Header) +
+			tt.nodes.size() * sizeof(TesselationTree2::Node) +
+			blas.nodes.size() * sizeof(BVH::Node)
+		);
+
+		global_data.tt2.blas = write_vector(main_memory, CACHE_LINE_SIZE, blas.nodes, heap_address);
+		global_data.tt2.headers = write_vector(main_memory, CACHE_LINE_SIZE, tt.headers, heap_address);
+		global_data.tt2.nodes = write_vector(main_memory, CACHE_LINE_SIZE, tt.nodes, heap_address);
+		global_data.tt2.vertices = write_vector(main_memory, CACHE_LINE_SIZE, tt.vertices, heap_address);
+	}
+	else if(exe_path.back() == '3')
+	{
+		TesselationTree3 tt(mesh_path + ".tt3");
+
+		BVH blas;
+		std::vector<BuildObject> build_objects;
+		for(uint i = 0; i < tt.size(); ++i)
+			build_objects.push_back(tt.get_build_object(i));
+		blas.build(build_objects);
+		tt.reorder(build_objects);
+
+		printf("Headers: %lld\n", tt.headers.size());
+		printf("Vertices: %lld\n", tt.vertices.size());
+		printf("Triangles: %lld\n", tt.triangles.size());
+		printf("Nodes: %lld\n", tt.nodes.size() + blas.nodes.size());
+		printf("Total Size: %lld bytes\n",
+			tt.vertices.size() * sizeof(rtm::vec3) +
+			tt.headers.size() * sizeof(TesselationTree3::Header) +
+			tt.nodes.size() * sizeof(TesselationTree3::Node) +
+			tt.triangles.size() * sizeof(CompactTri) +
+			blas.nodes.size() * sizeof(BVH::Node)
+		);
+
+		global_data.tt3.blas = write_vector(main_memory, CACHE_LINE_SIZE, blas.nodes, heap_address);
+		global_data.tt3.headers = write_vector(main_memory, CACHE_LINE_SIZE, tt.headers, heap_address);
+		global_data.tt3.nodes = write_vector(main_memory, CACHE_LINE_SIZE, tt.nodes, heap_address);
+		global_data.tt3.vertices = write_vector(main_memory, CACHE_LINE_SIZE, tt.vertices, heap_address);
+		global_data.tt3.triangles = write_vector(main_memory, CACHE_LINE_SIZE, tt.triangles, heap_address);
 	}
 	else
 	{
-		Mesh mesh(mesh_path);
-
 		BVH blas;
 		std::vector<BuildObject> build_objects;
 		for(uint i = 0; i < mesh.size(); ++i)
@@ -229,6 +242,10 @@ static GlobalData initilize_buffers(std::string mesh_path, rtm::vec3 camera_pos,
 		global_data.mesh.vertex_indices = write_vector(main_memory, CACHE_LINE_SIZE, mesh.vertex_indices, heap_address);
 		global_data.mesh.vertices = write_vector(main_memory, CACHE_LINE_SIZE, mesh.vertices, heap_address);
 	}
+
+	//we must preform mesh.reorder before copying the arrays
+	global_data.ni = write_vector(main_memory, CACHE_LINE_SIZE, mesh.normal_indices, heap_address);
+	global_data.normals = write_vector(main_memory, CACHE_LINE_SIZE, mesh.normals, heap_address);
 
 	main_memory->direct_write(&global_data, sizeof(GlobalData), GLOBAL_DATA_ADDRESS);
 
@@ -298,7 +315,7 @@ static void run_sim_describo(int argc, char* argv[])
 
 	Units::UnitDRAM mm(l2_config.num_banks * num_l2, 1024ull * 1024ull * 1024ull, &simulator); mm.clear();
 	Units::UnitAtomicRegfile amoin(num_tps_per_tm * num_tms_per_l2 * num_l2, &simulator);
-	paddr_t heap_address = mm.write_elf(elf);	GlobalData global_data = initilize_buffers(mesh_path, camera_pos, &mm, heap_address);
+	paddr_t heap_address = mm.write_elf(elf);	GlobalData global_data = initilize_buffers(binary_path, mesh_path, camera_pos, &mm, heap_address);
 	Units::UnitTileScheduler tile_scheduler(num_tps, num_tms, global_data.framebuffer_width, global_data.framebuffer_height, 8, 8, &simulator);
 
 	simulator.register_unit(&mm);
@@ -318,7 +335,7 @@ static void run_sim_describo(int argc, char* argv[])
 	tp_config.backing_memory = mm._data_u8;
 	tp_config.pc = elf.elf_header->e_entry.u64;
 
-	size_t  stack_size = 2 * 1024;
+	size_t  stack_size = 4 * 1024;
 	paddr_t stack_top = 1024ull * 1024ull * 1024ull;
 	paddr_t stack_start = stack_top - num_tps * stack_size;
 

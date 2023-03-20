@@ -149,7 +149,7 @@ InstructionInfo isa[32] =
 		InstructionInfo(0b00100, META_DECL { return isa_OP_IMM[instr.i.funct3]; }),//OP-IMM
 		InstructionInfo(0b00101, "auipc", Type::IADD, Encoding::U, RegFile::INT, IMPL_DECL 
 		{
-			unit->int_regs->registers[instr.u.rd].s64 = unit->pc + get_immediate_U(instr);
+			unit->int_regs->registers[instr.u.rd].s64 = unit->pc + (int64_t)get_immediate_U(instr);
 		}),//AUIPC
 		InstructionInfo(0b00110, META_DECL { return isa_OP_IMM_32[instr.i.funct3]; }),//OP-IMM-32
 		InstructionInfo(0b00111, IMPL_NOTI),//48b
@@ -202,10 +202,7 @@ InstructionInfo isa[32] =
 			unit->pc += ISA::RISCV::get_immediate_J(instr);
 			unit->branch_taken = true;
 		}),//JAL
-		InstructionInfo(0b11100, "ecall", Type::SYS, Encoding::I, RegFile::INT, IMPL_DECL 
-		{
-			//actually handle system calls in the proccesor model
-		}),//ECALL
+		InstructionInfo(0b11100, META_DECL{ return isa_SYSTEM[instr.i.funct12]; }),//SYSTEM
 		InstructionInfo(0b11101, IMPL_NOTI),//reserved
 		InstructionInfo(0b11110, IMPL_NONE),//custom-3/rv128
 		InstructionInfo(0b11111, IMPL_NOTI),//>=80b
@@ -214,6 +211,19 @@ InstructionInfo isa[32] =
 
 
 //RV64I
+InstructionInfo const isa_SYSTEM[2] =
+{
+	InstructionInfo(0b000000000000, "ecall", Type::SYS, Encoding::I, RegFile::INT, IMPL_DECL
+	{
+		//TODO this could be useful for things like printing to console
+	}),//ECALL
+	InstructionInfo(0b000000000001, "ebreak", Type::SYS, Encoding::I, RegFile::INT, IMPL_DECL
+	{
+		//break point
+		//__debugbreak();
+	}),//EBREAK
+};
+
 InstructionInfo const isa_LOAD[7] =
 {
 	InstructionInfo(0b000, "lb", Type::LOAD, Encoding::I, RegFile::INT, IMPL_DECL{
@@ -284,6 +294,7 @@ InstructionInfo const isa_BRANCH[8] =
 		else unit->branch_taken = false;
 	}),//BLT
 	InstructionInfo(0b101, "bge", Type::BRANCH, Encoding::B, RegFile::INT, IMPL_DECL{
+		__debugbreak();
 		if (unit->int_regs->registers[instr.b.rs1].s64 >= unit->int_regs->registers[instr.b.rs2].s64)
 		{
 			unit->pc += ISA::RISCV::get_immediate_B(instr);
@@ -323,7 +334,7 @@ InstructionInfo const isa_OP_0x00[8]
 	}),//ADD
 	InstructionInfo(0b001, "sll", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL{
 		//take lowest 5 bits of register[r2] and shift by that ammount
-		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 << (unit->int_regs->registers[instr.r.rs2].u8 & 0b11'1111);
+		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 << (unit->int_regs->registers[instr.r.rs2].u64 & 0b11'1111);
 	}),//SLL
 	InstructionInfo(0b010, "slt", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 < unit->int_regs->registers[instr.r.rs2].s64;
@@ -335,7 +346,7 @@ InstructionInfo const isa_OP_0x00[8]
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 ^ unit->int_regs->registers[instr.r.rs2].s64;
 	}),//XOR
 	InstructionInfo(0b101, "srl", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL{
-		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 >> (unit->int_regs->registers[instr.r.rs2].u8 & 0b11'1111);
+		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 >> (unit->int_regs->registers[instr.r.rs2].u64 & 0b11'1111);
 	}),//SRL
 	InstructionInfo(0b110, "or", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 | unit->int_regs->registers[instr.r.rs2].s64;
@@ -355,8 +366,8 @@ InstructionInfo const isa_OP_0x30[8] =
 	InstructionInfo(0b011, IMPL_NONE),
 	InstructionInfo(0b100, IMPL_NONE),
 	InstructionInfo(0b101, "sra", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL{
-		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 >> (unit->int_regs->registers[instr.r.rs2].u8 & 0b11'1111);
-	}),//SRL
+		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 >> (unit->int_regs->registers[instr.r.rs2].u64 & 0b11'1111);
+	}),//SRA
 	InstructionInfo(0b110, IMPL_NONE),
 	InstructionInfo(0b111, IMPL_NONE),
 };
@@ -367,7 +378,7 @@ InstructionInfo const isa_OP_IMM[8] =
 		unit->int_regs->registers[instr.i.rd].s64 = unit->int_regs->registers[instr.i.rs1].s64 + get_immediate_I(instr);
 	}),//ADDI
 	InstructionInfo(0b001, "slli", Type::ILOGICAL, Encoding::I, RegFile::INT, IMPL_DECL{
-		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.i.rs1].s64 << instr.i.shamt6;
+		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.i.rs1].u64 << instr.i.shamt6;
 	}),//SLLI
 	InstructionInfo(0b010, "slti", Type::ILOGICAL, Encoding::I, RegFile::INT, IMPL_DECL{
 		unit->int_regs->registers[instr.i.rd].s64 = unit->int_regs->registers[instr.i.rs1].s64 < get_immediate_I(instr);
@@ -412,13 +423,13 @@ InstructionInfo const isa_OP_32_0x00[8] =
 	}),//ADDW
 	InstructionInfo(0b001, "sllw", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL{
 		//take lowest 5 bits of register[r2] and shift by that ammount
-		unit->int_regs->registers[instr.r.rd].s32 = unit->int_regs->registers[instr.r.rs1].s32 << (unit->int_regs->registers[instr.r.rs2].u8 & 0b1'1111);
+		unit->int_regs->registers[instr.r.rd].u32 = unit->int_regs->registers[instr.r.rs1].u32 << (unit->int_regs->registers[instr.r.rs2].u64 & 0b1'1111);
 	}),//SLLW
 	InstructionInfo(0b010, IMPL_NONE),
 	InstructionInfo(0b011, IMPL_NONE),
 	InstructionInfo(0b100, IMPL_NONE),
 	InstructionInfo(0b101, "srlw", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL{
-		unit->int_regs->registers[instr.r.rd].u32 = unit->int_regs->registers[instr.r.rs1].u32 >> (unit->int_regs->registers[instr.r.rs2].u8 & 0b1'1111);
+		unit->int_regs->registers[instr.r.rd].u32 = unit->int_regs->registers[instr.r.rs1].u32 >> (unit->int_regs->registers[instr.r.rs2].u64 & 0b1'1111);
 	}),//SRLWint_regs
 	InstructionInfo(0b110, IMPL_NONE),
 	InstructionInfo(0b111, IMPL_NONE),
@@ -427,15 +438,15 @@ InstructionInfo const isa_OP_32_0x00[8] =
 InstructionInfo const isa_OP_32_0x30[8] =
 {
 	InstructionInfo(0b000, "subw", Type::ISUB, Encoding::R, RegFile::INT, IMPL_DECL{
-		unit->int_regs->registers[instr.r.rd].s32 = unit->int_regs->registers[instr.r.rs1].s32 - unit->int_regs->registers[instr.r.rs2].s32;
+		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s32 - unit->int_regs->registers[instr.r.rs2].s32;
 	}),//SUBW
 	InstructionInfo(0b001, IMPL_NONE),
 	InstructionInfo(0b010, IMPL_NONE),
 	InstructionInfo(0b011, IMPL_NONE),
 	InstructionInfo(0b100, IMPL_NONE),
 	InstructionInfo(0b101, "sraw", Type::ILOGICAL, Encoding::R,  RegFile::INT, IMPL_DECL{
-		unit->int_regs->registers[instr.r.rd].s32 = unit->int_regs->registers[instr.r.rs1].s32 >> (unit->int_regs->registers[instr.r.rs2].u8 & 0b1'1111);
-	}),//SRLW
+		unit->int_regs->registers[instr.r.rd].s32 = unit->int_regs->registers[instr.r.rs1].s32 >> (unit->int_regs->registers[instr.r.rs2].u64 & 0b1'1111);
+	}),//SRAW
 	InstructionInfo(0b110, IMPL_NONE),
 	InstructionInfo(0b111, IMPL_NONE),
 };
@@ -446,7 +457,7 @@ InstructionInfo const isa_OP_IMM_32[8] =
 		unit->int_regs->registers[instr.i.rd].s64 = unit->int_regs->registers[instr.i.rs1].s32 + get_immediate_I(instr);
 	}),//ADDIW
 	InstructionInfo(0b00'0000'001, "slliw", Type::ILOGICAL, Encoding::I, RegFile::INT, IMPL_DECL{
-		unit->int_regs->registers[instr.i.rd].s32 = unit->int_regs->registers[instr.i.rs1].s32 << instr.i.shamt;
+		unit->int_regs->registers[instr.i.rd].u32 = unit->int_regs->registers[instr.i.rs1].u32 << instr.i.shamt;
 	}),//SLLIW
 	InstructionInfo(0b010, IMPL_NONE),
 	InstructionInfo(0b011, IMPL_NONE),
@@ -688,7 +699,7 @@ InstructionInfo const isa_OP_FP[32] = //r.funct5
 	}),//FMV.X.W
 	InstructionInfo(0b111'0100, IMPL_NOTI),
 	InstructionInfo(0b111'1000, "fmv.w.x", Type::MOVE, Encoding::R, RegFile::FLOAT, RegFile::INT, IMPL_DECL {
-		unit->float_regs->registers[instr.r.rd].u32 = unit->int_regs->registers[instr.r.rs1].u32;
+		unit->float_regs->registers[instr.r.rd].f32 = unit->int_regs->registers[instr.r.rs1].f32;
 	}),//FMV.W.X
 	InstructionInfo(0b111'1100, IMPL_NOTI),
 };

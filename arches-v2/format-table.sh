@@ -1,0 +1,8 @@
+awk 'NR % 9 == 3 {printf "%s\t", $1;}' $1 && printf "\n"
+awk 'NR % 9 == 4 {printf "%s\t", $1;}' $1 && printf "\n"
+awk 'NR % 9 == 5 {printf "%s\t", $1;}' $1 && printf "\n"
+awk 'NR % 9 == 6 {printf "%s\t", $1;}' $1 && printf "\n"
+awk 'NR % 9 == 7 {printf "%s\t", $1;}' $1 && printf "\n"
+awk 'NR % 9 == 8 {printf "%s\t", $1;}' $1 && printf "\n"
+awk 'NR % 10 == 9 {printf "%s\t", $1;}' $1 && printf "\n"
+awk 'NR > 0 && NR % 9 == 0 {printf "%s\t", $1;}' $1 && printf "\n"
