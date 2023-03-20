@@ -94,7 +94,8 @@ private:
 
 				for (uint i = 0; i < size; ++i)
 				{
-					float cost = aabb.cost() + cost_left[i] + cost_right[i];
+					float cost = cost_left[i] + cost_right[i];
+					if(i != 0) cost += AABB::cost() * 2.0f;
 					if (cost < best_spliting_cost)
 					{
 						best_spliting_index = start + i;

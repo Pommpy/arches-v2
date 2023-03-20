@@ -87,6 +87,10 @@ public:
 			{
 				Bank& bank = bank_states[i];
 
+			#if 0
+				if(num_requests++ < 1) bank.request_item.data_u32 = 577 + (1023 - 667) * 1024;
+				else                   bank.request_item.data_u32 = ~0u;
+			#else
 				if(bank.tile_fill >= tile_size)
 				{
 					bank.tile_index = next_tile++;
@@ -115,6 +119,7 @@ public:
 				num_requests++;
 				if((num_requests % 4096) == 0) 
 					printf(" pixels rendered: %d\r", num_requests);
+			#endif
 
 				//AMO_RETURNS carry data unlike normal load returns
 				bank.request_item.type = MemoryRequest::Type::AMO_RETURN;

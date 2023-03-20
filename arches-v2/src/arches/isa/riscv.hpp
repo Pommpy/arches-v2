@@ -239,6 +239,10 @@ public:
 				uint32_t shamt6		: 6;
 				uint32_t imm_11_6	: 6;
 			};
+			struct {
+				uint32_t            : 20;
+				uint32_t funct12    : 12;
+			};
 		}i;
 	
 		struct {
@@ -399,6 +403,8 @@ public:
 
 //RV64I
 extern InstructionInfo isa[32];
+
+extern InstructionInfo const isa_SYSTEM[2];
 
 extern InstructionInfo const isa_LOAD[7];
 extern InstructionInfo const isa_STORE[4];
