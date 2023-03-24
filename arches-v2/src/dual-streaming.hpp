@@ -95,7 +95,7 @@ const static InstructionInfo isa_custom0_000_imm[8] =
 
 const static InstructionInfo isa_custom0_funct3[8] =
 {
-	InstructionInfo(0x0, META_DECL{return isa_custom0_000_imm[instr.u.imm >> 3]; }),
+	InstructionInfo(0x0, META_DECL{return isa_custom0_000_imm[instr.u.imm_31_12 >> 3]; }),
 	InstructionInfo(0x1, "lbray", Type::LBRAY, Encoding::I, RegFile::FLOAT, IMPL_DECL
 	{	
 		//load bucket ray into registers f0 - f8
@@ -106,7 +106,7 @@ const static InstructionInfo isa_custom0_funct3[8] =
 		unit->mem_req.dst.reg_file = static_cast<uint8_t>(RegFile::FLOAT);
 		unit->mem_req.dst.sign_ext = 0;
 
-		unit->mem_req.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + get_immediate_I(instr);
+		unit->mem_req.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + i_imm(instr);
 	}),
 	InstructionInfo(0x2, "sbray", Type::SBRAY, Encoding::S, RegFile::INT, IMPL_DECL
 	{
@@ -116,7 +116,7 @@ const static InstructionInfo isa_custom0_funct3[8] =
 		unit->mem_req.type = Units::MemoryRequest::Type::SBRAY;
 		unit->mem_req.size = sizeof(BucketRay);
 
-		unit->mem_req.vaddr = unit->int_regs->registers[instr.s.rs1].u64 + get_immediate_S(instr);
+		unit->mem_req.vaddr = unit->int_regs->registers[instr.s.rs1].u64 + s_imm(instr);
 		
 		Ray ray;
 		ray.o.x = fr[0].f32;

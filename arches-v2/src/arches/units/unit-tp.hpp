@@ -87,6 +87,8 @@ private:
 	std::vector<uint8_t> _stack_mem;
 	uint64_t _stack_mask;
 
+	uint64_t _port_mask;
+
 public:
 	UnitTP(const Configuration& config);
 
@@ -97,7 +99,7 @@ private:
 	void _process_load_return(const MemoryRequest& return_item);
 	uint8_t _check_dependancies(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info);
 	void _clear_register_pending(const ISA::RISCV::RegAddr& dst);
-	paddr_t _get_load_port_address(paddr_t paddr) { return paddr & ~0x1full; };
+	paddr_t _get_load_port_address(paddr_t paddr) { return paddr & _port_mask; };
 	void _drain_lsq();
 
 public:

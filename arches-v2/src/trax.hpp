@@ -63,11 +63,12 @@ static GlobalData initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	global_data.framebuffer = reinterpret_cast<uint32_t*>(heap_address); heap_address += global_data.framebuffer_size * sizeof(uint32_t);
 
 	global_data.samples_per_pixel = 1;
-	global_data.max_path_depth = 1;
+	global_data.max_bounces = 0;
 
 	global_data.light_dir = rtm::normalize(rtm::vec3(4.5f, 42.5f, 5.0f));
-	global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 24.0f, rtm::vec3(-900.6f, 150.8f, 120.74f), rtm::vec3(79.7f, 14.0f, -17.4f));
-	
+	global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 12.0f, rtm::vec3(-900.6f, 150.8f, 120.74f), rtm::vec3(79.7f, 14.0f, -17.4f));
+	//global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 24.0f, rtm::vec3(0.0f, 0.0f, 5.0f));
+
 	Mesh mesh("benchmarks/trax/res/sponza.obj");
 	BVH blas;
 	std::vector<BuildObject> build_objects;
@@ -128,6 +129,7 @@ static void run_sim_trax(int argc, char* argv[])
 	simulator.register_unit(&mm);
 	
 	ELF elf("benchmarks/trax/bin/riscv/path-tracer");
+	vaddr_t global_pointer;
 	paddr_t heap_address = mm.write_elf(elf);
 	
 	GlobalData global_data = initilize_buffers(&mm, heap_address);
@@ -171,10 +173,9 @@ static void run_sim_trax(int argc, char* argv[])
 
 			Units::UnitSFU** sfu_table = &sfu_tables[sfu_table_size * tm_index];
 
-			sfus.push_back(_new Units::UnitSFU(8, 1, 2, num_tps_per_tm));
+			sfus.push_back(_new Units::UnitSFU(16, 1, 2, num_tps_per_tm));
 			simulator.register_unit(sfus.back());
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FADD)] = sfus.back();
-			sfu_table[static_cast<uint>(ISA::RISCV::Type::FSUB)] = sfus.back();
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FMUL)] = sfus.back();
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FFMAD)] = sfus.back();
 
@@ -255,6 +256,7 @@ static void run_sim_trax(int argc, char* argv[])
 		delete l2;
 
 	paddr_t paddr_frame_buffer = reinterpret_cast<paddr_t>(global_data.framebuffer);
+	stbi_flip_vertically_on_write(true);
 	mm.dump_as_png_uint8(paddr_frame_buffer, global_data.framebuffer_width, global_data.framebuffer_height, "out.png");
 }
 

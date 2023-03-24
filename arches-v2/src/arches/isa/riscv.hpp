@@ -86,7 +86,6 @@ enum class Type : uint8_t
 
 	ILOGICAL,
 	IADD,
-	ISUB,
 	IMUL,
 	IDIV,
 
@@ -94,7 +93,6 @@ enum class Type : uint8_t
 	FSIGN,
 	FMIN_MAX,
 	FADD,
-	FSUB,
 	FMUL,
 	FFMAD,
 	FDIV,
@@ -138,7 +136,6 @@ const std::string instr_type_names[] =
 
 	"ILOGICAL",
 	"IADD",
-	"ISUB",
 	"IMUL",
 	"IDIV",
 
@@ -146,7 +143,6 @@ const std::string instr_type_names[] =
 	"FSIGN",
 	"FMIN_MAX",
 	"FADD",
-	"FSUB",
 	"FMUL",
 	"FFMAD",
 	"FDIV",
@@ -181,18 +177,20 @@ class Instruction final
 {
 public:
 	union {
-		struct {
-			uint32_t compressed_opcode : 2;
-			uint32_t opcode : 5;
-			uint32_t rd     : 5;
-			uint32_t        : 3;
-			uint32_t rs1    : 5;
-			uint32_t rs2    : 5;
-			uint32_t        : 2;
-			uint32_t rs3    : 5;
+		//common instruction bit range names
+		struct 
+		{
+			uint32_t opcode  : 7;
+			uint32_t rd      : 5;
+			uint32_t funct3  : 3;
+			uint32_t rs1     : 5;
+			uint32_t rs2     : 5;
+			uint32_t funct2  : 2;
+			uint32_t rs3     : 5;
 		};
-	
-		union {
+
+		union
+		{
 			struct 
 			{
 				uint32_t        : 7;
@@ -204,58 +202,63 @@ public:
 			};
 			struct
 			{
-				uint32_t        : 7;
-				uint32_t        : 5;
+				uint32_t        : 12;
 				uint32_t rm     : 3;
-				uint32_t        : 5;
-				uint32_t        : 5;
+				uint32_t        : 10;
 				uint32_t fmt    : 2;
 				uint32_t funct5 : 5;
 			};
 			struct
 			{
-				uint32_t    : 7;
-				uint32_t    : 5;
-				uint32_t    : 3;
-				uint32_t    : 5;
-				uint32_t    : 5;
+				uint32_t    : 25;
 				uint32_t rl : 1;
 				uint32_t aq : 1;
 				uint32_t    : 5;
 			};
 		}r;
 	
-		struct {
-			uint32_t         	: 7;
-			uint32_t rd			: 5;
-			uint32_t funct3		: 3;
-			uint32_t rs1		: 5;
-			uint32_t rs2		: 5;
-			uint32_t funct2		: 2;
-			uint32_t rs3		: 5;
+		struct 
+		{
+			uint32_t        : 7;
+			uint32_t rd	    : 5;
+			uint32_t funct3 : 3;
+			uint32_t rs1    : 5;
+			uint32_t rs2    : 5;
+			uint32_t funct2 : 2;
+			uint32_t rs3    : 5;
 		}r4;
 	
-		union {
-			struct {
-				uint32_t            : 7;
-				uint32_t rd			: 5;
-				uint32_t funct3		: 3;
-				uint32_t rs1		: 5;
-				uint32_t imm		: 12;
+		union 
+		{
+			struct 
+			{
+				uint32_t          : 7;
+				uint32_t rd       : 5;
+				uint32_t funct3   : 3;
+				uint32_t rs1      : 5;
+				uint32_t imm_11_0 : 12;
 			};
-			struct {	
-				uint32_t			: 20;
-				uint32_t shamt		: 5;
-				uint32_t imm_11_5	: 7;
+			struct 
+			{	
+				uint32_t          : 20;
+				uint32_t shamt5   : 5;
+				uint32_t imm_11_5 : 7;
 			};
-			struct {
-				uint32_t			: 20;
-				uint32_t shamt6		: 6;
-				uint32_t imm_11_6	: 6;
+			struct 
+			{
+				uint32_t          : 20;
+				uint32_t shamt6   : 6;
+				uint32_t imm_11_6 : 6;
+			};
+			struct 
+			{
+				uint32_t         : 20;
+				uint32_t funct12 : 12;
 			};
 		}i;
 	
-		struct {
+		struct 
+		{
 			uint32_t            : 7;
 			uint32_t imm_4_0	: 5;
 			uint32_t funct3		: 3;
@@ -265,7 +268,8 @@ public:
 	
 		}s;
 	
-		struct {
+		struct 
+		{
 			uint32_t            : 7;
 			uint32_t imm_11     : 1;
 			uint32_t imm_4_1	: 4;
@@ -276,13 +280,15 @@ public:
 			uint32_t imm_12     : 1;
 		}b;
 	
-		struct {
+		struct 
+		{
 			uint32_t            : 7;
 			uint32_t rd			: 5;
-			uint32_t imm		: 20;
+			uint32_t imm_31_12  : 20;
 		}u;
 	
-		struct {
+		struct 
+		{
 			uint32_t            : 7;
 			uint32_t rd			: 5;
 			uint32_t imm_19_12	: 8;
@@ -300,11 +306,11 @@ public:
 	const InstructionInfo get_info();
 };
 
-int32_t get_immediate_I(Instruction instr);
-int32_t get_immediate_S(Instruction instr);
-int32_t get_immediate_B(Instruction instr);
-int32_t get_immediate_U(Instruction instr);
-int32_t get_immediate_J(Instruction instr);
+int64_t i_imm(Instruction instr);
+int64_t s_imm(Instruction instr);
+int64_t b_imm(Instruction instr);
+int64_t u_imm(Instruction instr);
+int64_t j_imm(Instruction instr);
 
 class InstructionInfo final 
 {
@@ -381,23 +387,23 @@ public:
 			break;
 
 		case ISA::RISCV::Encoding::I:
-			fprintf(stream, "%s\t%c%d,%c%d,%d", mnemonic, drfc, instr.rd, srfc, instr.rs1, get_immediate_I(instr));
+			fprintf(stream, "%s\t%c%d,%c%d,%d", mnemonic, drfc, instr.rd, srfc, instr.rs1, (int32_t)i_imm(instr));
 			break;
 
 		case ISA::RISCV::Encoding::S:
-			fprintf(stream, "%s\t%c%d,%c%d,%d", mnemonic, drfc, instr.rs2, srfc, instr.rs1, get_immediate_S(instr));
+			fprintf(stream, "%s\t%c%d,%c%d,%d", mnemonic, drfc, instr.rs2, srfc, instr.rs1, (int32_t)s_imm(instr));
 			break;
 
 		case ISA::RISCV::Encoding::B:
-			fprintf(stream, "%s\t%c%d,%c%d,%d", mnemonic, srfc, instr.rs1, srfc, instr.rs2, get_immediate_B(instr));
+			fprintf(stream, "%s\t%c%d,%c%d,%d", mnemonic, srfc, instr.rs1, srfc, instr.rs2, (int32_t)b_imm(instr));
 			break;
 
 		case ISA::RISCV::Encoding::U:
-			fprintf(stream, "%s\t%c%d,%d", mnemonic, drfc, instr.rd, get_immediate_U(instr));
+			fprintf(stream, "%s\t%c%d,%d", mnemonic, drfc, instr.rd, (int32_t)u_imm(instr));
 			break;
 
 		case ISA::RISCV::Encoding::J:
-			fprintf(stream, "%s\t%c%d,%d", mnemonic, drfc, instr.rd, get_immediate_J(instr));
+			fprintf(stream, "%s\t%c%d,%d", mnemonic, drfc, instr.rd, (int32_t)j_imm(instr));
 			break;
 		}
 	}
@@ -406,13 +412,13 @@ public:
 };
 
 
-//RVC
+//RV64C
 //extern InstructionInfo const compressed_isa[4]; //TODO this
-
-
 
 //RV64I
 extern InstructionInfo isa[32];
+
+extern InstructionInfo const isa_SYSTEM[2];
 
 extern InstructionInfo const isa_LOAD[7];
 extern InstructionInfo const isa_STORE[4];
@@ -433,20 +439,14 @@ extern InstructionInfo const isa_OP_32_0x30[8];
 extern InstructionInfo const isa_OP_IMM_32[8];
 extern InstructionInfo const isa_OP_IMM_32_SR[2];
 
-
-
 //RV64M
 extern InstructionInfo const isa_OP_MULDIV[8];
 extern InstructionInfo const isa_OP_32_MULDIV[8];
 
-
-
 //RV64A
 extern InstructionInfo const isa_AMO[2];
-extern InstructionInfo const isa_AMO_W[8];
-extern InstructionInfo const isa_AMO_D[8];
-
-
+extern InstructionInfo const isa_AMO_32[8];
+extern InstructionInfo const isa_AMO_64[8];
 
 //RV64F
 extern InstructionInfo const isa_LOAD_FP[4];
@@ -458,14 +458,6 @@ extern InstructionInfo const isa_OP_0x14_FP[2];
 extern InstructionInfo const isa_OP_FCMP_FP[3];
 extern InstructionInfo const isa_OP_0x60_FP[4];
 extern InstructionInfo const isa_OP_0x68_FP[4];
-
-
-
-//RV64L
-
-
-
-//RV64Q
 
 #define META_DECL [](Instruction const& instr) -> InstructionInfo const&
 #define IMPL_DECL [](Instruction const& instr, InstructionInfo const& /*instr_info*/, ExecutionBase* unit) -> void

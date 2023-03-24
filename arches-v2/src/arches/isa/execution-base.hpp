@@ -40,7 +40,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 
 		ExecutionBase(IntegerRegisterFile* int_regs, FloatingPointRegisterFile* float_regs) : int_regs(int_regs), float_regs(float_regs) {}
 
-		void _write_register(RegAddr dst, uint8_t size, const uint8_t* data)
+		void _write_register(RegAddr dst, const uint8_t* src, uint8_t size)
 		{
 			if(dst.reg_file == 0)
 			{
@@ -50,10 +50,10 @@ namespace Arches { namespace ISA { namespace RISCV {
 				{
 					switch(size)
 					{
-					case 1: int_regs->registers[dst.reg].u64 = *((uint8_t*)data); break;
-					case 2: int_regs->registers[dst.reg].u64 = *((uint16_t*)data); break;
-					case 4: int_regs->registers[dst.reg].u64 = *((uint32_t*)data); break;
-					case 8: int_regs->registers[dst.reg].u64 = *((uint64_t*)data); break;
+					case 1: int_regs->registers[dst.reg].u64 = *((uint8_t*)src); break;
+					case 2: int_regs->registers[dst.reg].u64 = *((uint16_t*)src); break;
+					case 4: int_regs->registers[dst.reg].u64 = *((uint32_t*)src); break;
+					case 8: int_regs->registers[dst.reg].u64 = *((uint64_t*)src); break;
 						nodefault;
 					}
 				}
@@ -61,10 +61,10 @@ namespace Arches { namespace ISA { namespace RISCV {
 				{
 					switch(size)
 					{
-					case 1: int_regs->registers[dst.reg].s64 = *((int8_t*)data); break;
-					case 2: int_regs->registers[dst.reg].s64 = *((int16_t*)data); break;
-					case 4: int_regs->registers[dst.reg].s64 = *((int32_t*)data); break;
-					case 8: int_regs->registers[dst.reg].s64 = *((int64_t*)data); break;
+					case 1: int_regs->registers[dst.reg].s64 = *((int8_t*)src); break;
+					case 2: int_regs->registers[dst.reg].s64 = *((int16_t*)src); break;
+					case 4: int_regs->registers[dst.reg].s64 = *((int32_t*)src); break;
+					case 8: int_regs->registers[dst.reg].s64 = *((uint64_t*)src); break;
 						nodefault;
 					}
 				}
@@ -72,7 +72,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 			else if(dst.reg_file == 1)
 			{
 				assert(size == 4);
-				float_regs->registers[dst.reg].f32 = *((float*)data);
+				float_regs->registers[dst.reg].f32 = *((float*)src);
 			}
 		}
 

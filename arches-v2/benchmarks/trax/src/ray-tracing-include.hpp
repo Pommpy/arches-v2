@@ -20,7 +20,7 @@ struct GlobalData
 	uint32_t* framebuffer;
 
 	uint32_t samples_per_pixel;
-	uint32_t max_path_depth;
+	uint32_t max_bounces;
 
 	rtm::vec3 light_dir;
 	MeshPointers mesh;

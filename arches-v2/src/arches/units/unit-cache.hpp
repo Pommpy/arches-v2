@@ -5,8 +5,6 @@
 #include "unit-base.hpp"
 #include "unit-memory-base.hpp"
 
-#define WCB_SIZE 16
-
 namespace Arches { namespace Units {
 
 class UnitCache final : public UnitMemoryBase
@@ -111,6 +109,8 @@ private:
 		uint allocate_mshr(paddr_t line_paddr, uint64_t req_mask);
 		void free_mshr(uint index);
 	};
+
+	uint8_t store_register[CACHE_LINE_SIZE];
 
 	Configuration _configuration; //nice for debugging
 

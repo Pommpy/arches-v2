@@ -8,6 +8,8 @@ UnitTP::UnitTP(const Configuration& config) : log(0x10000), UnitBase(), ISA::RIS
 	int_regs->ra.u64 = 0x0ull;
 	pc = config.pc;
 
+	float_regs->fs0.u32 = 0xdeadbeef;
+
 	backing_memory = config.backing_memory;
 
 	mem_map = config.mem_map;
@@ -19,6 +21,8 @@ UnitTP::UnitTP(const Configuration& config) : log(0x10000), UnitBase(), ISA::RIS
 
 	_stack_mem.resize(config.stack_size);
 	_stack_mask = generate_nbit_mask(log2i(config.stack_size));
+
+	_port_mask = ~0x1full;
 
 	for(uint i = 0; i < 32; ++i)
 	{
@@ -40,10 +44,10 @@ void UnitTP::_process_load_return(const MemoryRequest& rtrn)
 		_LSE& lse = _lsq[i];
 
 		//TODO not clear that we can commit multiple registers in a single cycle
-		//Commit all the lse that have already issued if the havent issued we will short corcuit when we try to issue
+		//Commit all the lse that have already issued if they havent issued we will short circuit when we try to issue
 		if(lse.state == _LSE::State::ISSUED && lse.vaddr == rtrn.paddr)
 		{
-			if(rtrn.data) _write_register(lse.dst, lse.size, ((uint8_t*)rtrn.data) + lse.offset);
+			if(rtrn.data) _write_register(lse.dst, ((uint8_t*)rtrn.data) + lse.offset, lse.size);
 			_clear_register_pending(lse.dst);
 			lse.state = _LSE::State::COMMITED;
 		}
@@ -204,7 +208,8 @@ FREE_INSTR:
 		if(_last_issue_sfu->request_bus.get_pending(_tp_index))
 		{
 			log.log_resource_stall(_last_instr_info);
-			goto DRAIN_LSQ;
+			_drain_lsq();
+			return;
 		}
 		else if(_last_issue_sfu->latency == 1) //Simulate forwarding on single cycle instructions
 		{
@@ -225,7 +230,8 @@ FREE_INSTR:
 		if(uint8_t type = _check_dependancies(instr, instr_info))
 		{
 			log.log_data_stall(type);
-			goto DRAIN_LSQ;
+			_drain_lsq();
+			return;
 		}
 
 		log.log_instruction_issue(instr_info, pc);
@@ -248,16 +254,12 @@ FREE_INSTR:
 		else
 		{
 			//jumping to address 0 is the halt condition
-			if(pc == 0x0)
-			{
-				simulator->units_executing--;
-				printf("units_executing: %d\n", simulator->units_executing.load());
-			}
+			if(pc == 0x0) simulator->units_executing--;
 			branch_taken = false;
 		}
 	}
 
-	if(_last_instr_info.type < ISA::RISCV::Type::SYS) //SYS is the first nun memory instruction type so this divides mem and non mem ops
+	if(_last_instr_info.type < ISA::RISCV::Type::SYS) //SYS is the first non memory instruction type so this divides mem and non mem ops
 	{
 		//Create LSE
 		uint unit_index = mem_map.get_index(mem_req.vaddr);
@@ -268,8 +270,9 @@ FREE_INSTR:
 			//If the next entry in the circular buffer is free or commited we can reuse it
 			if(lse.state == _LSE::State::COMMITED || lse.state == _LSE::State::FREE)
 			{
-				//If this is a load we need to align it to the port width(32bytes)
-				if(mem_req.type == MemoryRequest::Type::LOAD) lse.vaddr = _get_load_port_address(mem_req.vaddr);
+				//If this is a load we need to align it to the port width
+				//TODO make this variable based on the mem-unit
+				if(mem_req.type == MemoryRequest::Type::LOAD) lse.vaddr = mem_req.vaddr & _port_mask;
 				else
 				{
 					lse.vaddr = mem_req.vaddr;
@@ -301,7 +304,7 @@ FREE_INSTR:
 			{
 				//Because of forwarding instruction with latency 1 don't cause stalls so we don't need to simulate
 				paddr_t buffer_addr = mem_req.vaddr & _stack_mask;
-				_write_register(mem_req.dst, mem_req.size, &_stack_mem[buffer_addr]);
+				_write_register(mem_req.dst, &_stack_mem[buffer_addr], mem_req.size);
 				_clear_register_pending(mem_req.dst);
 			}
 			else if(_last_instr_info.type == ISA::RISCV::Type::STORE)
@@ -347,7 +350,6 @@ FREE_INSTR:
 		}
 	}
 
-DRAIN_LSQ:
 	_drain_lsq();
 }
 

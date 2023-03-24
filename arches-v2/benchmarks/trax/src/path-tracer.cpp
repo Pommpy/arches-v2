@@ -3,7 +3,7 @@
 #include "custom-instr.hpp"
 #include "ray-tracing-include.hpp"
 
-static uint32_t encode_pixel(rtm::vec3 in)
+inline static uint32_t encode_pixel(rtm::vec3 in)
 {
 	in = rtm::clamp(in, 0.0f, 1.0f);
 	uint32_t out = 0u;
@@ -14,7 +14,7 @@ static uint32_t encode_pixel(rtm::vec3 in)
 	return out;
 }
 
-void static inline path_tracer(const GlobalData& global_data)
+inline static void path_tracer(const GlobalData& global_data)
 {
 	for(uint index = atomicinc(); index < global_data.framebuffer_size; index = atomicinc())
 	{
@@ -22,14 +22,19 @@ void static inline path_tracer(const GlobalData& global_data)
 		uint32_t y = index / global_data.framebuffer_width;	
 		
 		RNG rng(index);
+
+		Ray ray = global_data.camera.generate_ray_through_pixel(x, y);
+		Hit hit; hit.t = ray.t_max;
+
 		rtm::vec3 output(0.0f);
+		#if 1
 		for(uint i = 0; i < global_data.samples_per_pixel; ++i)
 		{
 			Ray ray = global_data.camera.generate_ray_through_pixel(x, y);
 			Hit hit; hit.t = ray.t_max;
 
 			rtm::vec3 attenuation(1.0f);
-			for(uint j = 0; j < global_data.max_path_depth; ++j)
+			for(uint j = 0; 1; ++j)
 			{
 				if(intersect(global_data.mesh, ray, hit)) 
 				{
@@ -37,28 +42,37 @@ void static inline path_tracer(const GlobalData& global_data)
 					rtm::vec3 e0 = global_data.mesh.vertices[vi[1]] - global_data.mesh.vertices[vi[0]];
 					rtm::vec3 e1 = global_data.mesh.vertices[vi[2]] - global_data.mesh.vertices[vi[0]];
 					rtm::vec3 n = rtm::normalize(rtm::cross(e0, e1));
+					
+					#if 1
+					Ray sray = ray;
+					sray.o = ray.o + ray.d * hit.t;
+					sray.d = global_data.light_dir;
+					Hit shit; shit.t = sray.t_max;
+					if(!intersect(global_data.mesh, sray, shit))
+					#endif
+						output += attenuation * rtm::vec3(0.8f) * rtm::vec3(1.0f, 0.9f, 0.8f) * std::max(0.0f, rtm::dot(n, global_data.light_dir));
 
-					output += attenuation * rtm::vec3(0.8f) * rtm::vec3(1.0f, 0.8f, 0.6f) * std::max(0.0f, rtm::dot(n, global_data.light_dir));
+					if(j >= global_data.max_bounces) break;
 
-					ray.o += ray.d * hit.t;
+					ray.o = ray.o + ray.d * hit.t;
 					ray.d = cosine_sample_hemisphere(n, rng);
 					hit.t = ray.t_max;
-					attenuation *= 0.8f / 3.1415926f;
+					attenuation *= 0.8f;
 				}
 				else
 				{
-					output += attenuation * rtm::vec3(0.6f, 0.7f, 0.8f);
+					output += attenuation * rtm::vec3(0.5f, 0.7f, 0.9f);
 					break;
 				}
 			}
 		}
+		#endif
 
 		global_data.framebuffer[index] = encode_pixel(output * (1.0f / global_data.samples_per_pixel));
 	}
 }
 
 #ifdef ARCH_RISCV
-//gcc will only set main as entry point so we'll do this for now but we could theortically use path_tracer as entry
 int main()
 {
 	path_tracer(*(GlobalData*)GLOBAL_DATA_ADDRESS);
@@ -75,12 +89,14 @@ int main()
 	global_data.framebuffer_size = global_data.framebuffer_width * global_data.framebuffer_height;
 	global_data.framebuffer = new uint32_t[global_data.framebuffer_size];
 
-	global_data.samples_per_pixel = 4;
-	global_data.max_path_depth = 4;
+	global_data.samples_per_pixel = 1;
+	global_data.max_bounces = 0;
 
 	global_data.light_dir = rtm::normalize(rtm::vec3(4.5f, 42.5f, 5.0f));
 
-	global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 24.0f, rtm::vec3(-900.6f, 150.8f, 120.74f), rtm::vec3(79.7f, 14.0f, -17.4f));
+	global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 12.0f, rtm::vec3(-900.6f, 150.8f, 120.74f), rtm::vec3(79.7f, 14.0f, -17.4f));
+	//global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 24.0f, rtm::vec3(0.0f, 0.0f, 5.0f));
+	
 	Mesh mesh("./res/sponza.obj");
 	BVH mesh_blas;
 	std::vector<BuildObject> build_objects;

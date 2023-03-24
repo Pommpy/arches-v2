@@ -79,3 +79,14 @@ float inline fast_inv_sqrtf(float input)
 
 	return 0;
 }
+
+inline void __ebreak()
+{
+	#ifdef ARCH_RISCV
+	asm volatile
+	(
+		"ebreak\n\t"
+	);
+	#endif
+	return;
+}

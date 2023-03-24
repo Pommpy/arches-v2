@@ -221,7 +221,7 @@ public:
 				break;
 
 			default:
-				printf("\nInvalid line: %lld\n", line_number);
+				printf("\nInvalid line: %jd\n", line_number);
 				break;
 			}
 

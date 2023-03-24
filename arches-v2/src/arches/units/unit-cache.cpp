@@ -332,7 +332,6 @@ void UnitCache::_try_issue_load_returns(uint bank_index)
 void UnitCache::_try_issue_loads(uint bank_index)
 {
 	_Bank& bank = _banks[bank_index];
-
 	for(uint mshr_index = 0; mshr_index < bank.mshrs.size(); ++mshr_index)
 	{
 		if(bank.mshrs[mshr_index].state != _MSHR::VALID) continue;
@@ -370,9 +369,11 @@ void UnitCache::_try_issue_stores(uint bank_index)
 		uint8_t offset;
 		MemoryRequest request;
 		bank.wcb.get_next(offset, request.size);
+
 		request.type = MemoryRequest::Type::STORE;
 		request.paddr = bank.wcb.block_addr + offset;
-		request.data = &bank.wcb.data[offset];
+		std::memcpy(store_register, &bank.wcb.data[offset], request.size);
+		request.data = store_register;
 
 		mem_higher->request_bus.set_data(request, port);
 		mem_higher->request_bus.set_pending(port);

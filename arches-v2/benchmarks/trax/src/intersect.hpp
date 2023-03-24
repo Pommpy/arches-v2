@@ -17,40 +17,6 @@ struct MeshPointers
 	rtm::vec3* vertices;
 };
 
-
-inline static BVH::Node _load_node(BVH::Node* node_ptr)
-{
-	#ifdef ARCH_RISCV
-	register float f0 asm("f11");
-	register float f1 asm("f12");
-	register float f2 asm("f13");
-	register float f3 asm("f14");
-	register float f4 asm("f15");
-	register float f5 asm("f16");
-	register uint t0 asm("t0");
-
-	asm volatile
-	(
-		"lnode %7\n\t" 
-		: "=f" (f0), "=f" (f1), "=f" (f2), "=f" (f3), "=f" (f4), "=f" (f5), "=r" (t0)
-		: "r" (node_ptr)
-	);
-	
-	BVH::Node node;
-	node.aabb.min.x = f0;
-	node.aabb.min.y = f1;
-	node.aabb.min.z = f2;
-	node.aabb.max.x = f3;
-	node.aabb.max.y = f4;
-	node.aabb.max.z = f4;
-	*(uint32_t*)&node.data =t0;
-	return node;
-	#else
-
-	return *node_ptr;
-	#endif
-}
-
 float inline static _rcp(float in)
 {
 	#ifdef ARCH_RISCV
@@ -184,7 +150,7 @@ inline bool intersect(const MeshPointers& mesh, const Ray& ray, Hit& hit)
 	uint32_t node_stack_size = 1u;
 	node_stack[0].t = intersect(mesh.blas[0].aabb, ray, inv_d);
 	node_stack[0].data = mesh.blas[0].data;
-
+	
 	bool found_hit = false;
 	do
 	{
