@@ -13,7 +13,7 @@ public:
 	struct Configuration
 	{
 		uint64_t size{1024};
-		uint bank_stride{CACHE_LINE_SIZE};
+		uint bank_stride{CACHE_BLOCK_SIZE};
 		uint num_banks{1};
 		uint num_incoming_connections{1};
 		uint penalty{1};
@@ -29,7 +29,7 @@ private:
 		bool busy{false};
 
 		MemoryRequest request;
-		uint64_t request_mask{0x0ull};
+		uint64_t port_mask{0x0ull};
 	};
 
 	Configuration _configuration; //nice for debugging
@@ -86,9 +86,9 @@ private:
 		for(uint i = 0; i < _num_incoming_connections; ++i)
 		{
 			uint request_index = (_port_priority_index + i) % _num_incoming_connections;
-			if(!request_bus.get_pending(request_index)) continue;
+			if(!request_bus.transfer_pending(request_index)) continue;
 
-			const MemoryRequest& request = request_bus.get_data(request_index);
+			const MemoryRequest& request = request_bus.transfer(request_index);
 			uint32_t bank_index = _get_bank(request.paddr);
 			paddr_t buffer_addr = _get_buffer_addr(request.paddr);
 			_Bank& bank = _banks[bank_index];
@@ -112,18 +112,18 @@ private:
 					bank.busy = true;
 
 					bank.request = request;
-					bank.request_mask = 0x1ull << request_index;
+					bank.port_mask = 0x1ull << request_index;
 
-					request_bus.clear_pending(request_index);
+					request_bus.acknowlege(request_index);
 				}
 				else
 				{
 					if(bank.request.type == request.type && request.paddr == bank.request.paddr && request.size == bank.request.size)
 					{
 						//merge requests to the same address
-						bank.request_mask |= 0x1ull << request_index;
+						bank.port_mask |= 0x1ull << request_index;
 
-						request_bus.clear_pending(request_index);
+						request_bus.acknowlege(request_index);
 					}
 					else; //bank conflict
 				}
@@ -158,8 +158,8 @@ private:
 		{
 			//Try to return data for the line we just recived
 			//If we succed to return to all clients we free the bank otherwise we will try again next cycle
-			_try_return(bank.request, bank.request_mask);
-			if(bank.request_mask == 0x0ull) bank.busy = false;
+			_try_return(bank.request, bank.port_mask);
+			if(bank.port_mask == 0x0ull) bank.busy = false;
 		}
 	}
 
@@ -171,9 +171,9 @@ private:
 		for(uint i = 0; i < return_bus.size(); ++i)
 		{
 			uint64_t imask = (0x1ull << i);
-			if((mask & imask) == 0x0ull || return_bus.get_pending(i)) continue;
+			if((mask & imask) == 0x0ull || return_bus.transfer_pending(i)) continue;
 
-			return_bus.set_data(rtrn, i);
+			return_bus.add_transfer(rtrn, i);
 			return_bus.set_pending(i);
 
 			mask &= ~imask;

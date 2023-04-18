@@ -31,6 +31,8 @@ public:
 
 		uint stack_size{512};
 
+		uint port_size{16};
+
 		MemoryUnitMap mem_map{};
 
 		UnitSFU**     sfu_table{nullptr};
@@ -56,7 +58,7 @@ private:
 		ISA::RISCV::RegAddr dst;
 		uint8_t unit_index;
 
-		uint8_t data[CACHE_LINE_SIZE];
+		uint8_t data[CACHE_BLOCK_SIZE];
 	};
 
 	ISA::RISCV::IntegerRegisterFile       _int_regs{};
@@ -87,6 +89,7 @@ private:
 	std::vector<uint8_t> _stack_mem;
 	uint64_t _stack_mask;
 
+	uint     _port_size;
 	uint64_t _port_mask;
 
 public:

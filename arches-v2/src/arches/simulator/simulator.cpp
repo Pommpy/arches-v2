@@ -8,6 +8,7 @@ namespace Arches {
 
 void Simulator::register_unit(Units::UnitBase * unit)
 {
+	unit->unit_id = _units.size();
 	_units.push_back(unit);
 	_unit_groups.back().end++;
 	unit->simulator = this;

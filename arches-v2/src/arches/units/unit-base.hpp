@@ -2,7 +2,6 @@
 #include "../../stdafx.hpp"
 
 #include "../simulator/simulator.hpp"
-#include "../util/round-robin-arbitrator.hpp"
 
 namespace Arches { namespace Units {
 
@@ -15,8 +14,8 @@ private:
 		uint8_t data[64];
 	};
 
-	//TODO add arbitrator directly to the calss
-	//Should be much more efficent since each line has one byte and they are alligne they will likely be on the same line and byte compare with zero is super cheap if they are l1 hits
+	//Should be much more efficent since each line has one byte and they are alligne they will likely be on the same line
+	//reads to the data only happen if pending flag is set and ack is done by clearing the pending bit
 	T*       _data;
 	uint8_t* _pending;
 	uint     _size;
@@ -43,19 +42,12 @@ public:
 	
 	size_t size() const { return _size; }
 	
-	//return true if a request was added since the last time this function was called. This might be a decent optimization
-	bool get_pending(size_t index) const 
+	bool transfer_pending(size_t index) const 
 	{ 
 		assert(index < _size);
 		return _pending[index];
 	}
-	void set_pending(size_t index)
-	{
-		assert(index < _size);
-		assert(_pending[index] == 0);
-		_pending[index] = 1;
-	}
-	uint get_next_pending()
+	uint get_next()
 	{
 		uint index = _arb_index;
 		do
@@ -72,30 +64,32 @@ public:
 
 		return ~0u;
 	}
-	void clear_pending(size_t index)
+	void acknowlege(size_t index)
 	{
 		assert(index < _size);
-		assert(_pending[index] == 1);
+		assert(_pending[index]);
 		_pending[index] = 0;
 	}
-	const T& get_data(size_t index) const
+	const T& transfer(size_t index) const
 	{
 		assert(index < _size);
+		assert(_pending[index]);
 		return _data[index]; 
 	}
-	void set_data(const T& data, size_t index)
+	void add_transfer(const T& data, size_t index)
 	{
 		assert(index < _size);
-		assert(_pending[index] == 0);
+		assert(!_pending[index]);
 		_data[index] = data;
+		_pending[index] = 1;
 	}
 };
 
-//avoid false sharing by aligning to cache line
 class UnitBase
 {
 public:
 	Simulator* simulator{nullptr};
+	uint32_t unit_id{~0u};
 	virtual void clock_rise() = 0;
 	virtual void clock_fall() = 0;
 };

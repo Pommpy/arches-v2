@@ -6,7 +6,7 @@
 
 namespace Arches { namespace Units {
 
-#define CACHE_LINE_SIZE 32
+#define CACHE_BLOCK_SIZE 32
 
 struct MemoryRequest
 {
@@ -48,6 +48,11 @@ struct MemoryRequest
 		vaddr_t vaddr;
 	};
 
+	bool operator==(const MemoryRequest& other) const
+	{
+		return type == other.type && size == other.size && paddr == other.paddr;
+	}
+
 	//Only atomic instructions actually pass or recive data.
 	//The data pointed to by this must precist until the pending line in cleared.
 	//Coppying data into the request would be very inefficent (especially when passing full blocks of data).
@@ -60,8 +65,6 @@ class UnitMemoryBase : public UnitBase
 public:
 	ConnectionGroup<MemoryRequest> request_bus;
 	ConnectionGroup<MemoryRequest> return_bus;
-	uint                        offset_bits{ 0 }; //how many bits are used for the offset. Needed by the core to align loads to line boundries properly
-	uint64_t                    offset_mask{ 0 };
 
 	UnitMemoryBase(uint num_clients) : request_bus(num_clients), return_bus(num_clients), UnitBase()
  	{
@@ -72,49 +75,86 @@ public:
 
 class MemoryUnitMap
 {
-public:
+private:
+	std::vector<std::pair<paddr_t, uint>> ranges;
 
+public:
 	struct MemoryUnitMapping
 	{
 		UnitMemoryBase* unit;
-		uint offset;
+		uint16_t        port_index;
+		uint16_t        num_ports;
+		uint16_t        port_id; //provides unqie ids for all ports
+
+		bool operator==(const MemoryUnitMapping& other) const
+		{
+			return unit == other.unit && port_index == other.port_index && num_ports == other.num_ports;
+		}
 	};
 
-	std::vector<paddr_t> ranges;
-	std::vector<MemoryUnitMapping> units;
+	std::vector<MemoryUnitMapping> mappings;
+	uint total_ports{0};
 
-	void add_unit(paddr_t paddr, UnitMemoryBase* unit, uint offset)
+	void add_unit(paddr_t paddr, UnitMemoryBase* unit, uint port_id, uint num_ports)
 	{
+		if(unit == nullptr)
+		{
+			num_ports = 0;
+			port_id = 0;
+		}
+
 		uint i = 0;
 		for(; i < ranges.size(); ++i)
-			if(paddr < ranges[i]) break;
+			if(paddr < ranges[i].first) break;
 
-		ranges.insert(ranges.begin() + i, paddr);
-		units.insert(units.begin() + i, {unit, offset});
+		ranges.insert(ranges.begin() + i, {paddr, ~0u});
+
+		if(unit == nullptr) return;
+
+		MemoryUnitMapping mapping = { unit, port_id, num_ports, 0};
+
+		uint j;
+		for(j = 0; j < mappings.size(); ++j)
+			if(mapping == mappings[j]) break;
+
+		if(j == mappings.size()) mappings.push_back(mapping);
+
+		ranges[i].second = j;
+
+		total_ports = 0;
+		for(j = 0; j < mappings.size(); ++j)
+		{
+			mappings[j].port_id = total_ports;
+			total_ports += mappings[j].num_ports;
+		}
 	}
 
-	uint get_index(paddr_t paddr)
+	uint get_mapping_index(paddr_t paddr)
 	{
 		uint start = 0;
 		uint end = ranges.size();
 		while((start + 1) != end)
 		{
 			uint middle = (start + end) / 2;
-			if(paddr >= ranges[middle]) start = middle;
-			else                        end   = middle;
+			if(paddr >= ranges[middle].first) start = middle;
+			else                              end   = middle;
+		}
+
+		return ranges[start].second;
+	}
+
+	uint get_mapping_index_for_unique_port_index(uint unique_port_index)
+	{
+		uint start = 0;
+		uint end = mappings.size();
+		while((start + 1) != end)
+		{
+			uint middle = (start + end) / 2;
+			if(unique_port_index >= mappings[middle].port_id) start = middle;
+			else                                                     end = middle;
 		}
 
 		return start;
-	}
-
-	UnitMemoryBase* get_unit(uint index)
-	{
-		return units[index].unit;
-	}
-
-	uint get_port(uint index)
-	{
-		return units[index].offset;
 	}
 };
 

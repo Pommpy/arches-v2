@@ -35,7 +35,7 @@ namespace Arches { namespace ISA { namespace RISCV {
 			bool cached;
 
 			paddr_t vaddr;
-			uint8_t store_data[CACHE_LINE_SIZE];
+			uint8_t store_data[CACHE_BLOCK_SIZE];
 		}mem_req;
 
 		ExecutionBase(IntegerRegisterFile* int_regs, FloatingPointRegisterFile* float_regs) : int_regs(int_regs), float_regs(float_regs) {}

@@ -156,10 +156,10 @@ static GlobalData initilize_buffers(std::string mesh_path, rtm::vec3 camera_pos,
 			blas.nodes.size() * sizeof(BVH::Node)
 		);
 
-		global_data.tt.blas = write_vector(main_memory, CACHE_LINE_SIZE, blas.nodes, heap_address);
-		global_data.tt.headers = write_vector(main_memory, CACHE_LINE_SIZE, tt.headers, heap_address);
-		global_data.tt.nodes = write_vector(main_memory, CACHE_LINE_SIZE, tt.nodes, heap_address);
-		global_data.tt.vertices = write_vector(main_memory, CACHE_LINE_SIZE, tt.vertices, heap_address);
+		global_data.tt.blas = write_vector(main_memory, CACHE_BLOCK_SIZE, blas.nodes, heap_address);
+		global_data.tt.headers = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.headers, heap_address);
+		global_data.tt.nodes = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.nodes, heap_address);
+		global_data.tt.vertices = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.vertices, heap_address);
 	}
 	else
 	{
@@ -181,9 +181,9 @@ static GlobalData initilize_buffers(std::string mesh_path, rtm::vec3 camera_pos,
 			blas.nodes.size() * sizeof(BVH::Node)
 		);
 	
-		global_data.mesh.blas = write_vector(main_memory, CACHE_LINE_SIZE, blas.nodes, heap_address);
-		global_data.mesh.vertex_indices = write_vector(main_memory, CACHE_LINE_SIZE, mesh.vertex_indices, heap_address);
-		global_data.mesh.vertices = write_vector(main_memory, CACHE_LINE_SIZE, mesh.vertices, heap_address);
+		global_data.mesh.blas = write_vector(main_memory, CACHE_BLOCK_SIZE, blas.nodes, heap_address);
+		global_data.mesh.vertex_indices = write_vector(main_memory, CACHE_BLOCK_SIZE, mesh.vertex_indices, heap_address);
+		global_data.mesh.vertices = write_vector(main_memory, CACHE_BLOCK_SIZE, mesh.vertices, heap_address);
 	}
 
 	main_memory->direct_write(&global_data, sizeof(GlobalData), GLOBAL_DATA_ADDRESS);
@@ -208,11 +208,11 @@ static void run_sim_describo(int argc, char* argv[])
 	Units::UnitCache::Configuration l1_config;
 	l1_config.associativity = 2;
 	l1_config.size = 16 * 1024;
-	l1_config.block_size = CACHE_LINE_SIZE;
+	l1_config.block_size = CACHE_BLOCK_SIZE;
 	l1_config.num_banks = 4;
 	l1_config.num_ports = num_tps_per_tm;
 	l1_config.penalty = 1;
-	l1_config.num_mshr = 4;
+	l1_config.num_lfb = 4;
 
 	//from cacti (22nm)
 	l1_config.dynamic_read_energy = 0.0464909e-9;
@@ -221,11 +221,11 @@ static void run_sim_describo(int argc, char* argv[])
 	Units::UnitCache::Configuration l2_config;
 	l2_config.associativity = 4;
 	l2_config.size = 2 * 1024 * 1024;
-	l2_config.block_size = CACHE_LINE_SIZE;
+	l2_config.block_size = CACHE_BLOCK_SIZE;
 	l2_config.num_banks = 32;
 	l2_config.num_ports = num_tms_per_l2;
 	l2_config.penalty = 4;
-	l2_config.num_mshr = 4;
+	l2_config.num_lfb = 4;
 	
 	//from cacti (22nm)
 	l2_config.dynamic_read_energy = 0.240039e-9;

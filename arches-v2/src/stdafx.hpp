@@ -148,6 +148,7 @@ namespace Arches {
 
 typedef uint64_t paddr_t;
 typedef uint64_t vaddr_t;
+typedef uint64_t addr_t;
 
 typedef uint16_t buffer_id_t;
 typedef uint16_t port_id_t;

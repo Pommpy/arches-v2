@@ -24,10 +24,10 @@ public:
 
 	void clock_rise() override
 	{
-		if((request_index = request_bus.get_next_pending()) != ~0)
+		if((request_index = request_bus.get_next()) != ~0)
 		{
-			request_item = request_bus.get_data(request_index);
-			request_bus.clear_pending(request_index);
+			request_item = request_bus.transfer(request_index);
+			request_bus.acknowlege(request_index);
 		}
 	}
 
@@ -85,8 +85,7 @@ public:
 			if(request_item.type != MemoryRequest::Type::STORE)
 			{
 				request_item.type = MemoryRequest::Type::LOAD_RETURN;
-				return_bus.set_data(request_item, request_index);
-				return_bus.set_pending(request_index);
+				return_bus.add_transfer(request_item, request_index);
 			}
 		}
 	}

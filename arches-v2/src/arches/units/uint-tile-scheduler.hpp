@@ -66,7 +66,7 @@ public:
 		{
 			for(uint j = 0; j < tp_per_tm; ++j)
 			{
-				if(request_bus.get_pending(i * tp_per_tm + j)) 
+				if(request_bus.transfer_pending(i * tp_per_tm + j)) 
 					bank_states[i].arbitrator.add(j);
 			}
 
@@ -75,8 +75,8 @@ public:
 				bank_states[i].arbitrator.remove(bank_states[i].request_index);
 
 				bank_states[i].request_index += i * tp_per_tm;
-				bank_states[i].request_item = request_bus.get_data(bank_states[i].request_index);
-				request_bus.clear_pending(bank_states[i].request_index);
+				bank_states[i].request_item = request_bus.transfer(bank_states[i].request_index);
+				request_bus.acknowlege(bank_states[i].request_index);
 			}
 		}
 	}
@@ -121,8 +121,7 @@ public:
 				printf(" pixels rendered: %d\r", num_requests);
 
 				bank.request_item.type = MemoryRequest::Type::LOAD_RETURN;
-				return_bus.set_data(bank.request_item, bank.request_index);
-				return_bus.set_pending(bank.request_index);
+				return_bus.add_transfer(bank.request_item, bank.request_index);
 			}
 		}
 	}

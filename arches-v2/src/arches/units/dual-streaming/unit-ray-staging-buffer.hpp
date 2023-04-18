@@ -25,8 +25,8 @@ public:
 		request_index = arbitrator.next();
 		if(request_index != ~0)
 		{
-			request_item = request_bus.get_data(request_index);
-			request_bus.clear_pending(request_index);
+			request_item = request_bus.transfer(request_index);
+			request_bus.acknowlege(request_index);
 		}
 	}
 

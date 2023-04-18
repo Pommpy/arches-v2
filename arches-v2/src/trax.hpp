@@ -77,9 +77,9 @@ static GlobalData initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	blas.build(build_objects);
 	mesh.reorder(build_objects);
 
-	global_data.mesh.blas = write_vector(main_memory, CACHE_LINE_SIZE, blas.nodes, heap_address);
-	global_data.mesh.vertex_indices = write_vector(main_memory, CACHE_LINE_SIZE, mesh.vertex_indices, heap_address);
-	global_data.mesh.vertices = write_vector(main_memory, CACHE_LINE_SIZE, mesh.vertices, heap_address);
+	global_data.mesh.blas = write_vector(main_memory, CACHE_BLOCK_SIZE, blas.nodes, heap_address);
+	global_data.mesh.vertex_indices = write_vector(main_memory, CACHE_BLOCK_SIZE, mesh.vertex_indices, heap_address);
+	global_data.mesh.vertices = write_vector(main_memory, CACHE_BLOCK_SIZE, mesh.vertices, heap_address);
 
 	main_memory->direct_write(&global_data, sizeof(GlobalData), GLOBAL_DATA_ADDRESS);
 
@@ -141,13 +141,12 @@ static void run_sim_trax(int argc, char* argv[])
 	{
 		Units::UnitCache::Configuration l2_config;
 		l2_config.size = 512 * 1024;
-		l2_config.block_size = CACHE_LINE_SIZE;
-		l2_config.associativity = 4;
+		l2_config.associativity = 1;
 		l2_config.penalty = 3;
 		l2_config.num_ports = num_tms_per_l2;
 		l2_config.num_banks = 16;
-		l2_config.num_mshr = 4;
-		l2_config.mem_map.add_unit(mm_null_address, &mm, l2_index);
+		l2_config.num_lfb = 4;
+		l2_config.mem_map.add_unit(mm_null_address, &mm, l2_index, 1);
 
 		l2s.push_back(new Units::UnitCache(l2_config));
 
@@ -160,13 +159,13 @@ static void run_sim_trax(int argc, char* argv[])
 
 			Units::UnitCache::Configuration l1_config;
 			l1_config.size = 32 * 1024;
-			l1_config.block_size = CACHE_LINE_SIZE;
-			l1_config.associativity = 4;
+			l1_config.associativity = 1;
 			l1_config.penalty = 1;
 			l1_config.num_ports = num_tps_per_tm;
+			l1_config.port_size = 16;
 			l1_config.num_banks = 8;
-			l1_config.num_mshr = 4;
-			l1_config.mem_map.add_unit(mm_null_address, l2s.back(), tm_i);
+			l1_config.num_lfb = 4;
+			l1_config.mem_map.add_unit(mm_null_address, l2s.back(), tm_i, 1);
 
 			l1s.push_back(new Units::UnitCache(l1_config));
 			simulator.register_unit(l1s.back());
@@ -202,9 +201,10 @@ static void run_sim_trax(int argc, char* argv[])
 				tp_config.stack_size = stack_size;
 				tp_config.backing_memory = mm._data_u8;
 				tp_config.sfu_table = sfu_table;
-				tp_config.mem_map.add_unit(mm_null_address, &tile_scheduler, tm_index * num_tms + tp_index);
-				tp_config.mem_map.add_unit(mm_global_data_start, l1s.back(), tp_index);
-				tp_config.mem_map.add_unit(mm_stack_start, nullptr, 0);
+				tp_config.port_size = 16;
+				tp_config.mem_map.add_unit(mm_null_address, &tile_scheduler, tm_index * num_tms + tp_index, 1);
+				tp_config.mem_map.add_unit(mm_global_data_start, l1s.back(), tp_index, 1);
+				tp_config.mem_map.add_unit(mm_stack_start, nullptr, 0, 0);
 
 				tps.push_back(new Units::UnitTP(tp_config));
 				simulator.register_unit(tps.back());
@@ -241,7 +241,7 @@ static void run_sim_trax(int argc, char* argv[])
 		l2_log.accumulate(l2->log);
 	l2_log.print_log();
 
-	mm.print_usimm_stats(CACHE_LINE_SIZE, 4, simulator.current_cycle);
+	mm.print_usimm_stats(CACHE_BLOCK_SIZE, 4, simulator.current_cycle);
 
 	for(auto& tp : tps)
 		delete tp;

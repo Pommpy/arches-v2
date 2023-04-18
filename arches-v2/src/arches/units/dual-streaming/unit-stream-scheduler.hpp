@@ -115,20 +115,20 @@ public:
 	void process_load_returns()
 	{
 		//accept load returns
-		if(main_mem->return_bus.get_pending(0) && !has_segment_return)
+		if(main_mem->return_bus.transfer_pending(0) && !has_segment_return)
 		{
-			main_mem->return_bus.clear_pending(0);
+			main_mem->return_bus.acknowlege(0);
 
 			has_segment_return = true;
-			segment_return = main_mem->request_bus.get_data(0);
+			segment_return = main_mem->request_bus.transfer(0);
 		}
 
-		if(main_mem->return_bus.get_pending(1) && !has_bucket_return)
+		if(main_mem->return_bus.transfer_pending(1) && !has_bucket_return)
 		{
-			main_mem->return_bus.clear_pending(1);
+			main_mem->return_bus.acknowlege(1);
 
 			has_bucket_return = true;
-			bucket_return = main_mem->return_bus.get_data(1);
+			bucket_return = main_mem->return_bus.transfer(1);
 		}
 	}
 
@@ -139,7 +139,7 @@ public:
 		if(request_index != ~0u)
 		{
 			//we have a request for a new scene segment this means we can decrement buckets in flight for the scene sgment whose bucket was previouly in the ray staging buffer
-			MemoryRequest request = request_bus.get_data(request_index);
+			MemoryRequest request = request_bus.transfer(request_index);
 
 			if(request.type == MemoryRequest::Type::SBRAY)
 			{
@@ -148,7 +148,7 @@ public:
 			}
 			else if(request.type == MemoryRequest::Type::LOAD)
 			{
-				request_bus.clear_pending(request_index);
+				request_bus.acknowlege(request_index);
 
 				uint last_segment_index = *(uint32_t*)request.data;
 				if(last_segment_index != ~0u)
@@ -186,17 +186,17 @@ public:
 	void forward_load_returns()
 	{
 		//forward load returns to the correct unit
-		if(has_segment_return && !return_bus.get_pending(0))
+		if(has_segment_return && !return_bus.transfer_pending(0))
 		{
 			has_segment_return = false;
-			return_bus.set_data(segment_return, 128);
+			return_bus.add_transfer(segment_return, 128);
 			return_bus.set_pending(128);
 		}
 
-		if(has_bucket_return && !return_bus.get_pending(ray_bucket_stream.tm))
+		if(has_bucket_return && !return_bus.transfer_pending(ray_bucket_stream.tm))
 		{
 			has_bucket_return = false;
-			return_bus.set_data(bucket_return, ray_bucket_stream.tm);
+			return_bus.add_transfer(bucket_return, ray_bucket_stream.tm);
 			return_bus.set_pending(ray_bucket_stream.tm);
 		}
 	}
@@ -205,17 +205,17 @@ public:
 	{
 		if(scene_stream.base_address)
 		{
-			if(!main_mem->return_bus.get_pending(0))
+			if(!main_mem->return_bus.transfer_pending(0))
 			{
 				//advance stream
 				if(scene_stream.offset < 64 * 1024)
 				{
 					MemoryRequest request;
-					request.size = CACHE_LINE_SIZE;
+					request.size = CACHE_BLOCK_SIZE;
 					request.type = MemoryRequest::Type::LOAD;
 					request.paddr = scene_stream.base_address + scene_stream.offset;
 
-					main_mem->request_bus.set_data(request, 0);
+					main_mem->request_bus.add_transfer(request, 0);
 					main_mem->request_bus.set_pending(0);
 
 					scene_stream.offset += request.size;
@@ -251,17 +251,17 @@ public:
 
 		if(ray_bucket_stream.base_address)
 		{
-			if(!main_mem->return_bus.get_pending(1))
+			if(!main_mem->return_bus.transfer_pending(1))
 			{
 				//advance stream
 				if(ray_bucket_stream.offset < 2 * 1024)
 				{
 					MemoryRequest request;
-					request.size = CACHE_LINE_SIZE;
+					request.size = CACHE_BLOCK_SIZE;
 					request.type = MemoryRequest::Type::LOAD;
 					request.paddr = ray_bucket_stream.base_address + ray_bucket_stream.offset;
 
-					main_mem->request_bus.set_data(request, 1);
+					main_mem->request_bus.add_transfer(request, 1);
 					main_mem->request_bus.set_pending(1);
 
 					ray_bucket_stream.offset += request.size;
@@ -319,7 +319,7 @@ public:
 
 		if(ray_write_stream.base_address)
 		{
-			if(!main_mem->return_bus.get_pending(2))
+			if(!main_mem->return_bus.transfer_pending(2))
 			{
 				//advance stream
 				if(ray_write_stream.offset < _ray_size)
@@ -329,7 +329,7 @@ public:
 					request.type = MemoryRequest::Type::STORE;
 					request.paddr = scene_stream.base_address + scene_stream.offset;
 
-					main_mem->request_bus.set_data(request, 2);
+					main_mem->request_bus.add_transfer(request, 2);
 					main_mem->request_bus.set_pending(2);
 
 					ray_write_stream.offset += request.size;
@@ -349,7 +349,7 @@ public:
 			
 			if(bucket_states[segment].fill == 56)
 			{
-				if(!main_mem->return_bus.get_pending(2))
+				if(!main_mem->return_bus.transfer_pending(2))
 				{
 					if(free_buckets.empty())
 					{
@@ -369,7 +369,7 @@ public:
 					request.type = MemoryRequest::Type::STORE;
 					request.paddr = scene_stream.base_address + scene_stream.offset;
 
-					main_mem->request_bus.set_data(request, 2);
+					main_mem->request_bus.add_transfer(request, 2);
 					main_mem->request_bus.set_pending(2);
 
 					bucket_address = new_bucket_address;

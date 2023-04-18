@@ -124,7 +124,7 @@ public:
 		std::vector<char> data(size + 2);
 		is.read((char*)&data[0], size);
 		data[size] = '\n';
-		data.back() = '\0';
+		data[size+1] = '\0';
 		is.close();
 
 		//simple hashes for switch statement

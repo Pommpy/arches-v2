@@ -170,7 +170,7 @@ static void initilize_buffers(GlobalData& global_data, Units::UnitMainMemoryBase
 	global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 90.0f, rtm::vec3(-900.6f, 150.8f, 120.74f), rtm::vec3(79.7f, 14.0f, -17.4f));
 	global_data.light_dir = rtm::normalize(rtm::vec3(4.5f, 42.5f, 5.0f));
 
-	heap_address = align_to(CACHE_LINE_SIZE, heap_address);
+	heap_address = align_to(CACHE_BLOCK_SIZE, heap_address);
 	main_memory->direct_write(mesh.triangles, mesh.num_triangles * sizeof(Triangle), heap_address);
 	global_data.triangles = reinterpret_cast<Triangle*>(heap_address); heap_address += mesh.num_triangles * sizeof(Triangle);
 
@@ -257,7 +257,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 	Units::UnitBuffer::Configuration scene_buffer_config;
 	scene_buffer_config.size = scene_buffer_size;
-	scene_buffer_config.bank_stride = CACHE_LINE_SIZE;
+	scene_buffer_config.bank_stride = CACHE_BLOCK_SIZE;
 	scene_buffer_config.num_banks = 32;
 	scene_buffer_config.num_incoming_connections = num_tms + 1;
 	scene_buffer_config.penalty = 3;
@@ -269,12 +269,12 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 	Units::UnitCache::Configuration l2_config;
 	l2_config.size = 512 * 1024;
-	l2_config.block_size = CACHE_LINE_SIZE;
+	l2_config.block_size = CACHE_BLOCK_SIZE;
 	l2_config.associativity = 1;
 	l2_config.num_banks = 32;
 	l2_config.num_ports = num_tms;
 	l2_config.penalty = 3;
-	l2_config.num_mshr = 4;
+	l2_config.num_lfb = 4;
 
 	l2_config.mem_map.add_unit(0x0ull, &mm, 0);
 
@@ -288,12 +288,12 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 		Units::UnitCache::Configuration l1_config;
 		l1_config.size = 16 * 1024;
-		l1_config.block_size = CACHE_LINE_SIZE;
+		l1_config.block_size = CACHE_BLOCK_SIZE;
 		l1_config.associativity = 1;
 		l1_config.num_banks = 8;
 		l1_config.num_ports = num_tps_per_tm;
 		l1_config.penalty = 1;
-		l1_config.num_mshr = 4;
+		l1_config.num_lfb = 4;
 
 		l1_config.mem_map.add_unit(dsmm_null_address, l2, tm_index);
 		l1_config.mem_map.add_unit(dsmm_scene_buffer_start, &scene_buffer, tm_index);

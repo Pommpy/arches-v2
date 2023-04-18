@@ -5,25 +5,20 @@
 
 #include "unit-base.hpp"
 #include "unit-main-memory-base.hpp"
+#include "../util/round-robin-arbitrator.hpp"
 
 namespace Arches { namespace Units {
 
 class UnitDRAM : public UnitMainMemoryBase, public UsimmListener
 {
 private:
-	struct _Request
-	{
-		MemoryRequest request;
-		uint              bus_index;
-	};
-	std::unordered_map<uint32_t, _Request> _request_map;
-
 	struct ReturnItem
 	{
-		uint              request_id;
-		cycles_t          return_cycle;
+		paddr_t	 paddr;
+		uint	 port;
+		cycles_t return_cycle;
 
-		ReturnItem(uint request_id, cycles_t return_cycle) : request_id(request_id), return_cycle(return_cycle) {}
+		ReturnItem(paddr_t paddr, uint port, cycles_t return_cycle) : port(port), paddr(paddr), return_cycle(return_cycle) {}
 	
 		friend bool operator<(const ReturnItem& l, const ReturnItem& r)
 		{
@@ -33,9 +28,17 @@ private:
 
 	bool _busy{false};
 
-	std::priority_queue<ReturnItem> _request_return_queue;
+	struct Channel
+	{
+		std::priority_queue<ReturnItem> request_return_queue;
+		bool return_pending;
+	};
 
-	uint32_t _next_request_id{0};
+	std::vector<Channel> _channels;
+
+	ArbitrationNetwork incoming_request_network;
+	ArbitrationNetwork outgoing_return_network;
+
 	cycles_t _current_cycle{ 0 };
 
 public:

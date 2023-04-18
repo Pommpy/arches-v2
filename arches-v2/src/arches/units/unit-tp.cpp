@@ -2,13 +2,14 @@
 
 namespace Arches { namespace Units {
 
+//#define LOGGING_ENABLED (_tp_index == 0 && _tm_index == 0)
+#define LOGGING_ENABLED (false)
+
 UnitTP::UnitTP(const Configuration& config) : log(0x10000), UnitBase(), ISA::RISCV::ExecutionBase(&_int_regs, &_float_regs)
 {
 	int_regs->sp.u64 = config.sp;
 	int_regs->ra.u64 = 0x0ull;
 	pc = config.pc;
-
-	float_regs->fs0.u32 = 0xdeadbeef;
 
 	backing_memory = config.backing_memory;
 
@@ -22,7 +23,8 @@ UnitTP::UnitTP(const Configuration& config) : log(0x10000), UnitBase(), ISA::RIS
 	_stack_mem.resize(config.stack_size);
 	_stack_mask = generate_nbit_mask(log2i(config.stack_size));
 
-	_port_mask = ~0x1full;
+	_port_size = config.port_size;
+	_port_mask = ~generate_nbit_mask(log2i(config.port_size));
 
 	for(uint i = 0; i < 32; ++i)
 	{
@@ -35,23 +37,6 @@ void UnitTP::_clear_register_pending(const ISA::RISCV::RegAddr& dst)
 {
 	     if(dst.reg_file == 0) _int_regs_pending[dst.reg] = 0;
 	else if(dst.reg_file == 1) _float_regs_pending[dst.reg] = 0;
-}
-
-void UnitTP::_process_load_return(const MemoryRequest& rtrn)
-{
-	for(uint i = 0; i < _lsq.size(); ++i)
-	{
-		_LSE& lse = _lsq[i];
-
-		//TODO not clear that we can commit multiple registers in a single cycle
-		//Commit all the lse that have already issued if they havent issued we will short circuit when we try to issue
-		if(lse.state == _LSE::State::ISSUED && lse.vaddr == rtrn.paddr)
-		{
-			if(rtrn.data) _write_register(lse.dst, ((uint8_t*)rtrn.data) + lse.offset, lse.size);
-			_clear_register_pending(lse.dst);
-			lse.state = _LSE::State::COMMITED;
-		}
-	}
 }
 
 uint8_t UnitTP::_check_dependancies(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info)
@@ -116,6 +101,24 @@ uint8_t UnitTP::_check_dependancies(const ISA::RISCV::Instruction instr, ISA::RI
 	return 0;
 }
 
+void UnitTP::_process_load_return(const MemoryRequest& rtrn)
+{
+	if(LOGGING_ENABLED) printf("LOAD RETURN(%d):%lld\n", _tp_index, rtrn.vaddr);
+	for(uint i = 0; i < _lsq.size(); ++i)
+	{
+		_LSE& lse = _lsq[i];
+
+		//TODO not clear that we can commit multiple registers in a single cycle
+		//Commit all the lse that have already issued if they havent issued we will short circuit when we try to issue
+		if(lse.state == _LSE::State::ISSUED && lse.vaddr == rtrn.paddr)
+		{
+			if(rtrn.data) _write_register(lse.dst, ((uint8_t*)rtrn.data) + lse.offset, lse.size);
+			_clear_register_pending(lse.dst);
+			lse.state = _LSE::State::COMMITED;
+		}
+	}
+}
+
 void UnitTP::_drain_lsq()
 {
 	//Try to issue next entry from LSQ. If issue LSE == next LSE then we have drained the queue
@@ -137,20 +140,19 @@ void UnitTP::_drain_lsq()
 		else //VALID
 		{
 			//Not issued or in the queue so we need to fetch it
-			UnitMemoryBase* unit = mem_map.get_unit(lse.unit_index);
-			uint index = mem_map.get_port(lse.unit_index);
-			if(unit->request_bus.get_pending(index)) break; //For now issue in order
+			const MemoryUnitMap::MemoryUnitMapping& mapping = mem_map.mappings[lse.unit_index];
+			if(mapping.unit->request_bus.transfer_pending(mapping.port_index)) break; //For now issue in order
 
 			MemoryRequest request;
 			request.paddr = lse.vaddr;
 			request.type = lse.type;
 			request.data = lse.data;
 
-			if(lse.type == MemoryRequest::Type::LOAD) request.size = 32;
-			else request.size = lse.size;
+			if(lse.type == MemoryRequest::Type::LOAD) request.size = _port_size;
+			else                                      request.size = lse.size;
 
-			unit->request_bus.set_data(request, index);
-			unit->request_bus.set_pending(index);
+			if(LOGGING_ENABLED && lse.type == MemoryRequest::Type::LOAD) printf("LOAD(%d):%lld\n",_tp_index, request.vaddr);
+			mapping.unit->request_bus.add_transfer(request, mapping.port_index);
 
 			if(lse.type == MemoryRequest::Type::STORE) lse.state = _LSE::State::COMMITED;
 			else                                       lse.state = _LSE::State::ISSUED;
@@ -162,27 +164,26 @@ void UnitTP::_drain_lsq()
 
 void UnitTP::clock_rise()
 {
-	for(uint i = 0; i < _lsq.size(); ++i)
+	for(uint i = 0; i < mem_map.mappings.size(); ++i)
 	{
-		_LSE& lse = _lsq[i];
-		if(lse.state != _LSE::State::ISSUED) continue;
+		MemoryUnitMap::MemoryUnitMapping mapping = mem_map.mappings[i];
+		for(uint j = 0; j < mapping.num_ports; ++j)
+		{
+			uint port_id = mapping.port_index + j;
+			if(!mapping.unit->return_bus.transfer_pending(port_id)) continue;
 
-		//check for returned LOAD
-		UnitMemoryBase* unit = mem_map.get_unit(lse.unit_index);
-		uint index = mem_map.get_port(lse.unit_index);
-		if(!unit->return_bus.get_pending(index)) continue;
-
-		_process_load_return(unit->return_bus.get_data(index));
-		unit->return_bus.clear_pending(index);
+			_process_load_return(mapping.unit->return_bus.transfer(port_id));
+			mapping.unit->return_bus.acknowlege(port_id);
+		}
 	}
 
 REPEAT_SFU_LOOP: //TODO make this less janky
 	for(auto& a : _issued_sfus)
 	{
-		if(a.first->return_bus.get_pending(_tp_index))
+		if(a.first->return_bus.transfer_pending(_tp_index))
 		{
-			UnitSFU::Request return_item = a.first->return_bus.get_data(_tp_index);
-			a.first->return_bus.clear_pending(_tp_index);
+			UnitSFU::Request return_item = a.first->return_bus.transfer(_tp_index);
+			a.first->return_bus.acknowlege(_tp_index);
 
 			_clear_register_pending(return_item.dst);
 
@@ -205,7 +206,7 @@ FREE_INSTR:
 	//If the instruction wasn't accepted by the sfu we must stall
 	if(_last_issue_sfu)
 	{
-		if(_last_issue_sfu->request_bus.get_pending(_tp_index))
+		if(_last_issue_sfu->request_bus.transfer_pending(_tp_index))
 		{
 			log.log_resource_stall(_last_instr_info);
 			_drain_lsq();
@@ -237,7 +238,7 @@ FREE_INSTR:
 		log.log_instruction_issue(instr_info, pc);
 
 	#if 0
-		if(_tp_index == 0 && _tm_index == 0)
+		if(LOGGING_ENABLED)
 		{
 			printf("    %05I64x: \t%08x          \t", pc, instr.data);
 			instr_info.print_instr(instr);
@@ -254,7 +255,11 @@ FREE_INSTR:
 		else
 		{
 			//jumping to address 0 is the halt condition
-			if(pc == 0x0) simulator->units_executing--;
+			if(pc == 0x0)
+			{
+				simulator->units_executing--;
+				printf("%d\n", simulator->units_executing.load());
+			}
 			branch_taken = false;
 		}
 	}
@@ -262,9 +267,10 @@ FREE_INSTR:
 	if(_last_instr_info.type < ISA::RISCV::Type::SYS) //SYS is the first non memory instruction type so this divides mem and non mem ops
 	{
 		//Create LSE
-		uint unit_index = mem_map.get_index(mem_req.vaddr);
-		if(mem_map.get_unit(unit_index))
+		uint mappig_index = mem_map.get_mapping_index(mem_req.vaddr);
+		if(mappig_index != ~0)
 		{
+			const MemoryUnitMap::MemoryUnitMapping& mapping = mem_map.mappings[mappig_index];
 			_LSE& lse = _lsq[_next_lse];
 
 			//If the next entry in the circular buffer is free or commited we can reuse it
@@ -272,7 +278,10 @@ FREE_INSTR:
 			{
 				//If this is a load we need to align it to the port width
 				//TODO make this variable based on the mem-unit
-				if(mem_req.type == MemoryRequest::Type::LOAD) lse.vaddr = mem_req.vaddr & _port_mask;
+				if(mem_req.type == MemoryRequest::Type::LOAD)
+				{
+					lse.vaddr = mem_req.vaddr & _port_mask;
+				}
 				else
 				{
 					lse.vaddr = mem_req.vaddr;
@@ -284,7 +293,7 @@ FREE_INSTR:
 
 				lse.type = mem_req.type;
 				lse.dst = mem_req.dst;
-				lse.unit_index = unit_index;
+				lse.unit_index = mappig_index;
 
 				lse.state = _LSE::State::VALID;
 				
@@ -336,8 +345,7 @@ FREE_INSTR:
 
 		if(_last_issue_sfu)
 		{
-			_last_issue_sfu->request_bus.set_data(request, _tp_index);
-			_last_issue_sfu->request_bus.set_pending(_tp_index);
+			_last_issue_sfu->request_bus.add_transfer(request, _tp_index);
 			_issued_sfus[_last_issue_sfu]++;
 		}
 		else

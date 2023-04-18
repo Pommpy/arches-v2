@@ -546,7 +546,7 @@ InstructionInfo const isa_OP_32_MULDIV[8] = //r.funct3
 
 //RV64A
 template <typename T>
-static void prepare_amo(ExecutionBase* unit, Instruction instr)
+inline static void prepare_amo(ExecutionBase* unit, Instruction instr)
 {
 	unit->mem_req.size = sizeof(T);
 	unit->mem_req.vaddr = unit->int_regs->registers[instr.rs1].u64;
@@ -679,67 +679,67 @@ InstructionInfo const isa_STORE_FP[4] = //r.funct3
 
 InstructionInfo const isa_OP_FP[32] = //r.funct5
 {
-	InstructionInfo(0b000'0000, "fadd.s", Type::FADD, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b000'00, "fadd.s", Type::FADD, Encoding::R, RegFile::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = unit->float_regs->registers[instr.r.rs1].f32 + unit->float_regs->registers[instr.r.rs2].f32;
-	}),//FADD.S
-	InstructionInfo(0b000'0100, "fsub.s", Type::FADD, Encoding::R, RegFile::FLOAT, IMPL_DECL
+	}),
+	InstructionInfo(0b000'01, "fsub.s", Type::FADD, Encoding::R, RegFile::FLOAT, IMPL_DECL
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = unit->float_regs->registers[instr.r.rs1].f32 - unit->float_regs->registers[instr.r.rs2].f32;
-	}),//FSUB.S
-	InstructionInfo(0b000'1000, "fmul.s", Type::FMUL, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	}),
+	InstructionInfo(0b000'10, "fmul.s", Type::FMUL, Encoding::R, RegFile::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = unit->float_regs->registers[instr.r.rs1].f32 * unit->float_regs->registers[instr.r.rs2].f32;
-	}),//FMUL.S
-	InstructionInfo(0b000'1100, "fdiv.s", Type::FDIV, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	}),
+	InstructionInfo(0b000'11, "fdiv.s", Type::FDIV, Encoding::R, RegFile::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = unit->float_regs->registers[instr.r.rs1].f32 / unit->float_regs->registers[instr.r.rs2].f32;
-	}),//FDIV.S
-	InstructionInfo(0b001'0000, META_DECL {return isa_OP_FSGNJ_FP[instr.r.funct3]; }),//FSGNJ
-	InstructionInfo(0b001'0100, META_DECL {return isa_OP_0x14_FP[instr.r.funct3]; }),//0x14
-	InstructionInfo(0b001'1000, IMPL_NONE),
-	InstructionInfo(0b001'1100, IMPL_NONE),
+	}),
+	InstructionInfo(0b001'00, META_DECL {return isa_OP_FSGNJ_FP[instr.r.funct3]; }),//FSGNJ
+	InstructionInfo(0b001'01, META_DECL {return isa_OP_0x14_FP[instr.r.funct3]; }),//0x14
+	InstructionInfo(0b001'10, IMPL_NONE),
+	InstructionInfo(0b001'11, IMPL_NONE),
 
-	InstructionInfo(0b010'0000, IMPL_NONE),
-	InstructionInfo(0b010'0100, IMPL_NONE),
-	InstructionInfo(0b010'1000, IMPL_NONE),
-	InstructionInfo(0b010'1100, "fsqrt.s", Type::FSQRT, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b010'00, IMPL_NONE),
+	InstructionInfo(0b010'01, IMPL_NONE),
+	InstructionInfo(0b010'10, IMPL_NONE),
+	InstructionInfo(0b010'11, "fsqrt.s", Type::FSQRT, Encoding::R, RegFile::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ps1(unit->float_regs->registers[instr.r.rs1].f32)));
-	}),//SQRT.S
-	InstructionInfo(0b011'0000, "frcp.s", Type::FRCP, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	}),
+	InstructionInfo(0b011'00, "frcp.s", Type::FRCP, Encoding::R, RegFile::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ps1(unit->float_regs->registers[instr.r.rs1].f32)));
 	}),
-	InstructionInfo(0b011'0100, IMPL_NONE),
-	InstructionInfo(0b011'1000, IMPL_NONE),
-	InstructionInfo(0b011'1100, IMPL_NONE),
+	InstructionInfo(0b011'01, IMPL_NONE),
+	InstructionInfo(0b011'10, IMPL_NONE),
+	InstructionInfo(0b011'11, IMPL_NONE),
 
-	InstructionInfo(0b100'0000, IMPL_NONE),
-	InstructionInfo(0b100'0100, IMPL_NONE),
-	InstructionInfo(0b100'1000, IMPL_NONE),
-	InstructionInfo(0b100'1100, IMPL_NONE),
+	InstructionInfo(0b100'00, IMPL_NONE),
+	InstructionInfo(0b100'01, IMPL_NONE),
+	InstructionInfo(0b100'10, IMPL_NONE),
+	InstructionInfo(0b100'11, IMPL_NONE),
 
-	InstructionInfo(0b101'0000, META_DECL {return isa_OP_FCMP_FP[instr.r.funct3]; }),//0x50
-	InstructionInfo(0b101'0100, IMPL_NONE),
-	InstructionInfo(0b101'1000, IMPL_NONE),
-	InstructionInfo(0b101'1100, IMPL_NONE),
+	InstructionInfo(0b101'00, META_DECL {return isa_OP_FCMP_FP[instr.r.funct3]; }),//0x50
+	InstructionInfo(0b101'01, IMPL_NONE),
+	InstructionInfo(0b101'10, IMPL_NONE),
+	InstructionInfo(0b101'11, IMPL_NONE),
 
-	InstructionInfo(0b110'0000, META_DECL {return isa_OP_0x60_FP[instr.r.rs2]; }),//0x60
-	InstructionInfo(0b110'0100, IMPL_NONE),
-	InstructionInfo(0b110'1000, META_DECL {return isa_OP_0x68_FP[instr.r.rs2]; }),//0x68
-	InstructionInfo(0b110'1100, IMPL_NONE),
+	InstructionInfo(0b110'00, META_DECL {return isa_OP_0x60_FP[instr.r.rs2]; }),//0x60
+	InstructionInfo(0b110'01, IMPL_NONE),
+	InstructionInfo(0b110'10, META_DECL {return isa_OP_0x68_FP[instr.r.rs2]; }),//0x68
+	InstructionInfo(0b110'11, IMPL_NONE),
 
-	InstructionInfo(0b111'0000, "fmv.x.w", Type::MOVE, Encoding::R, RegFile::INT, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b111'00, "fmv.x.w", Type::MOVE, Encoding::R, RegFile::INT, RegFile::FLOAT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->float_regs->registers[instr.r.rs1].s32;
 	}),
-	InstructionInfo(0b111'0100, IMPL_NOTI),
-	InstructionInfo(0b111'1000, "fmv.w.x", Type::MOVE, Encoding::R, RegFile::FLOAT, RegFile::INT, IMPL_DECL 
+	InstructionInfo(0b111'01, IMPL_NOTI),
+	InstructionInfo(0b111'10, "fmv.w.x", Type::MOVE, Encoding::R, RegFile::FLOAT, RegFile::INT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].u32 = unit->int_regs->registers[instr.r.rs1].u32;
 	}),
-	InstructionInfo(0b111'1100, IMPL_NOTI),
+	InstructionInfo(0b1'1111, IMPL_NOTI),
 };
 
 InstructionInfo const isa_OP_FSGNJ_FP[3] = //r.funct3
