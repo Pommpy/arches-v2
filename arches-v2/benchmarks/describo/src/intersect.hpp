@@ -7,7 +7,7 @@
 #include "bvh.hpp"
 
 #ifdef ARCH_RISCV
-#define HARDWARE_INTERSECT
+//#define HARDWARE_INTERSECT
 #endif
 
 struct MeshPointers
@@ -163,7 +163,8 @@ inline bool intersect(const Triangle tri, const Ray& ray, Hit& hit)
 	return true;
 #endif
 }
-inline bool intersect(const MeshPointers& mesh, const Ray& ray, Hit& hit)
+
+inline bool intersect(const MeshPointers mesh, const Ray& ray, Hit& hit)
 {
 	rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
 

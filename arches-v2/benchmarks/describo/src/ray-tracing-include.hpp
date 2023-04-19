@@ -8,7 +8,9 @@
 #include "camera.hpp"
 #include "ray.hpp"
 #include "intersect.hpp"
+#include "intersect-tt1.hpp"
 #include "intersect-tt2.hpp"
+#include "intersect-tt3.hpp"
 
 #define GLOBAL_DATA_ADDRESS 64ull
 
@@ -21,9 +23,14 @@ struct GlobalData
 
 	Camera camera;
 
+	glm::uvec3* ni;
+	glm::vec3* normals;
+
 	union
 	{
 		MeshPointers mesh;
-		TesselationTreePointers tt;
+		TesselationTree1Pointers tt1;
+		TesselationTree2Pointers tt2;
+		TesselationTree3Pointers tt3;
 	};
 };

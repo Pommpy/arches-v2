@@ -113,7 +113,7 @@ public:
 
 	bool load_obj(const char* file_path)
 	{
-		printf("Loading: %s\r", file_path);
+		printf("Loading: %s\n", file_path);
 
 		std::ifstream is(file_path);
 		if(!is.is_open()) return false;
@@ -122,9 +122,9 @@ public:
 		is.seekg(0, std::ios_base::beg);
 
 		std::vector<char> data(size + 2);
-		is.read((char*)&data[0], size);
+		is.read(data.data(), size);
 		data[size] = '\n';
-		data.back() = '\0';
+		data[size + 1] = '\0';
 		is.close();
 
 		//simple hashes for switch statement

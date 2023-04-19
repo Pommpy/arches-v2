@@ -59,9 +59,9 @@ uint UnitCache::_allocate_lfb(uint bank_index, _LFB& lfb)
 {
 	std::vector<_LFB>& lfbs = _banks[bank_index].lfbs;
 
-	uint32_t replacement_index = ~0u;
-	uint32_t replacement_lru = 0u;
-	for(uint32_t i = 0; i < lfbs.size(); ++i)
+	uint replacement_index = ~0u;
+	uint replacement_lru = 0u;
+	for(uint i = 0; i < lfbs.size(); ++i)
 	{
 		if(lfbs[i].state == _LFB::State::INVALID)
 		{
@@ -79,7 +79,7 @@ uint UnitCache::_allocate_lfb(uint bank_index, _LFB& lfb)
 	//can't allocate
 	if(replacement_index == ~0) return ~0;
 
-	for(uint32_t i = 0; i < lfbs.size(); ++i) lfbs[i].lru++;
+	for(uint i = 0; i < lfbs.size(); ++i) lfbs[i].lru++;
 	lfbs[replacement_index].lru = 0;
 	lfbs[replacement_index] = lfb;
 	return replacement_index;
@@ -103,14 +103,14 @@ uint UnitCache::_fetch_or_allocate_lfb(uint bank_index, uint64_t block_addr, _LF
 //update lru and returns data pointer to cache line
 UnitCache::_BlockData* UnitCache::_get_block(paddr_t paddr)
 {
-	uint32_t start = _get_set_index(paddr) * _associativity;
-	uint32_t end = start + _associativity;
+	uint start = _get_set_index(paddr) * _associativity;
+	uint end = start + _associativity;
 
 	uint64_t tag = _get_tag(paddr);
 
-	uint32_t found_index = ~0;
-	uint32_t found_lru = 0;
-	for(uint32_t i = start; i < end; ++i)
+	uint found_index = ~0;
+	uint found_lru = 0;
+	for(uint i = start; i < end; ++i)
 	{
 		if(_tag_array[i].valid && _tag_array[i].tag == tag)
 		{
@@ -122,7 +122,7 @@ UnitCache::_BlockData* UnitCache::_get_block(paddr_t paddr)
 
 	if(found_index == ~0) return nullptr; //didn't find line so we will leave lru alone and return nullptr
 
-	for(uint32_t i = start; i < end; ++i)
+	for(uint i = start; i < end; ++i)
 		if(_tag_array[i].lru < found_lru) _tag_array[i].lru++;
 
 	_tag_array[found_index].lru = 0;
@@ -133,12 +133,12 @@ UnitCache::_BlockData* UnitCache::_get_block(paddr_t paddr)
 //inserts cacheline associated with paddr replacing least recently used. Assumes cachline isn't already in cache if it is this has undefined behaviour
 UnitCache::_BlockData* UnitCache::_insert_block(paddr_t paddr, _BlockData& data)
 {
-	uint32_t start = _get_set_index(paddr) * _associativity;
-	uint32_t end = start + _associativity;
+	uint start = _get_set_index(paddr) * _associativity;
+	uint end = start + _associativity;
 
-	uint32_t replacement_index = ~0u;
-	uint32_t replacement_lru = 0u;
-	for(uint32_t i = start; i < end; ++i)
+	uint replacement_index = ~0u;
+	uint replacement_lru = 0u;
+	for(uint i = start; i < end; ++i)
 	{
 		if(!_tag_array[i].valid)
 		{
@@ -153,7 +153,7 @@ UnitCache::_BlockData* UnitCache::_insert_block(paddr_t paddr, _BlockData& data)
 		}
 	}
 
-	for(uint32_t i = start; i < end; ++i)
+	for(uint i = start; i < end; ++i)
 		_tag_array[i].lru++;
 
 	_tag_array[replacement_index].lru = 0;
@@ -177,7 +177,7 @@ void UnitCache::_update_interconection_network_rise()
 			//if there is pending request try map it to to the correct bank
 			const MemoryRequest& request = mapping.unit->return_bus.transfer(mapping.port_index + i);
 			uint port_id = mapping.port_id + i;
-			uint32_t bank_index = _get_bank_index(request.paddr);
+			uint bank_index = _get_bank_index(request.paddr);
 			incoming_return_network.add(port_id, bank_index);
 		}
 	}
@@ -513,7 +513,7 @@ void UnitCache::_update_interconection_network_fall()
 		{
 			uint port_index = mapping.port_index + i;
 			uint port_id = mapping.port_id + i;
-			uint32_t bank_index = outgoing_request_network.input(port_id);
+			uint bank_index = outgoing_request_network.input(port_id);
 			if(bank_index == ~0u || mapping.unit->request_bus.transfer_pending(port_index)) continue; //either nothing is pending or we already issued
 
 			//add transfer
@@ -547,7 +547,7 @@ void UnitCache::_update_interconection_network_fall()
 	//copy returns from lfb
 	for(uint port_index = 0; port_index < return_bus.size(); ++port_index)
 	{
-		uint32_t bank_index = outgoing_return_network.input(port_index);
+		uint bank_index = outgoing_return_network.input(port_index);
 		if(bank_index == ~0 || return_bus.transfer_pending(port_index)) continue;
 		
 		_Bank& bank = _banks[bank_index];
@@ -556,7 +556,7 @@ void UnitCache::_update_interconection_network_fall()
 		//add transfer
 		_LFB& lfb = bank.lfbs[bank.outgoing_return_lfb];
 		MemoryRequest outgoing_return;
-		uint8_t offset = bank.outgoing_return_pword_index * _port_width;
+		uint offset = bank.outgoing_return_pword_index * _port_width;
 		outgoing_return.size = _port_width;
 		outgoing_return.paddr = lfb.block_addr + offset;
 		outgoing_return.data = &lfb.block_data.bytes[offset];

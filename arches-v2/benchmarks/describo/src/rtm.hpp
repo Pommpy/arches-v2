@@ -11,4 +11,6 @@
 #define T_MAX 4294967296.0f
 #define T_MIN 0.0015f
 
+namespace glm = rtm;
+
 //#define FLT_MAX 3.402823466e+38f

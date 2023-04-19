@@ -127,12 +127,12 @@ private:
 		uint lfb_accessing_cache{~0u}; 
 
 		uint outgoing_request_lfb{~0u};
-		uint outgoing_request_byte_mask{0};
+		uint64_t outgoing_request_byte_mask{0x0ull};
 
 		uint outgoing_return_lfb{~0u};
 		uint outgoing_return_pword_index{0u};
 
-		uint outgoing_return_new_request_mask{0u};
+		uint64_t outgoing_return_new_request_mask{0x0ull};
 
 		_Bank(uint num_lfb) : lfbs(num_lfb) {}
 	};

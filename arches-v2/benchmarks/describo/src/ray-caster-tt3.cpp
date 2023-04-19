@@ -3,6 +3,17 @@
 #include "custom-instr.hpp"
 #include "ray-tracing-include.hpp"
 
+static uint32_t encode_pixel(rtm::vec3 in)
+{
+	in = rtm::clamp(in, 0.0f, 1.0f);
+	uint32_t out = 0u;
+	out |= static_cast<uint32_t>(in.r * 255.0f + 0.5f) << 0;
+	out |= static_cast<uint32_t>(in.g * 255.0f + 0.5f) << 8;
+	out |= static_cast<uint32_t>(in.b * 255.0f + 0.5f) << 16;
+	out |= 0xff                                        << 24;
+	return out;
+}
+
 void static inline ray_caster(const GlobalData& global_data)
 {
 	for(uint32_t index = atomicinc(); index < global_data.framebuffer_size; index = atomicinc())
@@ -15,7 +26,7 @@ void static inline ray_caster(const GlobalData& global_data)
 		Hit hit; hit.t = ray.t_max;
 
 		uint32_t out = 0xffffffff;
-		if(intersect(global_data.tt1, 0.5f / 1.0f, ray, hit)) 
+		if(intersect(global_data.tt3, 0.5f / 1.0f, ray, hit)) 
 			out = RNG::fast_hash(hit.id) | 0xff000000;
 
 		global_data.framebuffer[fb_index] = out;
@@ -43,7 +54,7 @@ int main(int argc, char* argv[])
 
 	global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 35.0f, rtm::vec3(0.0f, 0.0f, 6.0f));
 	
-	TesselationTree1 tt(std::string(argv[1]) + ".tt1");
+	TesselationTree3 tt(std::string(argv[1]) + ".tt3");
 	BVH blas;
 	std::vector<BuildObject> build_objects;
 	for(uint i = 0; i < tt.size(); ++i)
@@ -51,11 +62,11 @@ int main(int argc, char* argv[])
 	blas.build(build_objects);
 	tt.reorder(build_objects);
 
-	global_data.tt1.blas = blas.nodes.data();
-	global_data.tt1.headers = tt.headers.data();
-	global_data.tt1.nodes = tt.nodes.data();
-	global_data.tt1.vertices = tt.vertices.data();
-	global_data.tt1.triangles = tt.triangles.data();
+	global_data.tt3.blas = blas.nodes.data();
+	global_data.tt3.headers = tt.headers.data();
+	global_data.tt3.nodes = tt.nodes.data();
+	global_data.tt3.vertices = tt.vertices.data();
+	global_data.tt3.triangles = tt.triangles.data();
 
 	auto start = std::chrono::high_resolution_clock::now();
 	ray_caster(global_data);
@@ -63,7 +74,7 @@ int main(int argc, char* argv[])
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 	std::cout << "Runtime: " << duration.count() << " ms\n\n";
 
-	dump_framebuffer(global_data.framebuffer, "./out-tt1.ppm", global_data.framebuffer_width, global_data.framebuffer_height);
+	dump_framebuffer(global_data.framebuffer, "./out-tt3.ppm", global_data.framebuffer_width, global_data.framebuffer_height);
 	delete[] global_data.framebuffer;
 
 	return 0;

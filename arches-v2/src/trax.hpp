@@ -202,7 +202,7 @@ static void run_sim_trax(int argc, char* argv[])
 				tp_config.backing_memory = mm._data_u8;
 				tp_config.sfu_table = sfu_table;
 				tp_config.port_size = 16;
-				tp_config.mem_map.add_unit(mm_null_address, &tile_scheduler, tm_index * num_tms + tp_index, 1);
+				tp_config.mem_map.add_unit(mm_null_address, &tile_scheduler, tm_index * num_tps_per_tm + tp_index, 1);
 				tp_config.mem_map.add_unit(mm_global_data_start, l1s.back(), tp_index, 1);
 				tp_config.mem_map.add_unit(mm_stack_start, nullptr, 0, 0);
 

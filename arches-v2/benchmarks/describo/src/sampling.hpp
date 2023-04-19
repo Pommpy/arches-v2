@@ -73,7 +73,7 @@ inline rtm::vec3 uniform_sample_circle(const rtm::vec3& normal, RNG& rng)
 inline rtm::vec3 cosine_sample_hemisphere(RNG& rng)
 {
 	rtm::vec2 sample = uniform_sample_circle(rng);
-	return rtm::vec3(sample.x, sample.y, fast_sqrtf(1.0f - rtm::squared_length(sample)));
+	return rtm::vec3(sample.x, sample.y, fast_sqrtf(1.0f - rtm::length2(sample)));
 }
 
 inline rtm::vec3 cosine_sample_hemisphere(const rtm::vec3& normal, RNG& rng)
