@@ -29,7 +29,7 @@ struct MemoryRequest
 		AMO_MINU,
 		AMO_MAXU,
 
-		TRAXAMOIN,
+		FCHTHRD,
 		LBRAY,
 		SBRAY,
 		CSHIT,

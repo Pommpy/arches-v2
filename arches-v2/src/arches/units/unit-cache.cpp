@@ -265,8 +265,8 @@ void UnitCache::_proccess_requests(uint bank_index)
 			else lfb.pword_request_masks[pword_index] |= request_mask;
 
 			//TODO: should we log the each merge request seperatly?
-			if(lfb.state == _LFB::State::MISSED || lfb.state == _LFB::State::ISSUED) log.log_half_miss();
-			if(lfb.state == _LFB::State::FILLED) log.log_hit();
+			if(lfb.state == _LFB::State::MISSED || lfb.state == _LFB::State::ISSUED) log.log_half_miss(__popcnt64(request_mask));
+			if(lfb.state == _LFB::State::FILLED) log.log_hit(__popcnt64(request_mask));
 		}
 		else log.log_lfb_stall();
 	}
@@ -383,6 +383,7 @@ void UnitCache::_update_bank(uint bank_index)
 	if(lfb.state == _LFB::State::EMPTY)
 	{
 		//Check if we have the block
+		log.log_data_array_read();
 		_BlockData* block_data = _get_block(lfb.block_addr);
 		if(block_data)
 		{
@@ -390,17 +391,20 @@ void UnitCache::_update_bank(uint bank_index)
 			lfb.block_data = *block_data;
 			lfb.state = _LFB::State::FILLED;
 			lfb.commited = true;
-			log.log_hit();
+
+			for(uint i = 0; i < _pwords_per_block; ++i) log.log_hit(__popcnt64(lfb.pword_request_masks[i]));
 		}
 		else
 		{
 			lfb.state = _LFB::State::MISSED;
-			log.log_miss();
+
+			for(uint i = 0; i < _pwords_per_block; ++i) log.log_miss(__popcnt64(lfb.pword_request_masks[i]));
 		}
 	}
 	else if(lfb.state == _LFB::State::FILLED)
 	{
 		//insert block
+		log.log_data_array_write();
 		_insert_block(lfb.block_addr, lfb.block_data);
 		lfb.commited = true;
 	}

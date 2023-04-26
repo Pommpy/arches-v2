@@ -20,9 +20,9 @@ namespace Arches {
 namespace ISA { namespace RISCV { namespace TRaX {
 
 //TRAXAMOIN
-const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::TRAXAMOIN, Encoding::U, RegFile::INT, IMPL_DECL
+const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::FCHTHRD, Encoding::U, RegFile::INT, IMPL_DECL
 {
-	unit->mem_req.type = Units::MemoryRequest::Type::TRAXAMOIN;
+	unit->mem_req.type = Units::MemoryRequest::Type::FCHTHRD;
 	unit->mem_req.dst.reg = instr.i.rd;
 	unit->mem_req.dst.reg_file = 0;
 	unit->mem_req.dst.sign_ext = 0;

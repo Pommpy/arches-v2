@@ -18,7 +18,6 @@ public:
 
 		uint penalty{1};
 
-
 		uint num_ports{1};
 		uint port_size{CACHE_BLOCK_SIZE};
 		uint num_banks{1};
@@ -54,7 +53,8 @@ private:
 		{
 			READ,
 			WRITE, //TODO: support write through. This will need to write the store to the buffer then load the background data and write it back to the tag array
-			//we can reuse some of read logic to do this. It is basically a read that always needs to be commited at the end (hit or miss)
+			//we can reuse some of read logic to do this. It is basically a read that always needs to be commited at the end (hit or miss).
+			//in the furture we might also want to support cache coherency
 			WRITE_COMBINING,
 		};
 
@@ -187,10 +187,12 @@ public:
 	{
 	public:
 		uint64_t _hits;
-		uint64_t _half_miss;
 		uint64_t _misses;
-		uint64_t _lfb_stalls;
+		uint64_t _half_misses;
 		uint64_t _bank_conflicts;
+		uint64_t _lfb_stalls;
+		uint64_t _data_array_reads;
+		uint64_t _data_array_writes;
 
 		Log() { reset(); }
 
@@ -198,43 +200,54 @@ public:
 		{
 			_hits = 0;
 			_misses = 0;
-			_half_miss = 0;
-			_lfb_stalls = 0;
+			_half_misses = 0;
 			_bank_conflicts = 0;
+			_lfb_stalls = 0;
+			_data_array_reads = 0;
+			_data_array_writes = 0;
 		}
 
 		void accumulate(const Log& other)
 		{
 			_hits += other._hits;
 			_misses += other._misses;
-			_half_miss += other._half_miss;;
-			_lfb_stalls += other._lfb_stalls;
+			_half_misses += other._half_misses;;
 			_bank_conflicts += other._bank_conflicts;
+			_lfb_stalls += other._lfb_stalls;
+			_data_array_reads += other._data_array_reads;
+			_data_array_writes += other._data_array_writes;
 		}
 
 		void log_hit(uint n = 1) { _hits += n; } //TODO hit under miss logging
-		void log_half_miss(uint n = 1) { _half_miss += n; }
+		void log_half_miss(uint n = 1) { _half_misses += n; }
 		void log_miss(uint n = 1) { _misses += n; }
 
 		void log_bank_conflict() { _bank_conflicts++; }
 		void log_lfb_stall() { _lfb_stalls++; }
 
-		uint64_t get_total() { return _misses + _hits; }
+		void log_data_array_read() { _data_array_reads++; }
+		void log_data_array_write() { _data_array_writes++; }
+
+		uint64_t get_total() { return _misses + _half_misses + _hits; }
+		uint64_t get_total_data_array_accesses() { return _data_array_reads + _data_array_writes; }
 
 		void print_log(FILE* stream = stdout, uint units = 1)
 		{
 			uint64_t total = get_total();
 			float hit_rate = static_cast<float>(_hits) / total;
-			float miss_rate = static_cast<float>(_misses) / total;
+			float miss_rate = static_cast<float>(_misses + _half_misses) / total;
 
 			fprintf(stream, "Total: %lld\n", total / units);
 			fprintf(stream, "Hits: %lld\n", _hits / units);
 			fprintf(stream, "Misses: %lld\n", _misses / units);
-			fprintf(stream, "Half Misses: %lld\n", _half_miss / units);
+			fprintf(stream, "Half Misses: %lld\n", _half_misses / units);
 			fprintf(stream, "Hit Rate: %.2f%%\n", hit_rate * 100.0f);
 			fprintf(stream, "Miss Rate: %.2f%%\n", miss_rate * 100.0f);
 			fprintf(stream, "Bank Conflicts: %lld\n", _bank_conflicts / units);
 			fprintf(stream, "LFB Stalls: %lld\n", _lfb_stalls / units);
+			fprintf(stream, "Data Array Reads: %lld\n", _data_array_reads);
+			fprintf(stream, "Data Array Writes: %lld\n", _data_array_writes);
+			fprintf(stream, "Data Array Total: %lld\n", get_total_data_array_accesses());
 		}
 	}log;
 };

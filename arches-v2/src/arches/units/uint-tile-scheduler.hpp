@@ -42,7 +42,7 @@ public:
 	uint next_tile{0};
 	struct Bank
 	{
-		RoundRobinArbitrator arbitrator;
+		RoundRobinArbitrator64 arbitrator;
 
 		MemoryRequest request_item;
 		uint request_index{~0u};
@@ -52,9 +52,9 @@ public:
 
 		uint32_t return_reg;
 
-		Bank(uint clients) : arbitrator(clients)
+		Bank(uint clients)
 		{
-
+			assert(clients <= 64);
 		}
 	};
 
@@ -70,12 +70,15 @@ public:
 					bank_states[i].arbitrator.add(j);
 			}
 
-			if((bank_states[i].request_index = bank_states[i].arbitrator.next()) != ~0u)
+			bank_states[i].arbitrator.update();
+
+			if((bank_states[i].request_index = bank_states[i].arbitrator.current()) != ~0u)
 			{
 				bank_states[i].arbitrator.remove(bank_states[i].request_index);
 
 				bank_states[i].request_index += i * tp_per_tm;
 				bank_states[i].request_item = request_bus.transfer(bank_states[i].request_index);
+				assert(bank_states[i].request_item.type == MemoryRequest::Type::FCHTHRD);
 				request_bus.acknowlege(bank_states[i].request_index);
 			}
 		}

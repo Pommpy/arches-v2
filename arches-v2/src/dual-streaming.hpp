@@ -6,6 +6,7 @@
 #include "arches/units/unit-cache.hpp"
 #include "arches/units/unit-buffer.hpp"
 #include "arches/units/uint-atomic-reg-file.hpp"
+#include "arches/units/uint-tile-scheduler.hpp"
 #include "arches/units/unit-sfu.hpp"
 
 #include "arches/units/unit-tp.hpp"
@@ -25,9 +26,9 @@ namespace ISA { namespace RISCV {
 //see the opcode map for details
 const static InstructionInfo isa_custom0_000_imm[8] =
 {
-	InstructionInfo(0x0, "traxamoin", Type::TRAXAMOIN, Encoding::U, RegFile::INT, IMPL_DECL
+	InstructionInfo(0x0, "fchthrd", Type::FCHTHRD, Encoding::U, RegFile::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::TRAXAMOIN;
+		unit->mem_req.type = Units::MemoryRequest::Type::FCHTHRD;
 		unit->mem_req.dst.reg_file = 0;
 		unit->mem_req.dst.reg = instr.i.rd;
 		unit->mem_req.dst.sign_ext = 0;
@@ -241,8 +242,8 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	global_data.ray_staging_buffer = *(Treelet**)&dsmm_ray_staging_buffer_start;
 	initilize_buffers(global_data, &mm, heap_address);
 
-	Units::UnitAtomicRegfile atomic_reg_file(num_tps, &simulator);
-	simulator.register_unit(&atomic_reg_file);
+	Units::UnitTileScheduler tile_scheduler(num_tps, num_tms, global_data.framebuffer_width, global_data.framebuffer_height, 8, 8, &simulator);
+	simulator.register_unit(&tile_scheduler);
 
 	Units::DualStreaming::UnitStreamScheduler::Configuration stream_scheduler_config;
 	stream_scheduler_config.scene_start = *(paddr_t*)&global_data.scene_buffer;
@@ -257,7 +258,6 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 	Units::UnitBuffer::Configuration scene_buffer_config;
 	scene_buffer_config.size = scene_buffer_size;
-	scene_buffer_config.bank_stride = CACHE_BLOCK_SIZE;
 	scene_buffer_config.num_banks = 32;
 	scene_buffer_config.num_incoming_connections = num_tms + 1;
 	scene_buffer_config.penalty = 3;
@@ -269,14 +269,13 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 	Units::UnitCache::Configuration l2_config;
 	l2_config.size = 512 * 1024;
-	l2_config.block_size = CACHE_BLOCK_SIZE;
 	l2_config.associativity = 1;
 	l2_config.num_banks = 32;
 	l2_config.num_ports = num_tms;
 	l2_config.penalty = 3;
 	l2_config.num_lfb = 4;
 
-	l2_config.mem_map.add_unit(0x0ull, &mm, 0);
+	l2_config.mem_map.add_unit(0x0ull, &mm, 0, 1);
 
 	Units::UnitCache* l2 = _new Units::UnitCache(l2_config);
 	simulator.register_unit(l2);
@@ -288,16 +287,15 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 		Units::UnitCache::Configuration l1_config;
 		l1_config.size = 16 * 1024;
-		l1_config.block_size = CACHE_BLOCK_SIZE;
 		l1_config.associativity = 1;
 		l1_config.num_banks = 8;
 		l1_config.num_ports = num_tps_per_tm;
 		l1_config.penalty = 1;
 		l1_config.num_lfb = 4;
 
-		l1_config.mem_map.add_unit(dsmm_null_address, l2, tm_index);
-		l1_config.mem_map.add_unit(dsmm_scene_buffer_start, &scene_buffer, tm_index);
-		l1_config.mem_map.add_unit(dsmm_heap_start, l2, tm_index);
+		l1_config.mem_map.add_unit(dsmm_null_address, l2, tm_index, 1);
+		l1_config.mem_map.add_unit(dsmm_scene_buffer_start, &scene_buffer, tm_index, 1);
+		l1_config.mem_map.add_unit(dsmm_heap_start, l2, tm_index, 1);
 
 		Units::UnitCache* l1 = _new Units::UnitCache(l1_config);
 		l1s.push_back(l1);
@@ -310,12 +308,8 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 		sfus_tables.emplace_back(static_cast<uint>(ISA::RISCV::Type::NUM_TYPES), nullptr);
 		Units::UnitSFU** sfu_table = sfus_tables.back().data();
 
-		sfus.push_back(_new Units::UnitSFU(8, 1, 2, num_tps_per_tm));
+		sfus.push_back(_new Units::UnitSFU(16, 1, 2, num_tps_per_tm));
 		sfu_table[static_cast<uint>(ISA::RISCV::Type::FADD)] = sfus.back();
-		sfu_table[static_cast<uint>(ISA::RISCV::Type::FSUB)] = sfus.back();
-		simulator.register_unit(sfus.back());
-
-		sfus.push_back(_new Units::UnitSFU(8, 1, 2, num_tps_per_tm));
 		sfu_table[static_cast<uint>(ISA::RISCV::Type::FMUL)] = sfus.back();
 		sfu_table[static_cast<uint>(ISA::RISCV::Type::FFMAD)] = sfus.back();
 		simulator.register_unit(sfus.back());
@@ -347,19 +341,18 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 			tp_config.tp_index = tp_index;
 			tp_config.tm_index = tm_index;
 			tp_config.pc = elf.elf_header->e_entry.u64;
-			stack_pointer += stack_size;
 			tp_config.sp = stack_pointer;
 			tp_config.backing_memory = mm._data_u8;
-
-			tp_config.mem_map.add_unit(dsmm_null_address, nullptr, 0);
-			tp_config.mem_map.add_unit(dsmm_atomic_reg_file_start, &atomic_reg_file, tm_index * num_tps_per_tm + tp_index);
-			tp_config.mem_map.add_unit(dsmm_global_data_start, l1, tp_index);
-			tp_config.mem_map.add_unit(dsmm_ray_staging_buffer_start, rsb, tp_index);
-			tp_config.mem_map.add_unit(dsmm_scene_buffer_start, l1, tp_index); //scene buffer data goes through l1  
-			//tp_config.mem_map.add_unit(dsmm_heap_start, l1, tp_index);
-			tp_config.mem_map.add_unit(dsmm_stack_start, nullptr, 0);
-
 			tp_config.sfu_table = sfu_table;
+			tp_config.port_size = 32;
+
+			tp_config.mem_map.add_unit(dsmm_null_address, nullptr, 0, 1);
+			tp_config.mem_map.add_unit(dsmm_atomic_reg_file_start, &tile_scheduler, tm_index * num_tps_per_tm + tp_index, 1);
+			tp_config.mem_map.add_unit(dsmm_global_data_start, l1, tp_index, 1);
+			tp_config.mem_map.add_unit(dsmm_ray_staging_buffer_start, rsb, tp_index, 1);
+			tp_config.mem_map.add_unit(dsmm_scene_buffer_start, l1, tp_index, 1); //scene buffer data goes through l1  
+			//tp_config.mem_map.add_unit(dsmm_heap_start, l1, tp_index);
+			tp_config.mem_map.add_unit(dsmm_stack_start, nullptr, 0, 1);
 
 			Units::UnitTP* tp = new Units::UnitTP(tp_config);
 			tps.push_back(tp);
@@ -399,7 +392,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 		l2_log.accumulate(l2->log);
 	l2_log.print_log();
 
-	mm.print_usimm_stats(l2_config.block_size, 4, simulator.current_cycle);
+	mm.print_usimm_stats(CACHE_BLOCK_SIZE, 4, simulator.current_cycle);
 
 	paddr_t paddr_frame_buffer = reinterpret_cast<paddr_t>(global_data.framebuffer);
 	mm.dump_as_png_uint8(paddr_frame_buffer, global_data.framebuffer_width, global_data.framebuffer_height, "./out.png");

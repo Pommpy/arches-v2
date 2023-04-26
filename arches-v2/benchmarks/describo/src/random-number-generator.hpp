@@ -27,6 +27,11 @@ public:
 		u += u << 15;
 		return u;
 	}
+
+	static uint32_t faster_hash(uint32_t u)
+	{
+		return 1664525 * u + 1013904223;
+	}
 private:
 	uint32_t rng_state{ 2147483647u };
 	//the basis for this rng system came from https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
@@ -49,24 +54,23 @@ public:
 
 	void seed(uint32_t seed)
 	{
-		rng_state = hash((seed + 1u) * 2147483647u);
+		rng_state = fast_hash(seed + 1);
+	}
+
+	uint32_t randi()
+	{
+		uint32_t r = rng_state;
+		rng_state = faster_hash(rng_state);
+		return r;
 	}
 
 	float randf()
 	{
-		uint32_t r = rng_state;
-		rng_state = fast_hash(rng_state);
-		return build_float(r);
+		return build_float(randi());
 	}
 
 	rtm::vec2 randv2() { return rtm::vec2(randf(), randf()); }
 	rtm::vec3 randv3() { return rtm::vec3(randf(), randf(), randf()); }
 	rtm::vec4 randv4() { return rtm::vec4(randf(), randf(), randf(), randf()); }
 
-	uint32_t randi()
-	{
-		uint32_t r = rng_state;
-		rng_state = fast_hash(rng_state);
-		return r;
-	}
 };

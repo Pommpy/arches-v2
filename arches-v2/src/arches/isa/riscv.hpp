@@ -60,6 +60,7 @@ enum class Type : uint8_t
 	//memory
 	LOAD,
 	STORE,
+	PREFETCH,
 
 	AMO_ADD,
 	AMO_XOR,
@@ -70,7 +71,7 @@ enum class Type : uint8_t
 	AMO_MINU,
 	AMO_MAXU,
 
-	TRAXAMOIN,
+	FCHTHRD,
 	LBRAY,
 	SBRAY,
 	CSHIT,
@@ -111,6 +112,7 @@ const std::string instr_type_names[] =
 
 	"LOAD",
 	"STORE",
+	"PREFETCH",
 
 	"AMO_ADD",
 	"AMO_XOR",
@@ -121,7 +123,7 @@ const std::string instr_type_names[] =
 	"AMO_MINU",
 	"AMO_MAXU",
 
-	"TRAXAMOIN",
+	"FCHTHRD",
 	"LBRAY",
 	"SBRAY",
 	"CSHIT",

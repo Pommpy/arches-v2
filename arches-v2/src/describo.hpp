@@ -21,9 +21,9 @@ namespace Arches {
 namespace ISA { namespace RISCV { namespace DTRaX {
 	const static InstructionInfo isa_custom0[8] =
 	{
-	InstructionInfo(0x1, "traxamoin", Type::TRAXAMOIN, Encoding::U, RegFile::INT, IMPL_DECL
+	InstructionInfo(0x1, "fchthrd", Type::FCHTHRD, Encoding::U, RegFile::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::TRAXAMOIN;
+		unit->mem_req.type = Units::MemoryRequest::Type::FCHTHRD;
 		unit->mem_req.size = 4;
 
 		unit->mem_req.dst.reg = instr.i.rd;
@@ -270,7 +270,7 @@ static void run_sim_describo(int argc, char* argv[])
 	uint mc_ports = 32;
 	uint tp_port_size = 32;
 
-	uint num_tps_per_tm = 64;
+	uint num_tps_per_tm = 16;
 	uint num_tms_per_l2 = 64;
 	uint num_l2 = 1;
 
@@ -281,7 +281,7 @@ static void run_sim_describo(int argc, char* argv[])
 	uint64_t mem_size = 4ull * 1024ull * 1024ull * 1024ull; //4GB
 
 	//cached global data
-	uint64_t stack_size = 2048; //2KB
+	uint64_t stack_size = 2048 * 2; //2KB
 	uint64_t global_data_size = 64 * 1024; //64KB for global data
 	uint64_t binary_size = 64 * 1024; //64KB for executable data
 
@@ -327,12 +327,12 @@ static void run_sim_describo(int argc, char* argv[])
 	for(uint l2_index = 0; l2_index < num_l2; ++l2_index)
 	{
 		Units::UnitCache::Configuration l2_config;
-		l2_config.size = 72 * 1024 * 1024;
+		l2_config.size = 2 * 1024 * 1024;
 		l2_config.associativity = 4;
 		l2_config.penalty = 4;
 		l2_config.num_ports = num_tms_per_l2;
 		l2_config.num_banks = 32;
-		l2_config.num_lfb = 8;
+		l2_config.num_lfb = 4;
 		l2_config.mem_map.add_unit(mm_null_address, &mm, l2_index * mc_ports, mc_ports);
 
 		l2_config.dynamic_read_energy = 0.240039e-9;
@@ -348,13 +348,13 @@ static void run_sim_describo(int argc, char* argv[])
 			uint tm_index = l2_index * num_tms_per_l2 + tm_i;
 
 			Units::UnitCache::Configuration l1_config;
-			l1_config.size = 64 * 1024;
-			l1_config.associativity = 4;
+			l1_config.size = 16 * 1024;
+			l1_config.associativity = 2;
 			l1_config.penalty = 1;
 			l1_config.num_ports = num_tps_per_tm;
 			l1_config.port_size = tp_port_size;
 			l1_config.num_banks = 4;
-			l1_config.num_lfb = 8;
+			l1_config.num_lfb = 4;
 			l1_config.mem_map.add_unit(mm_null_address, l2s.back(), tm_i, 1);
 
 			l1_config.dynamic_read_energy = 0.0464909e-9;
@@ -366,42 +366,38 @@ static void run_sim_describo(int argc, char* argv[])
 			Units::UnitSFU** sfu_table = &sfu_tables[sfu_table_size * tm_index];
 
 			//float piplines
-			sfus.push_back(_new Units::UnitSFU(64, 1, 2, num_tps_per_tm));
-			simulator.register_unit(sfus.back());
-			sfu_table[(uint)ISA::RISCV::Type::FADD] = sfus.back();
-			sfu_table[(uint)ISA::RISCV::Type::FMUL] = sfus.back();
-			sfu_table[(uint)ISA::RISCV::Type::FFMAD] = sfus.back();
-			sfu_table[(uint)ISA::RISCV::Type::FRCP] = sfus.back();
+			//sfus.push_back(_new Units::UnitSFU(16, 1, 2, num_tps_per_tm));
+			//simulator.register_unit(sfus.back());
+			//sfu_table[(uint)ISA::RISCV::Type::FADD] = sfus.back();
+			//sfu_table[(uint)ISA::RISCV::Type::FMUL] = sfus.back();
+			//sfu_table[(uint)ISA::RISCV::Type::FFMAD] = sfus.back();
 
 			//int piplines
-			//sfus.push_back(_new Units::UnitSFU(32, 1, 1, num_tps_per_tm));
+			//sfus.push_back(_new Units::UnitSFU(2, 1, 1, num_tps_per_tm));
 			//simulator.register_unit(sfus.back());
-			//sfu_table[(uint)ISA::RISCV::Type::ILOGICAL] = sfus.back();
-			//sfu_table[(uint)ISA::RISCV::Type::IADD] = sfus.back();
-			//sfu_table[(uint)ISA::RISCV::Type::IMUL] = sfus.back();
 			//sfu_table[(uint)ISA::RISCV::Type::IDIV] = sfus.back();
 
 			//sfus
-			sfus.push_back(_new Units::UnitSFU(8, 1, 6, num_tps_per_tm));
-			simulator.register_unit(sfus.back());
-			sfu_table[(uint)ISA::RISCV::Type::FDIV] = sfus.back();
+			//sfus.push_back(_new Units::UnitSFU(1, 1, 6, num_tps_per_tm));
+			//simulator.register_unit(sfus.back());
+			//sfu_table[(uint)ISA::RISCV::Type::FDIV] = sfus.back();
+			
+			//sfus.push_back(_new Units::UnitSFU(1, 1, 6, num_tps_per_tm));
+			//simulator.register_unit(sfus.back());
+			//sfu_table[(uint)ISA::RISCV::Type::FSQRT] = sfus.back();
 
-			sfus.push_back(_new Units::UnitSFU(8, 1, 6, num_tps_per_tm));
-			simulator.register_unit(sfus.back());
-			sfu_table[(uint)ISA::RISCV::Type::FSQRT] = sfus.back();
-
-			//sfus.push_back(_new Units::UnitSFU(8, 1, 2, num_tps_per_tm));
+			//sfus.push_back(_new Units::UnitSFU(1, 1, 2, num_tps_per_tm));
 			//simulator.register_unit(sfus.back());
 			//sfu_table[(uint)ISA::RISCV::Type::FRCP] = sfus.back();
 
 			//intersectors
-			sfus.push_back(_new Units::UnitSFU(4, 1, 4, num_tps_per_tm));
-			simulator.register_unit(sfus.back());
-			sfu_table[(uint)ISA::RISCV::Type::BOXISECT] = sfus.back();
-
-			sfus.push_back(_new Units::UnitSFU(8, 18, 31, num_tps_per_tm));
-			simulator.register_unit(sfus.back());
-			sfu_table[(uint)ISA::RISCV::Type::TRIISECT] = sfus.back();
+			//sfus.push_back(_new Units::UnitSFU(1, 1, 4, num_tps_per_tm));
+			//simulator.register_unit(sfus.back());
+			//sfu_table[(uint)ISA::RISCV::Type::BOXISECT] = sfus.back();
+			
+			// sfus.push_back(_new Units::UnitSFU(2, 18, 31, num_tps_per_tm));
+			//simulator.register_unit(sfus.back());
+			//sfu_table[(uint)ISA::RISCV::Type::TRIISECT] = sfus.back();
 
 			for(uint tp_index = 0; tp_index < num_tps_per_tm; ++tp_index)
 			{
@@ -476,8 +472,8 @@ static void run_sim_describo(int argc, char* argv[])
 	printf("\n");
 
 	//power in watts
-	float l1_power = (l1_log.get_total() * l1_dynamic_read_energy) / frame_time + num_tms * l1_bank_leakge_power * 4;
-	float l2_power = (l2_log.get_total() * l2_dynamic_read_energy) / frame_time + num_l2 * l2_bank_leakge_power * 32;
+	float l1_power = (l1_log.get_total_data_array_accesses() * l1_dynamic_read_energy) / frame_time + num_tms * l1_bank_leakge_power * 4;
+	float l2_power = (l2_log.get_total_data_array_accesses() * l2_dynamic_read_energy) / frame_time + num_l2 * l2_bank_leakge_power * 32;
 	float mm_power = mm.total_power_in_watts();
 	float total_power = l1_power + l2_power + mm_power;
 

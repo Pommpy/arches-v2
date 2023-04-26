@@ -4,7 +4,7 @@
   "Items": [
     {
       "Id": "cee46157-b33f-4727-9404-8b6c1572e46e",
-      "Command": "./benchmarks/describo/bin/riscv/ray-caster-tt2"
+      "Command": "./benchmarks/describo/bin/riscv/ray-caster"
     },
     {
       "Id": "95d58f19-cab5-4d97-bb28-bbfa174bba4f",

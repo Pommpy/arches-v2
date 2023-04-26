@@ -196,7 +196,7 @@ REPEAT_SFU_LOOP: //TODO make this less janky
 	}
 }
 
-//#define MAGIC_COMPUTE
+#define MAGIC_COMPUTE
 
 void UnitTP::clock_fall()
 {
@@ -255,11 +255,7 @@ FREE_INSTR:
 		else
 		{
 			//jumping to address 0 is the halt condition
-			if(pc == 0x0)
-			{
-				simulator->units_executing--;
-				printf("%d\n", simulator->units_executing.load());
-			}
+			if(pc == 0x0) simulator->units_executing--;
 			branch_taken = false;
 		}
 	}
