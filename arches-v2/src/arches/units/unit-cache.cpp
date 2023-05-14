@@ -2,9 +2,8 @@
 
 namespace Arches {namespace Units {
 
-UnitCache::UnitCache(Configuration config) : UnitMemoryBase(config.num_ports),
-	incoming_request_network(config.num_ports, config.num_banks),
-	outgoing_return_network(config.num_banks, config.num_ports),
+UnitCache::UnitCache(Configuration config) : 
+	UnitMemoryBase(config.num_ports, config.num_banks),
 	outgoing_request_network(config.num_banks, config.mem_map.total_ports),
 	incoming_return_network(config.mem_map.total_ports, config.num_banks)
 {
@@ -164,48 +163,42 @@ UnitCache::_BlockData* UnitCache::_insert_block(paddr_t paddr, _BlockData& data)
 	return &_data_array[replacement_index];
 }
 
-void UnitCache::_update_interconection_network_rise()
+void UnitCache::_interconnects_rise()
 {
 	//route ports to arbitrators
 	for(uint mapping_index = 0; mapping_index < _mem_map.mappings.size(); ++mapping_index)
 	{
-		MemoryUnitMap::MemoryUnitMapping mapping = _mem_map.mappings[mapping_index];
-		for(uint i = 0; i < mapping.num_ports; ++i)
+		MemoryMap::MemoryMapping mapping = _mem_map.mappings[mapping_index];
+		for(uint j = 0; j < mapping.num_ports; ++j, ++mapping.port_index, ++mapping.port_id)
 		{
-			if(!mapping.unit->return_bus.transfer_pending(mapping.port_index + i)) continue;
+			const MemoryReturn* ret = mapping.unit->interconnect.get_return(mapping.port_index);
+			if(!ret) continue;
 
 			//if there is pending request try map it to to the correct bank
-			const MemoryRequest& request = mapping.unit->return_bus.transfer(mapping.port_index + i);
-			uint port_id = mapping.port_id + i;
-			uint bank_index = _get_bank_index(request.paddr);
-			incoming_return_network.add(port_id, bank_index);
+			uint bank_index = _get_bank_index(ret->paddr);
+			incoming_return_network.add(mapping.port_id, bank_index);
 		}
 	}
 
-	for(uint port_index = 0; port_index < request_bus.size(); ++port_index)
+	interconnect.propagate_requests([](const MemoryRequest& req, uint client, uint num_clients, uint num_servers)->uint
 	{
-		if(!request_bus.transfer_pending(port_index)) continue;
-
-		const MemoryRequest& request = request_bus.transfer(port_index);
-		uint32_t bank_index = _get_bank_index(request.paddr);
-		incoming_request_network.add(port_index, bank_index);
-	}
+		return (req.paddr >> log2i(CACHE_BLOCK_SIZE)) % num_servers;
+	});
 
 	//update incoming arbitrators
-	incoming_request_network.update();
 	incoming_return_network.update();
 }
 
 void UnitCache::_proccess_returns(uint bank_index)
 {
-	uint port_id = incoming_return_network.input(bank_index);
+	uint port_id = incoming_return_network.src(bank_index);
 	if(port_id == ~0) return;
 
 	uint mapping_index = _mem_map.get_mapping_index_for_unique_port_index(port_id);
-	MemoryUnitMap::MemoryUnitMapping mapping = _mem_map.mappings[mapping_index];
+	MemoryMap::MemoryMapping mapping = _mem_map.mappings[mapping_index];
 	uint port_index = mapping.port_index + (port_id - mapping.port_id);
 
-	const MemoryRequest& rtrn = mapping.unit->return_bus.transfer(port_index);
+	const MemoryReturn& rtrn = *mapping.unit->interconnect.get_return(port_index);
 	assert(rtrn.paddr == _get_block_addr(rtrn.paddr));
 
 	//mark all of the associated lse as ready to return
@@ -217,61 +210,48 @@ void UnitCache::_proccess_returns(uint bank_index)
 			bank.lfbs[i].block_data = *((_BlockData*)rtrn.data);
 		}
 
-	mapping.unit->return_bus.acknowlege(port_index);
+	mapping.unit->interconnect.acknowlege_return(port_index);
 	incoming_return_network.remove(port_id, bank_index);
 }
 
 void UnitCache::_proccess_requests(uint bank_index)
 {
 	_Bank& bank = _banks[bank_index];
-	bank.outgoing_return_new_request_mask = 0x0ull;
 
-	uint port_index = incoming_request_network.input(bank_index);
-	if(port_index == ~0) return;
+	uint port_index;
+	const MemoryRequest* request = interconnect.get_request(bank_index, port_index);
+	if(!request) return;
 
-	const MemoryRequest& request = request_bus.transfer(port_index);
-	paddr_t block_addr = _get_block_addr(request.paddr);
-	uint block_offset = _get_block_offset(request.paddr);
+	paddr_t block_addr = _get_block_addr(request->paddr);
+	uint block_offset = _get_block_offset(request->paddr);
 
-	if(request.type == MemoryRequest::Type::LOAD)
+	if(request->type == MemoryRequest::Type::LOAD)
 	{
-		//try to allocate an lse for one incoming requests
-		//if the request is aready in an lse then merge
-		//if there is another identical request on a diffrent port merge that into the lse aswell
+		//try to allocate an lfb for one incoming requests
+		//if the request is aready in an lfb then merge
+		//if there is another identical request on a diffrent port merge that into the lfb as well
 		uint lfb_index = _fetch_or_allocate_lfb(bank_index, block_addr, _LFB::Type::READ);
 		if(lfb_index != ~0)
 		{
-			assert(request.size == _port_width);
-			uint64_t request_mask = 0x0ull;
+			assert(request->size == _port_width);
 
 			//merge identical requests
-			for(uint merge_port_index = 0; merge_port_index < request_bus.size(); ++merge_port_index)
-			{
-				if(!request_bus.transfer_pending(merge_port_index)) continue;
-
-				if(request_bus.transfer(merge_port_index) == request)
-				{
-					request_mask |= 0x1ull << merge_port_index;
-					request_bus.acknowlege(merge_port_index);
-					incoming_request_network.remove(merge_port_index, bank_index);
-				}
-			}
+			uint64_t request_mask = interconnect.merge_requests(*request);
+			interconnect.acknowlege_requests(bank_index, request_mask);
 
 			uint pword_index = block_offset / _port_width;
 			_LFB& lfb = bank.lfbs[lfb_index];
 			lfb.returned = false; //since we are adding new
-			if(lfb_index == bank.outgoing_return_lfb && pword_index == bank.outgoing_return_pword_index) 
-				bank.outgoing_return_new_request_mask = request_mask;
-			else lfb.pword_request_masks[pword_index] |= request_mask;
+			lfb.pword_request_masks[pword_index] |= request_mask;
 
-			//TODO: should we log the each merge request seperatly?
 			if(lfb.state == _LFB::State::MISSED || lfb.state == _LFB::State::ISSUED) log.log_half_miss(__popcnt64(request_mask));
 			if(lfb.state == _LFB::State::FILLED) log.log_hit(__popcnt64(request_mask));
 		}
 		else log.log_lfb_stall();
 	}
-	else if(request.type == MemoryRequest::Type::STORE) //place stores directly in WC. since they are uncached we dont need to aquire the bank
+	else if(request->type == MemoryRequest::Type::STORE)
 	{
+		//try to allocate an lfb
 		uint lfb_index = _fetch_or_allocate_lfb(bank_index, block_addr, _LFB::Type::WRITE_COMBINING);
 		if(lfb_index != ~0)
 		{
@@ -279,45 +259,28 @@ void UnitCache::_proccess_requests(uint bank_index)
 			_LFB& lfb = bank.lfbs[lfb_index];
 			lfb.state = _LFB::State::FILLED;
 			lfb.block_addr = block_addr;
-			lfb.byte_mask |= generate_nbit_mask(request.size) << block_offset;
-			std::memcpy(&lfb.block_data.bytes[block_offset], request.data, request.size);
+			lfb.byte_mask |= generate_nbit_mask(request->size) << block_offset;
+			std::memcpy(&lfb.block_data.bytes[block_offset], request->data, request->size);
 
-			request_bus.acknowlege(port_index);
-			incoming_request_network.remove(port_index, bank_index);
+			interconnect.acknowlege_request(bank_index, port_index);
 		}
 	}
 
-	if(incoming_request_network.inputs_pending(bank_index) > 0) log.log_bank_conflict(); //log bank conflicts
+	if(interconnect.num_request_pending(bank_index) > 0) log.log_bank_conflict(); //log bank conflicts
 }
 
-void UnitCache::_propagate_acknowledge_signals()
+void UnitCache::_propagate_ack()
 {
-	//outgoing returns
-	for(uint port_index = 0; port_index < return_bus.size(); ++port_index)
-	{
-		uint bank_index = outgoing_return_network.input(port_index);
-		if(bank_index == ~0 || return_bus.transfer_pending(port_index)) continue;
-
-		outgoing_return_network.remove(bank_index, port_index);
-
-		//Remove the request from the mask
-		_Bank& bank = _banks[bank_index];
-		assert(bank.outgoing_return_lfb != ~0u);
-
-		_LFB& lfb = bank.lfbs[bank.outgoing_return_lfb];
-		lfb.pword_request_masks[bank.outgoing_return_pword_index] &= ~(0x1ull << port_index);
-	}
+	interconnect.propagate_ack();
 
 	//outgoing requests
 	for(uint mapping_index = 0; mapping_index < _mem_map.mappings.size(); ++mapping_index)
 	{
-		MemoryUnitMap::MemoryUnitMapping mapping = _mem_map.mappings[mapping_index];
-		for(uint i = 0; i < mapping.num_ports; ++i)
+		MemoryMap::MemoryMapping mapping = _mem_map.mappings[mapping_index];
+		for(uint i = 0; i < mapping.num_ports; ++i, ++mapping.port_index, ++mapping.port_id)
 		{
-			uint port_index = mapping.port_index + i;
-			uint port_id = mapping.port_id + i;
-			uint bank_index = outgoing_request_network.input(port_id);
-			if(bank_index == ~0 || mapping.unit->request_bus.transfer_pending(port_index)) continue;
+			uint bank_index = outgoing_request_network.src(mapping.port_id);
+			if(bank_index == ~0 || mapping.unit->interconnect.request_pending(mapping.port_index)) continue;
 
 			_Bank& bank = _banks[bank_index];
 			assert(bank.outgoing_request_lfb != ~0u);
@@ -327,7 +290,7 @@ void UnitCache::_propagate_acknowledge_signals()
 			{
 				lfb.state = _LFB::State::ISSUED;
 				bank.outgoing_request_lfb = ~0;
-				outgoing_request_network.remove(bank_index, port_id);
+				outgoing_request_network.remove(bank_index, mapping.port_id);
 			}
 			else if(lfb.type == _LFB::Type::WRITE_COMBINING)
 			{
@@ -337,7 +300,7 @@ void UnitCache::_propagate_acknowledge_signals()
 				{
 					lfb.state = _LFB::State::INVALID; //invalidate when we are done
 					bank.outgoing_request_lfb = ~0;
-					outgoing_request_network.remove(bank_index, port_id); //only clear if we are finished using the bus
+					outgoing_request_network.remove(bank_index, mapping.port_id); //only clear if we are finished using the bus
 				}
 			}
 		}
@@ -413,6 +376,7 @@ void UnitCache::_update_bank(uint bank_index)
 void UnitCache::_try_issue_lfb(uint bank_index)
 {
 	_Bank& bank = _banks[bank_index];
+
 	if(bank.outgoing_request_lfb != ~0u) return;
 
 	uint32_t outgoing_request_lru = 0u;
@@ -432,7 +396,7 @@ void UnitCache::_try_issue_lfb(uint bank_index)
 	_LFB& lfb = bank.lfbs[bank.outgoing_request_lfb];
 
 	uint mapping_index = _mem_map.get_mapping_index(lfb.block_addr);
-	MemoryUnitMap::MemoryUnitMapping mapping = _mem_map.mappings[mapping_index];
+	MemoryMap::MemoryMapping mapping = _mem_map.mappings[mapping_index];
 	uint port_id = mapping.port_id + (bank_index % mapping.num_ports);
 	outgoing_request_network.add(bank_index, port_id);
 }
@@ -441,25 +405,14 @@ void UnitCache::_try_return_lfb(uint bank_index)
 {
 	_Bank& bank = _banks[bank_index];
 
+	//last return isn't complete do nothing
+	if(interconnect.return_pending(bank_index)) return;
+
 	if(bank.outgoing_return_lfb != ~0u)
 	{
 		_LFB& lfb = bank.lfbs[bank.outgoing_return_lfb];
 
-		//add new requests
-		lfb.pword_request_masks[bank.outgoing_return_pword_index] |= bank.outgoing_return_new_request_mask;
-
-		//if we haven't returnd the last item fully then we will keep this active till we do
-		if(lfb.pword_request_masks[bank.outgoing_return_pword_index])
-		{
-			//copy requests to arbitrator
-			for(uint port_index = 0; port_index < return_bus.size(); ++port_index)
-				if((lfb.pword_request_masks[bank.outgoing_return_pword_index] >> port_index) & 0x1ull)
-					outgoing_return_network.add(bank_index, port_index);
-
-			return;
-		}
-
-		//otherwise check if this was the last word. If so mark the lfb as returned
+		//Check if this was the last word. If so mark the lfb as returned
 		uint i = 0;
 		for(i = 0; i < _pwords_per_block; ++i)
 			if(lfb.pword_request_masks[i]) break;
@@ -494,31 +447,35 @@ void UnitCache::_try_return_lfb(uint bank_index)
 		for(bank.outgoing_return_pword_index = 0; bank.outgoing_return_pword_index < _pwords_per_block; ++bank.outgoing_return_pword_index)
 			if(lfb.pword_request_masks[bank.outgoing_return_pword_index]) break;
 
-		//copy requests to arbitrator
-		for(uint port_index = 0; port_index < return_bus.size(); ++port_index)
-		{
-			if((lfb.pword_request_masks[bank.outgoing_return_pword_index] >> port_index) & 0x1ull)
-				outgoing_return_network.add(bank_index, port_index);
-		}
+		//copy return to interconnect
+		MemoryReturn ret;
+		uint offset = bank.outgoing_return_pword_index * _port_width;
+		ret.type = MemoryReturn::Type::LOAD_RETURN;
+		ret.size = _port_width;
+		ret.paddr = lfb.block_addr + offset;
+		ret.data = &lfb.block_data.bytes[offset];
+
+		interconnect.add_returns(ret, bank_index, lfb.pword_request_masks[bank.outgoing_return_pword_index]);
+		lfb.pword_request_masks[bank.outgoing_return_pword_index] = 0x0ull;//request are in route so we can clear them
+		return;
 	}
 }
 
-void UnitCache::_update_interconection_network_fall()
+void UnitCache::_interconnects_fall()
 {
+	interconnect.propagate_returns();
+
 	//update outgoing arbitrators
 	outgoing_request_network.update();
-	outgoing_return_network.update();
 
 	//copy requests from lfb
 	for(uint mapping_index = 0; mapping_index < _mem_map.mappings.size(); ++mapping_index)
 	{
-		MemoryUnitMap::MemoryUnitMapping mapping = _mem_map.mappings[mapping_index];
-		for(uint i = 0; i < mapping.num_ports; ++i)
+		MemoryMap::MemoryMapping mapping = _mem_map.mappings[mapping_index];
+		for(uint i = 0; i < mapping.num_ports; ++i, ++mapping.port_index, ++mapping.port_id)
 		{
-			uint port_index = mapping.port_index + i;
-			uint port_id = mapping.port_id + i;
-			uint bank_index = outgoing_request_network.input(port_id);
-			if(bank_index == ~0u || mapping.unit->request_bus.transfer_pending(port_index)) continue; //either nothing is pending or we already issued
+			uint bank_index = outgoing_request_network.src(mapping.port_id);
+			if(bank_index == ~0u || mapping.unit->interconnect.request_pending(mapping.port_index)) continue; //either nothing is pending or we already issued
 
 			//add transfer
 			_Bank& bank = _banks[bank_index];
@@ -544,34 +501,14 @@ void UnitCache::_update_interconection_network_fall()
 				//todo if our transfer is pending and we have new data in the bufffer we should update it
 			}
 
-			mapping.unit->request_bus.add_transfer(outgoing_request, port_index);
+			mapping.unit->interconnect.add_request(outgoing_request, mapping.port_index);
 		}
-	}
-
-	//copy returns from lfb
-	for(uint port_index = 0; port_index < return_bus.size(); ++port_index)
-	{
-		uint bank_index = outgoing_return_network.input(port_index);
-		if(bank_index == ~0 || return_bus.transfer_pending(port_index)) continue;
-		
-		_Bank& bank = _banks[bank_index];
-		assert(bank.outgoing_return_lfb != ~0u);
-
-		//add transfer
-		_LFB& lfb = bank.lfbs[bank.outgoing_return_lfb];
-		MemoryRequest outgoing_return;
-		uint offset = bank.outgoing_return_pword_index * _port_width;
-		outgoing_return.size = _port_width;
-		outgoing_return.paddr = lfb.block_addr + offset;
-		outgoing_return.data = &lfb.block_data.bytes[offset];
-		outgoing_return.type = MemoryRequest::Type::LOAD_RETURN;
-		return_bus.add_transfer(outgoing_return, port_index);
 	}
 }
 
 void UnitCache::clock_rise()
 {
-	_update_interconection_network_rise();
+	_interconnects_rise();
 
 	for(uint i = 0; i < _banks.size(); ++i)
 	{
@@ -582,7 +519,7 @@ void UnitCache::clock_rise()
 
 void UnitCache::clock_fall()
 {
-	_propagate_acknowledge_signals();
+	_propagate_ack();
 
 	for(uint i = 0; i < _banks.size(); ++i)
 	{
@@ -591,7 +528,7 @@ void UnitCache::clock_fall()
 		_try_return_lfb(i);
 	}
 
-	_update_interconection_network_fall();
+	_interconnects_fall();
 }
 
 }}

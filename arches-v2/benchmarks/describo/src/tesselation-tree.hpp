@@ -8,19 +8,19 @@ struct CompactTri
 
 
 #ifdef ARCH_X86
-template <typename T>
-inline T _deserialize(std::ifstream& stream)
+template <typename RET>
+inline RET _deserialize(std::ifstream& stream)
 {
-	T value;
-	stream.read((char*)&value, sizeof(T));
+	RET value;
+	stream.read((char*)&value, sizeof(RET));
 	return value;
 }
 
-template <typename T>
-inline void _deserialize_vector(std::vector<T>& vector, std::ifstream& stream)
+template <typename RET>
+inline void _deserialize_vector(std::vector<RET>& vector, std::ifstream& stream)
 {
 	size_t size = _deserialize<size_t>(stream);
 	vector.resize(size);
-	stream.read((char*)vector.data(), vector.size() * sizeof(T));
+	stream.read((char*)vector.data(), vector.size() * sizeof(RET));
 }
 #endif

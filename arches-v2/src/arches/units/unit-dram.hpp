@@ -5,7 +5,7 @@
 
 #include "unit-base.hpp"
 #include "unit-main-memory-base.hpp"
-#include "../util/round-robin-arbitrator.hpp"
+#include "../util/arbitration.hpp"
 
 namespace Arches { namespace Units {
 
@@ -30,14 +30,11 @@ private:
 
 	struct Channel
 	{
-		std::priority_queue<ReturnItem> request_return_queue;
+		std::priority_queue<ReturnItem> return_queue;
 		bool return_pending;
 	};
 
 	std::vector<Channel> _channels;
-
-	ArbitrationNetwork incoming_request_network;
-	ArbitrationNetwork outgoing_return_network;
 
 	cycles_t _current_cycle{ 0 };
 

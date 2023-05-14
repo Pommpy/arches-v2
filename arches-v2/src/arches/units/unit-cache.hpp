@@ -2,7 +2,7 @@
 #include "../../stdafx.hpp"
 
 #include "../util/bit-manipulation.hpp"
-#include "../util/round-robin-arbitrator.hpp"
+#include "../util/arbitration.hpp"
 #include "unit-base.hpp"
 #include "unit-memory-base.hpp"
 
@@ -23,7 +23,7 @@ public:
 		uint num_banks{1};
 		uint num_lfb{1};
 
-		MemoryUnitMap mem_map;
+		MemoryMap mem_map;
 
 		float dynamic_read_energy;
 		float bank_leakge_power;
@@ -132,8 +132,6 @@ private:
 		uint outgoing_return_lfb{~0u};
 		uint outgoing_return_pword_index{0u};
 
-		uint64_t outgoing_return_new_request_mask{0x0ull};
-
 		_Bank(uint num_lfb) : lfbs(num_lfb) {}
 	};
 
@@ -150,21 +148,18 @@ private:
 	std::vector<_BlockData> _data_array;
 
 	std::vector<_Bank> _banks;
-	MemoryUnitMap _mem_map;
+	MemoryMap _mem_map;
 
-	ArbitrationNetwork incoming_request_network;
-	ArbitrationNetwork incoming_return_network;
-	ArbitrationNetwork outgoing_return_network;
-	ArbitrationNetwork outgoing_request_network;
-
+	ArbitrationNetwork64 incoming_return_network;
+	ArbitrationNetwork64 outgoing_request_network;
 
 	uint _fetch_lfb(uint bank_index, _LFB& lfb);
 	uint _allocate_lfb(uint bank_index, _LFB& lfb);
 	uint _fetch_or_allocate_lfb(uint bank_index, uint64_t block_addr, _LFB::Type type);
 
-	void _update_interconection_network_rise();
-	void _propagate_acknowledge_signals();
-	void _update_interconection_network_fall();
+	void _interconnects_rise();
+	void _propagate_ack();
+	void _interconnects_fall();
 
 	void _proccess_returns(uint bank_index);
 	void _proccess_requests(uint bank_index);

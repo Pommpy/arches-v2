@@ -105,17 +105,17 @@ static paddr_t align_to(size_t alignment, paddr_t paddr)
 	return (paddr + alignment - 1) & ~(alignment - 1);
 }
 
-template <typename T>
-static T* write_array(Units::UnitMainMemoryBase* main_memory, size_t alignment, T* data, size_t size, paddr_t& heap_address)
+template <typename RET>
+static RET* write_array(Units::UnitMainMemoryBase* main_memory, size_t alignment, RET* data, size_t size, paddr_t& heap_address)
 {
 	paddr_t array_address = align_to(alignment, heap_address);
-	heap_address = array_address + size * sizeof(T);
-	main_memory->direct_write(data, size * sizeof(T), array_address);
-	return reinterpret_cast<T*>(array_address);
+	heap_address = array_address + size * sizeof(RET);
+	main_memory->direct_write(data, size * sizeof(RET), array_address);
+	return reinterpret_cast<RET*>(array_address);
 }
 
-template <typename T>
-static T* write_vector(Units::UnitMainMemoryBase* main_memory, size_t alignment, std::vector<T> v, paddr_t& heap_address)
+template <typename RET>
+static RET* write_vector(Units::UnitMainMemoryBase* main_memory, size_t alignment, std::vector<RET> v, paddr_t& heap_address)
 {
 	return write_array(main_memory, alignment, v.data(), v.size(), heap_address);
 }

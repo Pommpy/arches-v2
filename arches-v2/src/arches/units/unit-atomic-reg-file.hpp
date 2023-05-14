@@ -4,6 +4,8 @@
 #include "unit-base.hpp"
 #include "unit-memory-base.hpp"
 
+#include "../util/arbitration.hpp"
+
 namespace Arches { namespace Units {
 
 class UnitAtomicRegfile : public UnitMemoryBase
@@ -11,36 +13,44 @@ class UnitAtomicRegfile : public UnitMemoryBase
 public:
 	uint32_t iregs[32];
 
+	uint port_index{~0u};
+	MemoryRequest req;
+
 	uint32_t return_reg;
 
-	UnitAtomicRegfile(uint num_clients) : UnitMemoryBase(num_clients)
+	UnitAtomicRegfile(uint num_clients) : UnitMemoryBase(num_clients, 1)
 	{
 		for(uint i = 0; i < 32; ++i)
 			iregs[i] = 0;
 	}
 
-	uint request_index{~0u};
-	MemoryRequest request_item;
-
 	void clock_rise() override
 	{
-		if((request_index = request_bus.get_next()) != ~0)
+		interconnect.propagate_requests([](const MemoryRequest& req, uint client, uint num_clients, uint num_servers)->uint
 		{
-			request_item = request_bus.transfer(request_index);
-			request_bus.acknowlege(request_index);
+			//only one server so everything goes to index 0
+			return 0;
+		});
+
+		const MemoryRequest* req = interconnect.get_request(0, port_index);
+		if(req)
+		{
+			this->req = *req;
+			interconnect.acknowlege_request(0, port_index);
 		}
 	}
 
 	void clock_fall() override
 	{
-		if(request_index != ~0)
-		{
-			uint32_t reg_index = (request_item.paddr >> 2) & 0b1'1111;
-			uint32_t request_data = *(uint32_t*)request_item.data;
-			return_reg = iregs[reg_index];
-			request_item.data = &return_reg;
+		interconnect.propagate_ack();
 
-			switch(request_item.type)
+		if(port_index != ~0)
+		{
+			uint32_t reg_index = (req.paddr >> 2) & 0b1'1111;
+			uint32_t request_data = *(uint32_t*)req.data;
+			return_reg = iregs[reg_index];
+
+			switch(req.type)
 			{
 			case MemoryRequest::Type::STORE:
 				iregs[reg_index] = request_data;
@@ -51,6 +61,7 @@ public:
 
 			case MemoryRequest::Type::AMO_ADD:
 				iregs[reg_index] += request_data;
+				printf("Threads Launched: %d\n", return_reg);
 				break;
 
 			case MemoryRequest::Type::AMO_AND:
@@ -82,12 +93,18 @@ public:
 				break;
 			}
 
-			if(request_item.type != MemoryRequest::Type::STORE)
+			if(req.type != MemoryRequest::Type::STORE && !interconnect.return_pending(0))
 			{
-				request_item.type = MemoryRequest::Type::LOAD_RETURN;
-				return_bus.add_transfer(request_item, request_index);
+				MemoryReturn ret;
+				ret.type = MemoryReturn::Type::LOAD_RETURN;
+				ret.size = req.size;
+				ret.paddr = req.paddr;
+				ret.data = &return_reg;
+				interconnect.add_return(ret, 0, port_index);
 			}
 		}
+
+		interconnect.propagate_returns();
 	}
 };
 

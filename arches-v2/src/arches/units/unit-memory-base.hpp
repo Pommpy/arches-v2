@@ -3,6 +3,8 @@
 #include "../../stdafx.hpp"
 
 #include "unit-base.hpp"
+#include "../simulator/interconnects.hpp"
+#include "../util/memory-map.hpp"
 
 namespace Arches { namespace Units {
 
@@ -35,7 +37,7 @@ struct MemoryRequest
 		CSHIT,
 
 		//other non instruction mem ops
-		LOAD_RETURN,
+		LOAD_RAY_BUCKET,
 	};
 
 	//meta data 
@@ -60,42 +62,71 @@ struct MemoryRequest
 	void* data{nullptr};
 };
 
+struct MemoryReturn
+{
+	enum class Type : uint8_t
+	{
+		NA,
+		LOAD_RETURN,
+	};
+
+	//meta data 
+	Type    type;
+	uint8_t size;
+
+	union
+	{
+		paddr_t paddr;
+		vaddr_t vaddr;
+	};
+
+	bool operator==(const MemoryReturn& other) const
+	{
+		return type == other.type && size == other.size && paddr == other.paddr;
+	}
+
+	//Only atomic instructions actually pass or recive data.
+	//The data pointed to by this must precist until the pending line in cleared.
+	//Coppying data into the request would be very inefficent (especially when passing full blocks of data).
+	//Hence why we handle it by passing a pointer the data can then be coppied directly by the reciver
+	void* data{nullptr};
+};
+
 class UnitMemoryBase : public UnitBase
 {
 public:
-	ConnectionGroup<MemoryRequest> request_bus;
-	ConnectionGroup<MemoryRequest> return_bus;
-
-	UnitMemoryBase(uint num_clients) : request_bus(num_clients), return_bus(num_clients), UnitBase()
+	InterconnectionNetwork<MemoryRequest, MemoryReturn> interconnect;
+	UnitMemoryBase(uint clients, uint servers) : interconnect(clients, servers), UnitBase()
  	{
 		
 	}
 };
 
+}}
 
-class MemoryUnitMap
+class MemoryMap
 {
 private:
-	std::vector<std::pair<paddr_t, uint>> ranges;
+	std::vector<std::pair<Arches::paddr_t, uint>> ranges;
 
 public:
-	struct MemoryUnitMapping
+	struct MemoryMapping
 	{
-		UnitMemoryBase* unit;
-		uint16_t        port_index;
-		uint16_t        num_ports;
+		Arches::Units::UnitMemoryBase* unit;
+		uint16_t        port_index; //port index within unit
+		uint16_t        num_ports; //number of ports reserved for this mapping
 		uint16_t        port_id; //provides unqie ids for all ports
 
-		bool operator==(const MemoryUnitMapping& other) const
+		bool operator==(const MemoryMapping& other) const
 		{
 			return unit == other.unit && port_index == other.port_index && num_ports == other.num_ports;
 		}
 	};
 
-	std::vector<MemoryUnitMapping> mappings;
+	std::vector<MemoryMapping> mappings;
 	uint total_ports{0};
 
-	void add_unit(paddr_t paddr, UnitMemoryBase* unit, uint port_id, uint num_ports)
+	void add_unit(Arches::paddr_t paddr, Arches::Units::UnitMemoryBase* unit, uint port_id, uint num_ports)
 	{
 		if(unit == nullptr)
 		{
@@ -111,7 +142,7 @@ public:
 
 		if(unit == nullptr) return;
 
-		MemoryUnitMapping mapping = { unit, port_id, num_ports, 0};
+		MemoryMapping mapping = {unit, port_id, num_ports, 0};
 
 		uint j;
 		for(j = 0; j < mappings.size(); ++j)
@@ -129,7 +160,7 @@ public:
 		}
 	}
 
-	uint get_mapping_index(paddr_t paddr)
+	uint get_mapping_index(Arches::paddr_t paddr)
 	{
 		uint start = 0;
 		uint end = ranges.size();
@@ -137,7 +168,7 @@ public:
 		{
 			uint middle = (start + end) / 2;
 			if(paddr >= ranges[middle].first) start = middle;
-			else                              end   = middle;
+			else                              end = middle;
 		}
 
 		return ranges[start].second;
@@ -157,7 +188,3 @@ public:
 		return start;
 	}
 };
-
-}}
-
-

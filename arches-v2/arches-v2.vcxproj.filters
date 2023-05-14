@@ -69,9 +69,6 @@
     <ClInclude Include="src\arches\units\unit-memory-base.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\util\barrier.hpp">
-      <Filter>arches\units\util</Filter>
-    </ClInclude>
     <ClInclude Include="src\arches\util\bit-manipulation.hpp">
       <Filter>arches\units\util</Filter>
     </ClInclude>
@@ -84,14 +81,11 @@
     <ClInclude Include="src\arches\util\file.hpp">
       <Filter>arches\units\util</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\util\math.hpp">
-      <Filter>arches\units\util</Filter>
-    </ClInclude>
     <ClInclude Include="src\arches\util\string.hpp">
       <Filter>arches\units\util</Filter>
     </ClInclude>
     <ClInclude Include="src\stdafx.hpp" />
-    <ClInclude Include="src\arches\units\uint-atomic-reg-file.hpp">
+    <ClInclude Include="src\arches\units\unit-atomic-reg-file.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\units\unit-dram.hpp">
@@ -124,7 +118,7 @@
     <ClInclude Include="src\arches\units\usimm\utils.h">
       <Filter>arches\units\usimm</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\util\round-robin-arbitrator.hpp">
+    <ClInclude Include="src\arches\util\arbitration.hpp">
       <Filter>arches\units\util</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\units\unit-cache.hpp">
@@ -163,7 +157,7 @@
     <ClInclude Include="benchmarks\describo\src\ray-tracing-include.hpp">
       <Filter>benchmarks\describo\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\units\uint-tile-scheduler.hpp">
+    <ClInclude Include="src\arches\units\unit-tile-scheduler.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\units\unit-tp.hpp">
@@ -171,6 +165,12 @@
     </ClInclude>
     <ClInclude Include="benchmarks\describo\src\mesh.hpp">
       <Filter>benchmarks\describo\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\simulator\interconnects.hpp">
+      <Filter>arches\simulator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\memory-map.hpp">
+      <Filter>arches\units\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -182,9 +182,6 @@
     </ClCompile>
     <ClCompile Include="src\arches\simulator\simulator.cpp">
       <Filter>arches\simulator</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arches\util\barrier.cpp">
-      <Filter>arches\units\util</Filter>
     </ClCompile>
     <ClCompile Include="src\arches\util\elf.cpp">
       <Filter>arches\units\util</Filter>

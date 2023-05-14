@@ -291,7 +291,6 @@ unsigned int log_base2(unsigned int new_value)
     return i;
 }
 
-
 //DK: Most uses of calc_dram_addr are only for the channel.
 //    No point in malloc/freeing this structure just to get the channel
 int calc_dram_channel(const long long int physical_address)
@@ -414,6 +413,10 @@ dram_address_t * calc_dram_addr(const long long int physical_address)
     return(this_a);
 }
 
+int numDramChannels()
+{
+    return NUM_CHANNELS;
+}
 
 // Function to decompose the incoming DRAM address into the
 // constituent channel, rank, bank, row and column ids. 

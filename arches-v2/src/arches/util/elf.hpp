@@ -234,7 +234,7 @@ class ELF final {
 				explicit ELF_Header(Util::File* file);
 				~ELF_Header() = default;
 
-				template <typename T> T fix_endianness(T x) const;
+				template <typename RET> RET fix_endianness(RET x) const;
 		};
 		ELF_Header* elf_header;
 

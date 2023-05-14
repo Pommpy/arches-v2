@@ -5,8 +5,8 @@
 #include "arches/units/unit-dram.hpp"
 #include "arches/units/unit-cache.hpp"
 #include "arches/units/unit-buffer.hpp"
-#include "arches/units/uint-atomic-reg-file.hpp"
-#include "arches/units/uint-tile-scheduler.hpp"
+#include "arches/units/unit-atomic-reg-file.hpp"
+#include "arches/units/unit-tile-scheduler.hpp"
 #include "arches/units/unit-sfu.hpp"
 
 #include "arches/units/unit-tp.hpp"
@@ -222,10 +222,10 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	Simulator simulator;
 
 	std::vector<Units::UnitTP*> tps;
-	std::vector<Units::UnitRayStagingBuffer*> rsbs;
-	std::vector<Units::UnitCache*> l1s;
-	std::vector<Units::UnitCache*> l2s;
 	std::vector<Units::UnitSFU*> sfus;
+	std::vector<Units::DualStreaming::UnitRayStagingBuffer*> rsbs;
+	std::vector<Units::UnitThreadScheduler*> thread_schedulers;
+	std::vector<Units::UnitCache*> l1s;
 	std::vector<std::vector<Units::UnitSFU*>> sfus_tables;
 
 	Units::UnitDRAM mm(2, mem_size, &simulator); mm.clear();
@@ -242,9 +242,6 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	global_data.ray_staging_buffer = *(Treelet**)&dsmm_ray_staging_buffer_start;
 	initilize_buffers(global_data, &mm, heap_address);
 
-	Units::UnitTileScheduler tile_scheduler(num_tps, num_tms, global_data.framebuffer_width, global_data.framebuffer_height, 8, 8, &simulator);
-	simulator.register_unit(&tile_scheduler);
-
 	Units::DualStreaming::UnitStreamScheduler::Configuration stream_scheduler_config;
 	stream_scheduler_config.scene_start = *(paddr_t*)&global_data.scene_buffer;
 	stream_scheduler_config.bucket_start = *(paddr_t*)&heap_address;
@@ -259,7 +256,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	Units::UnitBuffer::Configuration scene_buffer_config;
 	scene_buffer_config.size = scene_buffer_size;
 	scene_buffer_config.num_banks = 32;
-	scene_buffer_config.num_incoming_connections = num_tms + 1;
+	scene_buffer_config.num_ports = num_tms + 1;
 	scene_buffer_config.penalty = 3;
 
 	Units::UnitBuffer scene_buffer(scene_buffer_config);
@@ -277,9 +274,11 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 	l2_config.mem_map.add_unit(0x0ull, &mm, 0, 1);
 
-	Units::UnitCache* l2 = _new Units::UnitCache(l2_config);
-	simulator.register_unit(l2);
-	l2s.push_back(l2);
+	Units::UnitCache l2(l2_config);
+	simulator.register_unit(&l2);
+
+	Units::UnitAtomicRegfile atomic_regs(num_tms);
+	simulator.register_unit(&atomic_regs);
 
 	for(uint tm_index = 0; tm_index < num_tms; ++tm_index)
 	{
@@ -293,15 +292,15 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 		l1_config.penalty = 1;
 		l1_config.num_lfb = 4;
 
-		l1_config.mem_map.add_unit(dsmm_null_address, l2, tm_index, 1);
+		l1_config.mem_map.add_unit(dsmm_null_address, &l2, tm_index, 1);
 		l1_config.mem_map.add_unit(dsmm_scene_buffer_start, &scene_buffer, tm_index, 1);
-		l1_config.mem_map.add_unit(dsmm_heap_start, l2, tm_index, 1);
+		l1_config.mem_map.add_unit(dsmm_heap_start, &l2, tm_index, 1);
 
 		Units::UnitCache* l1 = _new Units::UnitCache(l1_config);
 		l1s.push_back(l1);
 		simulator.register_unit(l1);
 
-		Units::UnitRayStagingBuffer* rsb = _new Units::UnitRayStagingBuffer(num_tps_per_tm, 1u);
+		Units::DualStreaming::UnitRayStagingBuffer* rsb = _new Units::DualStreaming::UnitRayStagingBuffer(num_tps, tm_index, &stream_scheduler);
 		rsbs.push_back(rsb);
 		simulator.register_unit(rsb);
 		
@@ -335,6 +334,9 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 		sfu_table[static_cast<uint>(ISA::RISCV::Type::TRIISECT)] = sfus.back();
 		simulator.register_unit(sfus.back());
 
+		thread_schedulers.push_back(_new  Units::UnitThreadScheduler(num_tps_per_tm, tm_index, &atomic_regs));
+		simulator.register_unit(thread_schedulers.back());
+
 		for(uint tp_index = 0; tp_index < num_tps_per_tm; ++tp_index)
 		{
 			Units::UnitTP::Configuration tp_config;
@@ -347,7 +349,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 			tp_config.port_size = 32;
 
 			tp_config.mem_map.add_unit(dsmm_null_address, nullptr, 0, 1);
-			tp_config.mem_map.add_unit(dsmm_atomic_reg_file_start, &tile_scheduler, tm_index * num_tps_per_tm + tp_index, 1);
+			tp_config.mem_map.add_unit(dsmm_atomic_reg_file_start, thread_schedulers.back(), tm_index * num_tps_per_tm + tp_index, 1);
 			tp_config.mem_map.add_unit(dsmm_global_data_start, l1, tp_index, 1);
 			tp_config.mem_map.add_unit(dsmm_ray_staging_buffer_start, rsb, tp_index, 1);
 			tp_config.mem_map.add_unit(dsmm_scene_buffer_start, l1, tp_index, 1); //scene buffer data goes through l1  
@@ -360,9 +362,6 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 			simulator.register_unit(tp);
 		}
 	}
-
-	stream_scheduler.main_mem = &mm;
-	stream_scheduler.ray_staging_buffers = &rsbs[0];
 
 	{
 		auto start = std::chrono::high_resolution_clock::now();
@@ -387,10 +386,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	l1_log.print_log();
 
 	printf("\nL2\n");
-	Units::UnitCache::Log l2_log;
-	for(auto& l2 : l2s)
-		l2_log.accumulate(l2->log);
-	l2_log.print_log();
+	l2.log.print_log();
 
 	mm.print_usimm_stats(CACHE_BLOCK_SIZE, 4, simulator.current_cycle);
 
@@ -398,10 +394,11 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	mm.dump_as_png_uint8(paddr_frame_buffer, global_data.framebuffer_width, global_data.framebuffer_height, "./out.png");
 
 	for(auto& tp : tps) delete tp;
-	for(auto& l1 : l1s) delete l1;
-	for(auto& rsb : rsbs) delete rsb;
-	for(auto& l2 : l2s) delete l2;
 	for(auto& sfu : sfus) delete sfu;
+	for(auto& rsb : rsbs) delete rsb;
+	for(auto& ts : thread_schedulers) delete ts;
+	for(auto& l1 : l1s) delete l1;
+
 }
 
 }

@@ -4,8 +4,8 @@
 
 #include "arches/units/unit-dram.hpp"
 #include "arches/units/unit-cache.hpp"
-#include "arches/units/uint-atomic-reg-file.hpp"
-#include "arches/units/uint-tile-scheduler.hpp"
+#include "arches/units/unit-atomic-reg-file.hpp"
+#include "arches/units/unit-tile-scheduler.hpp"
 
 #include "arches/units/unit-sfu.hpp"
 #include "arches/units/unit-tp.hpp"
@@ -37,17 +37,17 @@ static paddr_t align_to(size_t alignment, paddr_t paddr)
 	return (paddr + alignment - 1) & ~(alignment - 1);
 }
 
-template <typename T>
-static T* write_array(Units::UnitMainMemoryBase* main_memory, size_t alignment, T* data, size_t size, paddr_t& heap_address)
+template <typename RET>
+static RET* write_array(Units::UnitMainMemoryBase* main_memory, size_t alignment, RET* data, size_t size, paddr_t& heap_address)
 {
 	paddr_t array_address = align_to(alignment, heap_address);
-	heap_address = array_address + size * sizeof(T);
-	main_memory->direct_write(data, size * sizeof(T), array_address);
-	return reinterpret_cast<T*>(array_address);
+	heap_address = array_address + size * sizeof(RET);
+	main_memory->direct_write(data, size * sizeof(RET), array_address);
+	return reinterpret_cast<RET*>(array_address);
 }
 
-template <typename T>
-static T* write_vector(Units::UnitMainMemoryBase* main_memory, size_t alignment, std::vector<T> v, paddr_t& heap_address)
+template <typename RET>
+static RET* write_vector(Units::UnitMainMemoryBase* main_memory, size_t alignment, std::vector<RET> v, paddr_t& heap_address)
 {
 	return write_array(main_memory, alignment, v.data(), v.size(), heap_address);
 }
@@ -92,7 +92,7 @@ static void run_sim_trax(int argc, char* argv[])
 	uint num_tms_per_l2 = 8;
 	uint num_l2 = 4;
 
-	uint num_tps = num_tps_per_tm * num_tms_per_l2 * num_l2;
+	uint num_tps = num_l2 * num_tms_per_l2 * num_l2;
 	uint num_tms = num_tms_per_l2 * num_l2;
 	uint sfu_table_size = static_cast<uint>(ISA::RISCV::Type::NUM_TYPES);
 
@@ -119,9 +119,10 @@ static void run_sim_trax(int argc, char* argv[])
 	Simulator simulator;
 
 	std::vector<Units::UnitTP*> tps;
+	std::vector<Units::UnitSFU*> sfus;
 	std::vector<Units::UnitCache*> l1s;
 	std::vector<Units::UnitCache*> l2s;
-	std::vector<Units::UnitSFU*> sfus;
+	std::vector<Units::UnitThreadScheduler*> thread_schedulers;
 
 	std::vector<Units::UnitSFU*> sfu_tables(sfu_table_size * num_tms);
 	
@@ -134,8 +135,8 @@ static void run_sim_trax(int argc, char* argv[])
 	
 	GlobalData global_data = initilize_buffers(&mm, heap_address);
 
-	Units::UnitTileScheduler tile_scheduler(num_tps, num_tms, global_data.framebuffer_width, global_data.framebuffer_height, 8, 8, &simulator);
-	simulator.register_unit(&tile_scheduler);
+	Units::UnitAtomicRegfile atomic_regs(num_tms);
+	simulator.register_unit(&atomic_regs);
 
 	for(uint l2_index = 0; l2_index < num_l2; ++l2_index)
 	{
@@ -191,6 +192,9 @@ static void run_sim_trax(int argc, char* argv[])
 			simulator.register_unit(sfus.back());
 			sfu_table[static_cast<uint>(ISA::RISCV::Type::FSQRT)] = sfus.back();
 
+			thread_schedulers.push_back(_new  Units::UnitThreadScheduler(num_tps_per_tm, tm_index, &atomic_regs));
+			simulator.register_unit(thread_schedulers.back());
+
 			for(uint tp_index = 0; tp_index < num_tps_per_tm; ++tp_index)
 			{
 				Units::UnitTP::Configuration tp_config;
@@ -202,7 +206,7 @@ static void run_sim_trax(int argc, char* argv[])
 				tp_config.backing_memory = mm._data_u8;
 				tp_config.sfu_table = sfu_table;
 				tp_config.port_size = 16;
-				tp_config.mem_map.add_unit(mm_null_address, &tile_scheduler, tm_index * num_tps_per_tm + tp_index, 1);
+				tp_config.mem_map.add_unit(mm_null_address, thread_schedulers.back(), tp_index, 1);
 				tp_config.mem_map.add_unit(mm_global_data_start, l1s.back(), tp_index, 1);
 				tp_config.mem_map.add_unit(mm_stack_start, nullptr, 0, 0);
 
@@ -243,17 +247,11 @@ static void run_sim_trax(int argc, char* argv[])
 
 	mm.print_usimm_stats(CACHE_BLOCK_SIZE, 4, simulator.current_cycle);
 
-	for(auto& tp : tps)
-		delete tp;
-
-	for(auto& sfu : sfus)
-		delete sfu;
-
-	for(auto& l1 : l1s)
-		delete l1;
-
-	for(auto& l2 : l2s)
-		delete l2;
+	for(auto& tp : tps) delete tp;
+	for(auto& sfu : sfus) delete sfu;
+	for(auto& l1 : l1s) delete l1;
+	for(auto& l2 : l2s) delete l2;
+	for(auto& ts : thread_schedulers) delete ts;
 
 	paddr_t paddr_frame_buffer = reinterpret_cast<paddr_t>(global_data.framebuffer);
 	stbi_flip_vertically_on_write(true);

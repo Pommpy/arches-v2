@@ -79,14 +79,14 @@ int64_t j_imm(Instruction instr)
 		(instr.j.imm_10_1  <<  1));
 }
 
-template <typename T> inline static void _prepare_load(ExecutionBase* unit, Instruction const& instr)
+template <typename RET> inline static void _prepare_load(ExecutionBase* unit, Instruction const& instr)
 {
 	unit->mem_req.type = Units::MemoryRequest::Type::LOAD;
-	unit->mem_req.size = sizeof(T);
+	unit->mem_req.size = sizeof(RET);
 	unit->mem_req.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + i_imm(instr);
 
 	unit->mem_req.dst.reg = instr.i.rd;
-	if(typeid(T) == typeid(float) || typeid(T) == typeid(double))
+	if(typeid(RET) == typeid(float) || typeid(RET) == typeid(double))
 	{
 		unit->mem_req.dst.reg_file = static_cast<uint8_t>(RegFile::FLOAT);
 		unit->mem_req.dst.sign_ext = 0;
@@ -94,23 +94,23 @@ template <typename T> inline static void _prepare_load(ExecutionBase* unit, Inst
 	else
 	{
 		unit->mem_req.dst.reg_file = static_cast<uint8_t>(RegFile::INT);
-		unit->mem_req.dst.sign_ext = std::is_signed_v<T>;
+		unit->mem_req.dst.sign_ext = std::is_signed_v<RET>;
 	}
 }
 
-template <typename T> inline static void _prepare_store(ExecutionBase* unit, Instruction const& instr)
+template <typename RET> inline static void _prepare_store(ExecutionBase* unit, Instruction const& instr)
 {
 	unit->mem_req.type = Units::MemoryRequest::Type::STORE;
-	unit->mem_req.size = sizeof(T);
+	unit->mem_req.size = sizeof(RET);
 	unit->mem_req.vaddr = unit->int_regs->registers[instr.s.rs1].u64 + s_imm(instr);
 
-	if(typeid(T) == typeid(float) || typeid(T) == typeid(double))
+	if(typeid(RET) == typeid(float) || typeid(RET) == typeid(double))
 	{
-		std::memcpy(unit->mem_req.store_data, &unit->float_regs->registers[instr.s.rs2], sizeof(T));
+		std::memcpy(unit->mem_req.store_data, &unit->float_regs->registers[instr.s.rs2], sizeof(RET));
 	}
 	else
 	{
-		std::memcpy(unit->mem_req.store_data, &unit->int_regs->registers[instr.s.rs2], sizeof(T));
+		std::memcpy(unit->mem_req.store_data, &unit->int_regs->registers[instr.s.rs2], sizeof(RET));
 	}
 }
 
@@ -545,17 +545,17 @@ InstructionInfo const isa_OP_32_MULDIV[8] = //r.funct3
 
 
 //RV64A
-template <typename T>
+template <typename RET>
 inline static void prepare_amo(ExecutionBase* unit, Instruction instr)
 {
-	unit->mem_req.size = sizeof(T);
+	unit->mem_req.size = sizeof(RET);
 	unit->mem_req.vaddr = unit->int_regs->registers[instr.rs1].u64;
 
 	unit->mem_req.dst.reg = instr.r.rd;
 	unit->mem_req.dst.reg_file = 0;
-	unit->mem_req.dst.sign_ext = std::is_signed_v<T>;
+	unit->mem_req.dst.sign_ext = std::is_signed_v<RET>;
 
-	std::memcpy(unit->mem_req.store_data, &unit->int_regs->registers[instr.rs2], sizeof(T));
+	std::memcpy(unit->mem_req.store_data, &unit->int_regs->registers[instr.rs2], sizeof(RET));
 }
 
 InstructionInfo const isa_AMO[2] = //r.funct3 & 0x1

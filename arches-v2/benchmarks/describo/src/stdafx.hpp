@@ -33,19 +33,19 @@
 typedef unsigned int uint;
 
 //Courtesy of Cem Yuksel
-template <bool ascending = true, typename T>
-inline void _fast_sort4(T const in[4], T out[4])
+template <bool ascending = true, typename RET>
+inline void _fast_sort4(RET const in[4], RET out[4])
 {
-	T n01 = std::min(in[1], in[0]);
-	T x01 = std::max(in[0], in[1]);
-	T n23 = std::min(in[2], in[3]);
-	T x23 = std::max(in[3], in[2]);
-	T r0 = std::min(n01, n23);
-	T x02 = std::max(n23, n01);
-	T n13 = std::min(x01, x23);
-	T r3 = std::max(x23, x01);
-	T r1 = std::min(x02, n13);
-	T r2 = std::max(n13, x02);
+	RET n01 = std::min(in[1], in[0]);
+	RET x01 = std::max(in[0], in[1]);
+	RET n23 = std::min(in[2], in[3]);
+	RET x23 = std::max(in[3], in[2]);
+	RET r0 = std::min(n01, n23);
+	RET x02 = std::max(n23, n01);
+	RET n13 = std::min(x01, x23);
+	RET r3 = std::max(x23, x01);
+	RET r1 = std::min(x02, n13);
+	RET r2 = std::max(n13, x02);
 	if(ascending) { out[0] = r0; out[1] = r1; out[2] = r2; out[3] = r3; }
 	else { out[0] = r3; out[1] = r2; out[2] = r1; out[3] = r0; }
 }

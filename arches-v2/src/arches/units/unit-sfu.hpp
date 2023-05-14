@@ -4,6 +4,8 @@
 #include "unit-base.hpp"
 #include "../isa/execution-base.hpp"
 
+#include "../util/arbitration.hpp"
+
 namespace Arches { namespace Units {
 
 class UnitSFU : public UnitBase
@@ -22,14 +24,16 @@ public:
 		issue_counters.resize(issue_width, 0);
 	}
 
-	ConnectionGroup<Request> request_bus;
-	ConnectionGroup<Request> return_bus;
+	Bus<Request> request_bus;
+	Bus<Request> return_bus;
 
 	uint issue_width;
 	uint issue_rate;
 	uint latency;
 
 	std::vector<uint> issue_counters;
+
+	RoundRobinArbitrator64 arb;
 
 private:
 	cycles_t current_cycle{0};
@@ -47,15 +51,26 @@ private:
 
 	void clock_rise() override
 	{
+		for(uint port_index = 0; port_index < request_bus.size(); ++port_index)
+		{
+			if(!request_bus.transfer_pending(port_index)) continue;
+
+			arb.add(port_index);
+		}
+
+		arb.update();
+
 		for(uint i = 0; i < issue_width; ++i)
 		{
 			if(issue_counters[i] == 0)
 			{
-				uint request_index = request_bus.get_next();
+				uint request_index = arb.current();
 				if(request_index == ~0u) break;
 
 				Request request_item = request_bus.transfer(request_index);
 				request_bus.acknowlege(request_index);
+				arb.remove(request_index);
+				arb.update();
 
 				_return_queue.push({request_item, static_cast<uint16_t>(request_index), current_cycle + std::max(1u, latency - 1u)});//simulate forwarding by returning a cycle eraly single cycle instruction will have to be handeled sepratly
 				issue_counters[i] = issue_rate - 1;

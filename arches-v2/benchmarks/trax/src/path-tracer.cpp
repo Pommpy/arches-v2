@@ -18,8 +18,12 @@ inline static void path_tracer(const GlobalData& global_data)
 {
 	for(uint index = atomicinc(); index < global_data.framebuffer_size; index = atomicinc())
 	{
+		//global_data.framebuffer[index] = 0xff000000 | index;
+		//continue;
+
 		uint32_t x = index % global_data.framebuffer_width;
 		uint32_t y = index / global_data.framebuffer_width;	
+
 		
 		RNG rng(index);
 

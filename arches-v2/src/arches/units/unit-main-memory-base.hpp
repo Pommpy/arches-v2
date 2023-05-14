@@ -21,8 +21,8 @@ public:
 	};
 
 public:
-	UnitMainMemoryBase(uint num_clients, size_t size) :
-		UnitMemoryBase(num_clients)
+	UnitMainMemoryBase(uint num_clients, uint num_servers, size_t size) :
+		UnitMemoryBase(num_clients, num_servers)
 	{
 		size_bytes = size;
 		_data_u64 = (uint64_t*)malloc(size);

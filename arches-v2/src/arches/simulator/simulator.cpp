@@ -58,6 +58,7 @@ void Simulator::execute()
 		_clock_rise();
 		_clock_fall();
 		current_cycle++;
+		//if(current_cycle % 1024 == 0) printf("Cycle: %lld\r", current_cycle);
 	}
 }
 

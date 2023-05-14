@@ -26,9 +26,11 @@ struct TreeletTriangle
 	uint     id;
 };
 
+#define TREELET_SIZE (64 * 1024)
+
 struct alignas(8 * 1024) Treelet
 {
-	uint32_t _words[16 * 1024];
+	uint8_t	data[64 * 1024];
 };
 
 #ifdef ARCH_X86

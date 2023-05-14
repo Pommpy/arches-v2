@@ -403,6 +403,7 @@ reqInsertRet_t insert_write(const dram_address_t &dram_address,
 //                            const int instruction_id,
 //                            const long long int instruction_pc);
 
+int numDramChannels();
 dram_address_t calcDramAddr(Arches::paddr_t physical_address);
 
 // convert the TRaX address to byte-addressed, cache-line-aligned

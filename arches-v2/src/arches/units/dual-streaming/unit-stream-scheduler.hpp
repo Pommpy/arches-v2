@@ -5,15 +5,81 @@
 #include "../unit-memory-base.hpp"
 #include "../unit-main-memory-base.hpp"
 #include "../unit-buffer.hpp"
-#include "../dual-streaming/unit-ray-staging-buffer.hpp"
 
 #include "../../../../benchmarks/dual-streaming/src/ray.hpp"
+#include "../../../../benchmarks/dual-streaming/src/treelet-bvh.hpp"
 
 namespace Arches { namespace Units { namespace DualStreaming {
+
+#define ROW_SIZE (8 * 1024)
+#define SCENE_BUFFER_SIZE (4 * 1024 * 1024)
+
+#define MAX_ACTIVE_SEGMENTS (SCENE_BUFFER_SIZE / TREELET_SIZE)
+#define ROWS_PER_SEGMENT (TREELET_SIZE / ROW_SIZE)
+
+#define RAY_BUCKET_SIZE 2048
+#define MAX_RAYS_PER_BUCKET (sizeof(BucketRay) / 2036)
+
+struct RayBucket
+{
+	paddr_t next_bucket;
+	uint num_rays{0};
+	BucketRay bucket_rays[MAX_RAYS_PER_BUCKET];
+};
 
 class UnitStreamScheduler : public UnitMemoryBase
 {
 public:
+	class Stream
+	{
+	public:
+		paddr_t base_addr{0};
+		uint size{0};
+		uint interface_width{CACHE_BLOCK_SIZE};
+
+		uint dst;
+
+		uint num_requested{0};
+		uint num_returned{0};
+
+		Stream()
+		{
+
+		}
+
+		Stream(paddr_t base_addr, uint bytes, uint interface_width, uint dst)
+		{
+			this->base_addr = base_addr;
+			this->size = bytes / interface_width;
+			this->interface_width = interface_width;
+			this->dst = dst;
+		}
+
+		bool fully_requested()
+		{
+			return num_requested == size;
+		}
+
+		bool fully_returned()
+		{
+			return num_returned == size;
+		}
+
+		void count_return()
+		{
+			num_returned++;
+		}
+
+		MemoryRequest get_next_request()
+		{
+			MemoryRequest req;
+			req.type = MemoryRequest::Type::LOAD;
+			req.size = interface_width;
+			req.paddr = base_addr + num_requested * interface_width;
+			num_requested++;
+		}
+	};
+
 	struct Configuration
 	{
 		paddr_t scene_start;
@@ -28,384 +94,371 @@ public:
 	struct RayWriteQueueEntry
 	{
 		BucketRay bucket_ray;
-		uint segment;
+		uint segment_index;
 	};
 
 	struct RayReadQueueEntry
 	{
-		uint tm;
+		uint port_index;
 		uint last_segment;
+	};
+
+	struct HitRecordWriteQueueEntry
+	{
+		paddr_t address;
+		Hit hit;
+		bool valid{false};
 	};
 
 	struct SceneSegmentState
 	{
-		bool in_buffer;
-		bool drained;
+		uint index{0};
+		uint buckets_in_flight{0};
 
-		uint buckets_in_flight;
+		paddr_t head_bucket_address{0x0ull};
 
-		uint child_index;
-		uint num_children;
+		uint child_index{~0u};
+		uint num_children{0};
+
+		uint rows_in_buffer{0};
+
+		bool valid{false};
 	};
 
-	struct BucketState
+	struct BucketList
 	{
-		uint fill;
-		paddr_t address;
+		paddr_t head_bucket_address;
+
+		paddr_t tail_bucket_address;
+		uint tail_fill;
+		uint tail_channel;
 	};
 
 	std::queue<RayWriteQueueEntry> ray_write_queue;
-	std::queue<RayReadQueueEntry>  ray_read_queue;
+	std::queue<RayReadQueueEntry> ray_read_queue;
 
-	std::stack<paddr_t>         free_buckets; //todo this should be a linked list in memory
-	std::map<uint, BucketState> bucket_states;
-	std::map<uint, paddr_t>     first_bucket;
+	std::queue<paddr_t> hit_record_read_queue;
+	std::map<paddr_t, Hit> new_hit_record_set;
+	std::queue<paddr_t> hit_record_write_queue;
 
-	std::queue<uint>                  eligable_segments;
-	std::vector<uint>                 active_segments;
-	std::map<uint, SceneSegmentState> segment_states;
+	std::stack<paddr_t>        free_buckets; //todo this should be a linked list in memory
+	std::map<uint, BucketList> bucket_lists;
 
-	struct
-	{
-		paddr_t base_address;
-		uint offset;
-
-		uint scene_segment;
-	}scene_stream;
-
-	struct
-	{
-		paddr_t base_address;
-		uint offset;
-
-		uint scene_segment;
-		uint tm;
-	} ray_bucket_stream;
-
-	struct
-	{
-		paddr_t base_address;
-		uint    offset;
-	} ray_write_stream;
-
-	RoundRobinArbitrator request_arbitrator;
-
-	UnitMainMemoryBase* main_mem;
-	UnitRayStagingBuffer** ray_staging_buffers;
-
-	paddr_t scene_segments;
-	paddr_t next_bucket;
-
-	bool has_segment_return;
-	bool has_bucket_return;
-
-	MemoryRequest segment_return;
-	MemoryRequest bucket_return;
+	std::queue<uint>               eligable_segments;
+	std::vector<SceneSegmentState> active_segment_states;
+	uint active_segment_arb_index;
+	uint num_active_segments;
 
 private:
-	paddr_t _scene_start;
-	paddr_t _bucket_start;
+	UnitMainMemoryBase* _main_mem;
+	UnitBuffer* _scene_buffer;
 
-	uint _num_tms;
-	uint _bucket_size;
-	uint _segment_size;
-	uint _ray_size;
+	uint _num_channels, _num_tms;
+	paddr_t _scene_start, _hit_record_start, _bucket_start, _bucket_end;
+
+	Stream scene_stream;
+	MemoryRequest scene_buffer_request;
+
+	Stream ray_stream;
+	MemoryReturn ray_stream_return;
+
+	Hit hit_reg;
 
 public:
-	void process_load_returns()
+	void accept_returns()
 	{
-		//accept load returns
-		if(main_mem->return_bus.transfer_pending(0) && !has_segment_return)
-		{
-			main_mem->return_bus.acknowlege(0);
+		auto& mmint = _main_mem->interconnect;
+		const MemoryReturn* ret;
 
-			has_segment_return = true;
-			segment_return = main_mem->request_bus.transfer(0);
+		if((ret = mmint.get_return(0)) && scene_buffer_request.type == MemoryRequest::Type::NA)
+		{
+			scene_buffer_request.type = MemoryRequest::Type::STORE;
+			scene_buffer_request.size = ret->size;
+			scene_buffer_request.paddr = (scene_stream.dst * TREELET_SIZE) + (ret->paddr - scene_stream.base_addr);
+			scene_buffer_request.data = ret->data;
+			mmint.acknowlege_return(0);
 		}
 
-		if(main_mem->return_bus.transfer_pending(1) && !has_bucket_return)
+		if((ret = mmint.get_return(1)) && (ray_stream_return.type == MemoryReturn::Type::NA))
 		{
-			main_mem->return_bus.acknowlege(1);
+			ray_stream_return = *ret;
+			mmint.acknowlege_return(1);
+		}
 
-			has_bucket_return = true;
-			bucket_return = main_mem->return_bus.transfer(1);
+		if(ret = mmint.get_return(3))
+		{
+			//data returned for the ray queue validate the entry or squash it
+			Hit current_hit = *(Hit*)ret->data;
+			if(current_hit.t < new_hit_record_set[ret->paddr].t)
+			{
+				//further than current record squash
+				new_hit_record_set.erase(ret->paddr);
+			}
+			else
+			{
+				//closer than current entry write back
+				hit_record_write_queue.emplace(ret->paddr);
+			}
+			mmint.acknowlege_return(3);
 		}
 	}
 
-	void process_requests()
+	void accept_requests()
 	{
-		//check for requests to fill an empty staging buffer or write a ray
-		uint request_index = request_arbitrator.next();
-		if(request_index != ~0u)
+		interconnect.propagate_requests([](const MemoryRequest& req, uint client, uint num_clients, uint num_servers)->uint
 		{
-			//we have a request for a new scene segment this means we can decrement buckets in flight for the scene sgment whose bucket was previouly in the ray staging buffer
-			MemoryRequest request = request_bus.transfer(request_index);
+			return 0;
+		});
 
-			if(request.type == MemoryRequest::Type::SBRAY)
-			{
-				//TODO figure out how to enqueue ray_writes
-				//maybe the line address can encode ray ID and target bucket and in that way we can coalesc the rays or we can send a full ray at a time from the staging buffer like a cache line transfer
-			}
-			else if(request.type == MemoryRequest::Type::LOAD)
-			{
-				request_bus.acknowlege(request_index);
+		uint port_index;
+		const MemoryRequest* req = interconnect.get_request(0, port_index);
+		if(!req) return;
 
-				uint last_segment_index = *(uint32_t*)request.data;
-				if(last_segment_index != ~0u)
+		//we have a request for a new scene segment this means we can decrement buckets in flight for the scene sgment whose bucket was previouly in the ray staging buffer
+		if(req->type == MemoryRequest::Type::SBRAY)
+		{
+			//forward the request to the queue
+			ray_write_queue.push(*(RayWriteQueueEntry*)req->data);
+			interconnect.acknowlege_request(0, port_index);
+		}
+		else if(req->type == MemoryRequest::Type::LOAD_RAY_BUCKET)
+		{
+			uint last_segment_index = ~0u;
+			uint last_segment_buffer_index = *(uint32_t*)req->data;
+			if(last_segment_buffer_index != ~0u)
+			{
+				SceneSegmentState& last_segment_state = active_segment_states[last_segment_buffer_index];
+				last_segment_state.buckets_in_flight--; //we have one fewer buckets in flight for this segment
+
+				if(!last_segment_state.head_bucket_address && last_segment_state.buckets_in_flight == 0) //we are done with the segment
 				{
-					SceneSegmentState& last_segment_state = segment_states[last_segment_index];
-					last_segment_state.buckets_in_flight--; //we have one fewer buckets in flight for this segment
+					//add child segments to eligable list since we can now intersect them
+					for(uint i = 0; i < last_segment_state.num_children; ++i)
+						eligable_segments.push(last_segment_state.child_index + i);
 
-					if(last_segment_state.buckets_in_flight == 0 && segment_states[last_segment_index].drained)
-					{
-						//add child segments to eligable list since we can now intersect them
-						for(uint i = 0; i < last_segment_state.num_children; ++i)
-							eligable_segments.push(last_segment_state.child_index + i);
-
-						//remove from active segments
-						for(uint i = 0; i < active_segments.size(); ++i)
-							if(active_segments[i] == last_segment_index)
-							{
-								active_segments.erase(active_segments.begin() + i);
-								break;
-							}
-
-						//clear segment state
-						segment_states.erase(last_segment_index);
-					}
+					//remove from active segments
+					last_segment_state.valid = false;
+					num_active_segments--;
 				}
 
-				RayReadQueueEntry entry;
-				entry.tm = request_index;
-				entry.last_segment = last_segment_index;
-				ray_read_queue.push(entry);
+				last_segment_index = last_segment_state.index;
+			}
+
+			ray_read_queue.push({port_index, last_segment_index});
+			interconnect.acknowlege_request(0, port_index);
+		}
+		else if(req->type == MemoryRequest::Type::CSHIT)
+		{
+			Hit hit = *(Hit*)req->data;
+
+			if(new_hit_record_set.find(req->paddr) != new_hit_record_set.end())
+			{
+				if(hit.t < new_hit_record_set[req->paddr].t) new_hit_record_set[req->paddr] = hit;
+				interconnect.acknowlege_request(0, port_index);
+			}
+			else
+			{
+				//todo set limit on the number of hit records in the set
+				hit_record_read_queue.push(req->paddr);
+				new_hit_record_set[req->paddr] = hit;
+				interconnect.acknowlege_request(0, port_index);
 			}
 		}
 	}
 
-	void forward_load_returns()
+	void issue_requests()
 	{
-		//forward load returns to the correct unit
-		if(has_segment_return && !return_bus.transfer_pending(0))
+		auto& mmint = _main_mem->interconnect;
+
+		if(!mmint.request_pending(0) && !scene_stream.fully_requested())
 		{
-			has_segment_return = false;
-			return_bus.add_transfer(segment_return, 128);
-			return_bus.set_pending(128);
+			MemoryRequest req = scene_stream.get_next_request();
+			_main_mem->interconnect.add_request(req, 0);
 		}
 
-		if(has_bucket_return && !return_bus.transfer_pending(ray_bucket_stream.tm))
+		//forward the scene stream
+		if(_scene_buffer->interconnect.request_pending(_num_tms) && (scene_buffer_request.type == MemoryRequest::Type::STORE))
 		{
-			has_bucket_return = false;
-			return_bus.add_transfer(bucket_return, ray_bucket_stream.tm);
-			return_bus.set_pending(ray_bucket_stream.tm);
+			_scene_buffer->interconnect.add_request(scene_buffer_request, _num_tms);
+			scene_stream.num_returned++;
+			scene_buffer_request.type = MemoryRequest::Type::NA;
 		}
+
+		if(!mmint.request_pending(1) && !ray_stream.fully_requested())
+		{
+			MemoryRequest req = ray_stream.get_next_request();
+			_main_mem->interconnect.add_request(req, 1);
+		}
+
+		if(!mmint.request_pending(2) && !ray_write_queue.empty())
+		{
+			//write next ray
+			uint segment_index = ray_write_queue.front().segment_index;
+			BucketList& bucket_list = bucket_lists[segment_index];
+			if(bucket_list.tail_fill == MAX_RAYS_PER_BUCKET)
+			{
+				//fetch a new bucket to append to the list
+				if(free_buckets.empty())
+				{
+					free_buckets.push(_bucket_end);
+					_bucket_end += RAY_BUCKET_SIZE;
+				}
+				paddr_t new_bucket_address = free_buckets.top(); free_buckets.pop();
+
+				//link the new bucket to the tail bucket
+				_main_mem->direct_write(&new_bucket_address, sizeof(paddr_t), bucket_list.tail_bucket_address);
+
+				bucket_list.tail_bucket_address = new_bucket_address;
+				bucket_list.tail_fill = 0;
+
+				//zero the pointer for the new tail
+				paddr_t zero = 0x0ull;
+				uint max_fill = MAX_RAYS_PER_BUCKET;
+				_main_mem->direct_write(&zero, sizeof(paddr_t), bucket_list.tail_bucket_address + 0); //Write null to next pointer in tail bucket
+				_main_mem->direct_write(&max_fill, sizeof(uint), bucket_list.tail_bucket_address + sizeof(paddr_t)); //Write max fill premtivley. If it not fully filled when we pop this list we will fix it
+			}
+
+			MemoryRequest req;
+			req.type = MemoryRequest::Type::STORE;
+			req.size = sizeof(BucketRay);
+			req.paddr = (paddr_t)(&(*(RayBucket*)&bucket_list.tail_bucket_address).bucket_rays[bucket_list.tail_fill]);
+			req.data = &ray_write_queue.front().bucket_ray;
+			mmint.add_request(req, 2);
+
+			ray_write_queue.pop();
+		}
+
+		if(!mmint.request_pending(3) )
+		{
+			if(!hit_record_read_queue.empty())
+			{
+				MemoryRequest req;
+				req.type = MemoryRequest::Type::LOAD;
+				req.size = sizeof(Hit);
+				req.paddr = hit_record_read_queue.front(); hit_record_read_queue.pop();
+				mmint.add_request(req, 3);
+			}
+			else if(!hit_record_write_queue.empty())
+			{
+				MemoryRequest req;
+				req.type = MemoryRequest::Type::STORE;
+				req.size = sizeof(Hit);
+				req.paddr = hit_record_write_queue.front(); hit_record_write_queue.pop();
+				req.data = &hit_reg;
+				hit_reg = new_hit_record_set[req.paddr];
+				new_hit_record_set.erase(req.paddr);
+				mmint.add_request(req, 3);
+			}
+		}
+	}
+
+	void issue_returns()
+	{
+		//forward the ray stream
+		if(interconnect.return_pending(0) && (ray_stream_return.type == MemoryReturn::Type::LOAD_RETURN))
+		{
+			interconnect.add_return(ray_stream_return, 0, ray_stream.dst);
+			ray_stream.num_returned++;
+			ray_stream_return.type = MemoryReturn::Type::NA;
+		}
+	}
+
+	uint select_segment_from_buffer(uint last_segment_index)
+	{
+		for(uint i = 0; i < active_segment_states.size(); ++i)
+		{
+			if(!active_segment_states[i].valid || !active_segment_states[i].head_bucket_address) continue;
+			if(active_segment_states[i].index == last_segment_index) return i;
+		}
+		
+		uint i = active_segment_arb_index;
+		do
+		{
+			if(active_segment_states[i].valid && active_segment_states[i].head_bucket_address)
+			{
+				active_segment_arb_index = i;
+				return i;
+			}
+
+			if(++i == active_segment_states.size()) i = 0;
+		} 
+		while(i != active_segment_arb_index);
+
+		return ~0u;
 	}
 
 	void update_streams()
 	{
-		if(scene_stream.base_address)
+		//if the current segment has no more pending streams we are ready for the next segment
+		if(scene_stream.fully_returned() && eligable_segments.size() > 0 && num_active_segments < MAX_ACTIVE_SEGMENTS)
 		{
-			if(!main_mem->return_bus.transfer_pending(0))
-			{
-				//advance stream
-				if(scene_stream.offset < 64 * 1024)
-				{
-					MemoryRequest request;
-					request.size = CACHE_BLOCK_SIZE;
-					request.type = MemoryRequest::Type::LOAD;
-					request.paddr = scene_stream.base_address + scene_stream.offset;
+			//queue up the next segment streams
+			num_active_segments++;
+			uint buffer_index = 0;
+			for(buffer_index = 0; buffer_index < active_segment_states.size(); ++buffer_index)
+				if(!active_segment_states[buffer_index].valid) break;
 
-					main_mem->request_bus.add_transfer(request, 0);
-					main_mem->request_bus.set_pending(0);
+			SceneSegmentState& segment_state = active_segment_states[buffer_index];
+			segment_state.index = eligable_segments.front(); eligable_segments.pop();
+			segment_state.buckets_in_flight = 0;
+			segment_state.rows_in_buffer = 0;
+			segment_state.valid = true;
+			segment_state.head_bucket_address = bucket_lists[segment_state.index].head_bucket_address;
 
-					scene_stream.offset += request.size;
-				}
-				else
-				{
-					scene_stream.base_address = 0ull;
-					segment_states[scene_stream.scene_segment].in_buffer = true;
-				}
-			}
-		}
-		else if(active_segments.size() < 64 && eligable_segments.size() > 0)
-		{
-			//open new stream
-			SceneSegmentState next_segment;
-			uint next_index = eligable_segments.front(); eligable_segments.pop();
-			next_segment.in_buffer = false; //set to true once we finish streaming the segment into the buffer
-			next_segment.drained = false;
-			next_segment.buckets_in_flight = 0;
-			//TODO: need to add a header to the scene sgments that encodes the child segments so we can manage the set of eligable segments
-			//next_segment.child_index = ;
-			//next_segment.num_children = ;
+			//write the last bucket fill to the last bucket
+			_main_mem->direct_write(&bucket_lists[segment_state.index].tail_fill, sizeof(uint), bucket_lists[segment_state.index].tail_bucket_address + 8);
+			bucket_lists.erase(segment_state.index);
 
-			paddr_t segment_address = scene_segments + 64 * 1024 * next_index;
 			//this data will pass through the scheduler in the first line of the segment
-			main_mem->direct_read(&next_segment.child_index, 4, segment_address + 0);
-			main_mem->direct_read(&next_segment.num_children, 4, segment_address + 4);
+			//TODO: need to add a header to the scene sgments that encodes the child segments so we can manage the set of eligable segments
+			paddr_t segment_address = _scene_start + sizeof(Treelet) * segment_state.index;
+			_main_mem->direct_read(&segment_state.child_index, 4, segment_address + 0);
+			_main_mem->direct_read(&segment_state.num_children, 4, segment_address + 4);
 
-			scene_stream.base_address  = segment_address;
-			scene_stream.offset        = 0;
-			scene_stream.scene_segment = next_index;
+			scene_stream = Stream(segment_address, TREELET_SIZE, CACHE_BLOCK_SIZE, buffer_index);
 		}
 
-		if(ray_bucket_stream.base_address)
-		{
-			if(!main_mem->return_bus.transfer_pending(1))
-			{
-				//advance stream
-				if(ray_bucket_stream.offset < 2 * 1024)
-				{
-					MemoryRequest request;
-					request.size = CACHE_BLOCK_SIZE;
-					request.type = MemoryRequest::Type::LOAD;
-					request.paddr = ray_bucket_stream.base_address + ray_bucket_stream.offset;
-
-					main_mem->request_bus.add_transfer(request, 1);
-					main_mem->request_bus.set_pending(1);
-
-					ray_bucket_stream.offset += request.size;
-				}
-				else
-				{
-					//we can now reuse the ray bucket for new rays
-					free_buckets.push(ray_bucket_stream.base_address);
-					ray_bucket_stream.base_address = 0ull;
-				}
-			}
-		}
-		else if(!ray_read_queue.empty())
+		if(ray_stream.fully_returned() && !ray_read_queue.empty())
 		{
 			//open new stream
-			uint segment = ray_read_queue.front().last_segment;
-			uint tm = ray_read_queue.front().tm;
-			ray_read_queue.pop();
-
-			paddr_t ray_bucket = first_bucket[segment];
-			if(ray_bucket == 0ull)
+			uint segment_index = ray_read_queue.front().last_segment;
+			uint port_index = ray_read_queue.front().port_index;
+			uint buffer_index = select_segment_from_buffer(segment_index);
+			if(buffer_index != ~0u)
 			{
-				//find the next segment that has a bucket ready
-				for(uint i = 0; i < active_segments.size(); ++i)
-				{
-					segment = active_segments[i];
-					if(segment_states[segment].in_buffer)
-					{
-						ray_bucket = first_bucket[segment];
-						assert(ray_bucket != 0);
-						break;
-					}
-				}
-			}
+				ray_read_queue.pop();
+				SceneSegmentState& segment_state = active_segment_states[buffer_index];
 
-			//start streaming next ray bucket
-			if(ray_bucket != 0ull)
-			{
-				paddr_t next_bucket_addr = first_bucket[segment];
-				main_mem->direct_read(&next_bucket_addr, 8, next_bucket_addr);
-				first_bucket[segment] = next_bucket_addr;
+				//start streaming next ray bucket
+				paddr_t next_bucket_addr = segment_state.head_bucket_address;
+				_main_mem->direct_read(&segment_state.head_bucket_address, 8, next_bucket_addr); //this data will pass through as soon as the first request returns from the stream we are about to open
 
-				if(next_bucket_addr == 0)
-				{
-					//mark current segment drained since we drained all ray buckets
-					segment_states[segment].drained = true;
-				}
-
-				ray_bucket_stream.base_address = ray_bucket;
-				ray_bucket_stream.offset = 0;
-				ray_bucket_stream.scene_segment = segment;
-				ray_bucket_stream.tm = tm;
-			}
-		}
-
-		if(ray_write_stream.base_address)
-		{
-			if(!main_mem->return_bus.transfer_pending(2))
-			{
-				//advance stream
-				if(ray_write_stream.offset < _ray_size)
-				{
-					MemoryRequest request;
-					request.size = 4;
-					request.type = MemoryRequest::Type::STORE;
-					request.paddr = scene_stream.base_address + scene_stream.offset;
-
-					main_mem->request_bus.add_transfer(request, 2);
-					main_mem->request_bus.set_pending(2);
-
-					ray_write_stream.offset += request.size;
-				}
-				else
-				{
-					scene_stream.base_address = 0ull;
-					segment_states[scene_stream.scene_segment].in_buffer = true;
-				}
-			}
-		}
-		else if(!ray_write_queue.empty())
-		{
-			//open new stream
-			uint segment = ray_write_queue.front().segment;
-			paddr_t bucket_address = bucket_states[segment].address;
-			
-			if(bucket_states[segment].fill == 56)
-			{
-				if(!main_mem->return_bus.transfer_pending(2))
-				{
-					if(free_buckets.empty())
-					{
-						free_buckets.push(next_bucket);
-						next_bucket += _bucket_size;
-					}
-
-					paddr_t new_bucket_address = free_buckets.top();
-					free_buckets.pop();
-
-					bucket_states[segment].address = new_bucket_address;
-					bucket_states[segment].fill = 0;
-
-					//TODO write the new bucket address to the last bucket address
-					MemoryRequest request;
-					request.size = 8;
-					request.type = MemoryRequest::Type::STORE;
-					request.paddr = scene_stream.base_address + scene_stream.offset;
-
-					main_mem->request_bus.add_transfer(request, 2);
-					main_mem->request_bus.set_pending(2);
-
-					bucket_address = new_bucket_address;
-				}
-			}
-			
-			if(bucket_states[segment].fill < 56)
-			{
-				ray_write_stream.base_address = bucket_address + 16 + sizeof(BucketRay) * bucket_states[segment].fill;
-				ray_write_stream.offset = 0;
-				bucket_states[segment].fill++;
+				ray_stream = Stream(next_bucket_addr, RAY_BUCKET_SIZE, CACHE_BLOCK_SIZE, port_index);
 			}
 		}
 	}
 
-	UnitStreamScheduler(Configuration config) :  UnitMemoryBase(config.num_tms + 1), request_arbitrator(this->request_bus.pending, this->request_bus.size())
+	UnitStreamScheduler(Configuration config) :  UnitMemoryBase(config.num_tms, 1)
 	{
 		_scene_start = config.scene_start;
 		_bucket_start = config.bucket_start;
+		_bucket_end = _bucket_start;
 
+		_num_channels = numDramChannels();
 		_num_tms = config.num_tms;
-		_bucket_size = config.bucket_size;
-		_segment_size = config.segment_size;
-		_ray_size = config.ray_size;
 	}
 
 	void clock_rise() override
 	{
-		//process_load_returns();
-		//process_requests();
+		accept_requests();
+		accept_returns();
 	}
 
 	void clock_fall() override
 	{
-		//forward_load_returns();
-		//update_streams();
+		update_streams();
+		issue_requests();
+		issue_returns();
 	}
 };
 

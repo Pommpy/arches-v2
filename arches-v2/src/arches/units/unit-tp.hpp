@@ -5,7 +5,7 @@
 #include "unit-base.hpp"
 #include "unit-memory-base.hpp"
 #include "unit-main-memory-base.hpp"
-#include "uint-atomic-reg-file.hpp"
+#include "unit-atomic-reg-file.hpp"
 
 #include "../isa/execution-base.hpp"
 #include "../isa/registers.hpp"
@@ -33,7 +33,7 @@ public:
 
 		uint port_size{16};
 
-		MemoryUnitMap mem_map{};
+		MemoryMap mem_map{};
 
 		UnitSFU**     sfu_table{nullptr};
 	};
@@ -78,7 +78,7 @@ private:
 	ISA::RISCV::Instruction _last_instr{0};
 	ISA::RISCV::InstructionInfo _last_instr_info;
 
-	MemoryUnitMap mem_map;
+	MemoryMap mem_map;
 
 	UnitSFU* _last_issue_sfu{nullptr};
 	UnitSFU** sfu_table;
@@ -99,7 +99,7 @@ public:
 	void clock_fall() override;
 
 private:
-	void _process_load_return(const MemoryRequest& return_item);
+	void _process_load_return(const MemoryReturn& ret);
 	uint8_t _check_dependancies(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info);
 	void _clear_register_pending(const ISA::RISCV::RegAddr& dst);
 	paddr_t _get_load_port_address(paddr_t paddr) { return paddr & _port_mask; };

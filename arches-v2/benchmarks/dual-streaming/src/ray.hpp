@@ -3,8 +3,6 @@
 
 #include "rtm.hpp"
 
-#define RAYS_PER_BUCKET 56
-
 struct Ray
 {
 	rtm::vec3 o;
