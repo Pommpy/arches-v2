@@ -119,7 +119,7 @@ public:
 				uint node_id = treelet_assignments[i][j];
 				BVHNode node = bvh.nodes[node_id];
 
-				TreeletNode& tnode = ((TreeletNode*)treelets[i]._words)[j];
+				TreeletNode& tnode = ((TreeletNode*)treelets[i].data)[j];
 				tnode.aabb = node.aabb;
 				tnode.is_leaf = node.is_leaf;
 
@@ -128,7 +128,7 @@ public:
 					tnode.last_tri_offset = node.lst_chld_ofst;
 					tnode.child_index = current_word;
 
-					TreeletTriangle* tris = (TreeletTriangle*)(&treelets[i]._words[current_word]);
+					TreeletTriangle* tris = (TreeletTriangle*)(&treelets[i].data[current_word * 4]);
 					for(uint k = 0; k <= node.lst_chld_ofst; ++k)
 					{
 						num_tris_assigned++;

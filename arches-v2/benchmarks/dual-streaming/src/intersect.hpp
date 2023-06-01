@@ -184,8 +184,8 @@ bool inline intersect_treelet(const Treelet& treelet, const Ray& ray, Hit& hit, 
 			else
 			{
 				TreeletNode nodes_local[2];
-				nodes_local[0] = ((TreeletNode*)&treelet._words[current_entry.child_index])[0];
-				nodes_local[1] = ((TreeletNode*)&treelet._words[current_entry.child_index])[1];
+				nodes_local[0] = ((TreeletNode*)&treelet.data[current_entry.child_index * 4])[0];
+				nodes_local[1] = ((TreeletNode*)&treelet.data[current_entry.child_index * 4])[1];
 
 				float hit_ts[2];
 				hit_ts[0] = intersect(nodes_local[0].aabb, ray, inv_d);
@@ -214,7 +214,7 @@ bool inline intersect_treelet(const Treelet& treelet, const Ray& ray, Hit& hit, 
 		}
 		else
 		{
-			TreeletTriangle* tris = (TreeletTriangle*)(&treelet._words[current_entry.child_index]);
+			TreeletTriangle* tris = (TreeletTriangle*)(&treelet.data[current_entry.child_index * 4]);
 			for(uint i = 0; i <= current_entry.last_tri_offset; ++i)
 			{
 				TreeletTriangle tri = tris[i];

@@ -77,6 +77,8 @@ public:
 			req.size = interface_width;
 			req.paddr = base_addr + num_requested * interface_width;
 			num_requested++;
+
+			return req;
 		}
 	};
 
