@@ -24,6 +24,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#define RTM_POW
 #endif
 
 #include <algorithm>
@@ -106,6 +108,23 @@ inline float u24_to_f32(uint32_t u)
 	return (u & (1 << 23)) ? 1.0 : as_f32(u | 0x3f800000) * 2.0f - 3.0f;
 }
 
+inline uint32_t f32_to_u16_rd(float f)
+{
+	f += 1.0f;
+	return f >= 2.0f ? 0x8000u : (((as_u32(f)        ) >> 8) & 0x7fffu);
+}
+
+inline uint32_t f32_to_u16_ru(float f)
+{
+	f += 1.0f;
+	return f >= 2.0f ? 0x8000u : (((as_u32(f) + 0xffu) >> 8) & 0x7fffu);
+}
+
+static float u16_to_f32(uint16_t u16)
+{
+	return u16 & 0x8000u ? 1.0f : as_f32(((uint32_t)u16 << 8) | 0x3f800000u) - 1.0f;
+}
+
 inline void __ebreak()
 {
 	#ifdef ARCH_RISCV
@@ -115,4 +134,15 @@ inline void __ebreak()
 	);
 	#endif
 	return;
+}
+
+//copy data 8 bytes at a time
+template <typename T>
+inline void move_to_stack(T& dst, const T& src)
+{
+	for(uint i = 0; i < sizeof(T) / sizeof(uint64_t); ++i)
+	{
+		uint64_t r = ((uint64_t*)&src)[i];
+		((uint64_t*)&dst)[i] = r;
+	}
 }

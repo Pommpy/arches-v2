@@ -12,11 +12,20 @@
 
 struct MeshPointers
 {
-	BVH::Node* blas;
 	rtm::uvec3* vertex_indices;
 	rtm::vec3* vertices;
 };
 
+static AABB decompress(const AABB16& aabb16)
+{
+	AABB aabb;
+	for(uint i = 0; i < 3; ++i)
+	{
+		aabb.min[i] = u16_to_f32(aabb16.min[i]) * 2.0f - 1.0f;
+		aabb.max[i] = u16_to_f32(aabb16.max[i]) * 2.0f - 1.0f;
+	}
+	return aabb;
+}
 
 inline static BVH::Node _load_node(BVH::Node* node_ptr)
 {
@@ -164,68 +173,122 @@ inline bool intersect(const Triangle tri, const Ray& ray, Hit& hit)
 #endif
 }
 
-inline bool intersect(const MeshPointers mesh, const Ray& ray, Hit& hit)
+template<typename T>
+void insert(const T& entry, T* stack, uint stack_size, uint min = 0)
 {
-	rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
+	uint32_t j = stack_size;
+	for(; j != min; --j)
+	{
+		if(stack[j - 1].t >= entry.t) break;
+		stack[j] = stack[j - 1];
+	}
+	stack[j] = entry;
+}
 
+inline bool intersect(uint face_index, const MeshPointers& mesh, const Ray& ray, Hit& hit)
+{
+	const rtm::uvec3 vi = mesh.vertex_indices[face_index];
+	const Triangle tri(mesh.vertices[vi[0]], mesh.vertices[vi[1]], mesh.vertices[vi[2]]);
+	if(intersect(tri, ray, hit))
+	{
+		hit.id = face_index;
+		return true;
+	}
+	return false;
+}
+
+template<typename T>
+inline bool intersect(const BVH::Node* blas, const T& mesh, const Ray& ray, Hit& hit)
+{
 	struct NodeStackEntry
 	{
-		union
-		{
-			struct
-			{
-				float t;
-				BVH::NodeData data;
-			};
-			uint64_t _u64;
-		};
-	};
+		float t;
+		BVH::NodeData data;
+	} 
+	node_stack[3 * 32];
 
-	NodeStackEntry node_stack[96];
+	rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
+
+	BVH::Node root_node;
+	move_to_stack(root_node, blas[0]);
+
 	uint32_t node_stack_size = 1u;
-	node_stack[0].t = intersect(mesh.blas[0].aabb, ray, inv_d);
-	node_stack[0].data = mesh.blas[0].data;
+	node_stack[0].t = intersect(root_node.aabb, ray, inv_d);
+	node_stack[0].data = root_node.data;
 
 	bool found_hit = false;
 	do
 	{
-		NodeStackEntry current_entry = node_stack[--node_stack_size];
+		const NodeStackEntry current_entry = node_stack[--node_stack_size];
 		if(current_entry.t >= hit.t) return found_hit;
 
 		if(!current_entry.data.is_leaf)
 		{
 			for(uint32_t i = 0; i <= current_entry.data.lst_chld_ofst; ++i)
 			{
-				uint node_index = current_entry.data.fst_chld_ind + i;
-				float t = intersect(mesh.blas[node_index].aabb, ray, inv_d);
-				if(t < hit.t)
-				{
-					uint32_t j = node_stack_size++;
-					for(; j != 0; --j)
-					{
-						if(node_stack[j - 1].t >= t) break;
-						node_stack[j]._u64 = node_stack[j - 1]._u64;
-					}
+				BVH::Node node;
+				move_to_stack(node, blas[current_entry.data.fst_chld_ind + i]);
 
-					node_stack[j].t = t;
-					node_stack[j].data = mesh.blas[node_index].data;
-				}
+				NodeStackEntry new_entry;
+				new_entry.t = intersect(node.aabb, ray, inv_d);
+				new_entry.data = node.data;
+
+				if(new_entry.t < hit.t) insert(new_entry, node_stack, node_stack_size++);
 			}
 		}
 		else
 		{
 			for(uint32_t i = 0; i <= current_entry.data.lst_chld_ofst; ++i)
+				found_hit |= intersect(current_entry.data.fst_chld_ind + i, mesh, ray, hit);
+		}
+	}
+	while(node_stack_size);
+	return found_hit;
+}
+
+template<typename T>
+inline bool intersect(const BVH::CompressedNode4* blas, const T& mesh, const Ray& ray, Hit& hit)
+{
+	struct NodeStackEntry
+	{
+		float t;
+		BVH::NodeData data;
+	} 
+	node_stack[3 * 32];
+
+	rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
+
+	uint32_t node_stack_size = 1u;
+	node_stack[0].t = ray.t_min;
+	node_stack[0].data.is_leaf = false;
+	node_stack[0].data.fst_chld_ind = 0;
+	node_stack[0].data.lst_chld_ofst = 3;
+
+	bool found_hit = false;
+	do
+	{
+		const NodeStackEntry current_entry = node_stack[--node_stack_size];
+		if(current_entry.t >= hit.t) return found_hit;
+
+		if(!current_entry.data.is_leaf)
+		{
+			BVH::CompressedNode4 node4; 
+			move_to_stack(node4, blas[current_entry.data.fst_chld_ind]);
+
+			for(uint32_t i = 0; i <= current_entry.data.lst_chld_ofst; ++i)
 			{
-				uint32_t id = current_entry.data.fst_chld_ind + i;
-				rtm::uvec3 vi = mesh.vertex_indices[id];
-				if(intersect(Triangle(mesh.vertices[vi[0]], mesh.vertices[vi[1]], mesh.vertices[vi[2]]), ray, hit))
-				{
-					hit.id = id;
-					found_hit = true;
-				}
+				NodeStackEntry new_entry;
+				new_entry.t = intersect(decompress(node4.nodes[i].aabb), ray, inv_d);
+				new_entry.data = node4.nodes[i].data;
+				if(new_entry.t < hit.t) insert(new_entry, node_stack, node_stack_size++);
 			}
 		}
-	} while(node_stack_size);
-
+		else
+		{
+			for(uint32_t i = 0; i <= current_entry.data.lst_chld_ofst; ++i)
+				found_hit |= intersect(current_entry.data.fst_chld_ind + i, mesh, ray, hit);
+		}
+	}
+	while(node_stack_size);
 	return found_hit;
 }

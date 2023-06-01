@@ -7,7 +7,7 @@
 class TesselationTree1
 {
 public:
-	struct Header
+	struct alignas(32) Header
 	{
 		rtm::uvec3 vi;
 		float max_db;
@@ -18,7 +18,7 @@ public:
 		uint _pad;
 	};
 
-	struct Node
+	struct alignas(32) Node
 	{
 		AABB     aabb;
 		uint32_t dbs;
@@ -72,9 +72,17 @@ public:
 
 struct TesselationTree1Pointers
 {
-	BVH::Node* blas;
 	TesselationTree1::Header* headers;
 	TesselationTree1::Node* nodes;
 	glm::vec3* vertices;
 	CompactTri* triangles;
+};
+
+
+struct TesselationTree1SecondaryRayData
+{
+	const TesselationTree1Pointers& tes_tree;
+	const Ray& last_ray;
+	uint last_patch_index;
+	TesselationTree1SecondaryRayData(const TesselationTree1Pointers& tes_tree, uint last_patch_index, const Ray& last_ray) : tes_tree(tes_tree), last_ray(last_ray), last_patch_index(last_patch_index) {}
 };

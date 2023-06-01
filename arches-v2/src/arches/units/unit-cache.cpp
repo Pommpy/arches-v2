@@ -16,7 +16,8 @@ UnitCache::UnitCache(Configuration config) :
 	_banks.resize(config.num_banks, {config.num_lfb});
 
 	_associativity = config.associativity;
-	_penalty = config.penalty;
+	_data_array_access_cycles = config.data_array_access_cycles;
+	_tag_array_access_cycles = config.tag_array_access_cycles;
 
 	uint num_sets = config.size / (CACHE_BLOCK_SIZE * config.associativity);
 
@@ -33,9 +34,9 @@ UnitCache::UnitCache(Configuration config) :
 	_set_index_offset = offset_bits;
 	_tag_offset = offset_bits + set_index_bits;
 	_bank_index_offset = log2i(CACHE_BLOCK_SIZE); //line stride for now
-	_port_width = _configuration.port_size;
+	_chunk_width = _configuration.port_size;
 
-	_pwords_per_block = CACHE_BLOCK_SIZE / _port_width;
+	_chunks_per_block = CACHE_BLOCK_SIZE / _chunk_width;
 }
 
 UnitCache::~UnitCache()
@@ -96,7 +97,6 @@ uint UnitCache::_fetch_or_allocate_lfb(uint bank_index, uint64_t block_addr, _LF
 	uint lfb_index = _fetch_lfb(bank_index, lfb);
 	if(lfb_index != ~0) return lfb_index;
 	return _allocate_lfb(bank_index, lfb);
-
 }
 
 //update lru and returns data pointer to cache line
@@ -233,19 +233,20 @@ void UnitCache::_proccess_requests(uint bank_index)
 		uint lfb_index = _fetch_or_allocate_lfb(bank_index, block_addr, _LFB::Type::READ);
 		if(lfb_index != ~0)
 		{
-			assert(request->size == _port_width);
+			assert(request->size == _chunk_width);
 
 			//merge identical requests
 			uint64_t request_mask = interconnect.merge_requests(*request);
 			interconnect.acknowlege_requests(bank_index, request_mask);
 
-			uint pword_index = block_offset / _port_width;
+			uint pword_index = block_offset / _chunk_width;
 			_LFB& lfb = bank.lfbs[lfb_index];
 			lfb.returned = false; //since we are adding new
-			lfb.pword_request_masks[pword_index] |= request_mask;
+			lfb.chunk_request_masks[pword_index] |= request_mask;
 
-			if(lfb.state == _LFB::State::MISSED || lfb.state == _LFB::State::ISSUED) log.log_half_miss(__popcnt64(request_mask));
-			if(lfb.state == _LFB::State::FILLED) log.log_hit(__popcnt64(request_mask));
+			log.log_requests(popcnt(request_mask));
+			if(lfb.state == _LFB::State::FILLED) log.log_lfb_hit(popcnt(request_mask));
+			if(lfb.state == _LFB::State::MISSED || lfb.state == _LFB::State::ISSUED) log.log_half_miss(popcnt(request_mask));
 		}
 		else log.log_lfb_stall();
 	}
@@ -335,12 +336,12 @@ void UnitCache::_update_bank(uint bank_index)
 		if(index != ~0)
 		{
 			bank.lfb_accessing_cache = index;
-			bank.cycles_remaining = _penalty;
+			bank.cycles_remaining = _tag_array_access_cycles;
 		}
 	}
 	if(bank.cycles_remaining == 0) return; //no valid lfb selected
 
-	if(--bank.cycles_remaining != 0) return; //request still accessing tag array
+	if(--bank.cycles_remaining != 0) return; //request still accessing tag array or data array
 
 	_LFB& lfb = bank.lfbs[bank.lfb_accessing_cache];
 	if(lfb.state == _LFB::State::EMPTY)
@@ -355,13 +356,13 @@ void UnitCache::_update_bank(uint bank_index)
 			lfb.state = _LFB::State::FILLED;
 			lfb.commited = true;
 
-			for(uint i = 0; i < _pwords_per_block; ++i) log.log_hit(__popcnt64(lfb.pword_request_masks[i]));
+			for(uint i = 0; i < _chunks_per_block; ++i) log.log_hit(popcnt(lfb.chunk_request_masks[i]));
 		}
 		else
 		{
 			lfb.state = _LFB::State::MISSED;
 
-			for(uint i = 0; i < _pwords_per_block; ++i) log.log_miss(__popcnt64(lfb.pword_request_masks[i]));
+			for(uint i = 0; i < _chunks_per_block; ++i) log.log_miss(popcnt(lfb.chunk_request_masks[i]));
 		}
 	}
 	else if(lfb.state == _LFB::State::FILLED)
@@ -414,13 +415,13 @@ void UnitCache::_try_return_lfb(uint bank_index)
 
 		//Check if this was the last word. If so mark the lfb as returned
 		uint i = 0;
-		for(i = 0; i < _pwords_per_block; ++i)
-			if(lfb.pword_request_masks[i]) break;
-		if(i >= _pwords_per_block) lfb.returned = true;
+		for(i = 0; i < _chunks_per_block; ++i)
+			if(lfb.chunk_request_masks[i]) break;
+		if(i >= _chunks_per_block) lfb.returned = true;
 
 		//clear the lfb so we can select a new one
 		bank.outgoing_return_lfb = ~0u;
-		bank.outgoing_return_pword_index = 0;
+		bank.outgoing_return_chunk_index = 0;
 	}
 
 	//try to select a new lfb
@@ -443,20 +444,26 @@ void UnitCache::_try_return_lfb(uint bank_index)
 	{
 		_LFB& lfb = bank.lfbs[bank.outgoing_return_lfb];
 
-		//select lowest pending pword 
-		for(bank.outgoing_return_pword_index = 0; bank.outgoing_return_pword_index < _pwords_per_block; ++bank.outgoing_return_pword_index)
-			if(lfb.pword_request_masks[bank.outgoing_return_pword_index]) break;
+		//select the chunk with most requests
+		uint max_requests = 0;
+		bank.outgoing_return_chunk_index = 0;
+		for(uint i = 0; i < _chunks_per_block; ++i)
+			if(popcnt(lfb.chunk_request_masks[i]) > max_requests)
+			{
+				max_requests = popcnt(lfb.chunk_request_masks[i]);
+				bank.outgoing_return_chunk_index = i;
+			}
 
 		//copy return to interconnect
 		MemoryReturn ret;
-		uint offset = bank.outgoing_return_pword_index * _port_width;
+		uint offset = bank.outgoing_return_chunk_index * _chunk_width;
 		ret.type = MemoryReturn::Type::LOAD_RETURN;
-		ret.size = _port_width;
+		ret.size = _chunk_width;
 		ret.paddr = lfb.block_addr + offset;
 		ret.data = &lfb.block_data.bytes[offset];
 
-		interconnect.add_returns(ret, bank_index, lfb.pword_request_masks[bank.outgoing_return_pword_index]);
-		lfb.pword_request_masks[bank.outgoing_return_pword_index] = 0x0ull;//request are in route so we can clear them
+		interconnect.add_returns(ret, bank_index, lfb.chunk_request_masks[bank.outgoing_return_chunk_index]);
+		lfb.chunk_request_masks[bank.outgoing_return_chunk_index] = 0x0ull;//request are in route so we can clear them
 		return;
 	}
 }
@@ -492,12 +499,14 @@ void UnitCache::_interconnects_fall()
 			else if(lfb.type == _LFB::Type::WRITE_COMBINING)
 			{
 				uint8_t offset, size;
-				lfb.get_next(offset, size);
-				outgoing_request.size = size;
-				outgoing_request.paddr = lfb.block_addr + offset;
-				outgoing_request.data = &lfb.block_data.bytes[offset];
-				outgoing_request.type = MemoryRequest::Type::STORE;
-				bank.outgoing_request_byte_mask = generate_nbit_mask(size) << offset;
+				if(lfb.get_next(offset, size))
+				{
+					outgoing_request.size = size;
+					outgoing_request.paddr = lfb.block_addr + offset;
+					outgoing_request.data = &lfb.block_data.bytes[offset];
+					outgoing_request.type = MemoryRequest::Type::STORE;
+					bank.outgoing_request_byte_mask = generate_nbit_mask(size) << offset;
+				}
 				//todo if our transfer is pending and we have new data in the bufffer we should update it
 			}
 

@@ -269,7 +269,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	l2_config.associativity = 1;
 	l2_config.num_banks = 32;
 	l2_config.num_ports = num_tms;
-	l2_config.penalty = 3;
+	l2_config.data_array_access_cycles = 3;
 	l2_config.num_lfb = 4;
 
 	l2_config.mem_map.add_unit(0x0ull, &mm, 0, 1);
@@ -289,7 +289,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 		l1_config.associativity = 1;
 		l1_config.num_banks = 8;
 		l1_config.num_ports = num_tps_per_tm;
-		l1_config.penalty = 1;
+		l1_config.data_array_access_cycles = 1;
 		l1_config.num_lfb = 4;
 
 		l1_config.mem_map.add_unit(dsmm_null_address, &l2, tm_index, 1);

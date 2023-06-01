@@ -61,7 +61,7 @@ public:
 
 			case MemoryRequest::Type::AMO_ADD:
 				iregs[reg_index] += request_data;
-				printf("Threads Launched: %d\n", return_reg);
+				if(return_reg % 1024 == 0) printf("Tiles Launched: %d\n", return_reg);
 				break;
 
 			case MemoryRequest::Type::AMO_AND:

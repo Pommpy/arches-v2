@@ -2,9 +2,9 @@
 #include "stdafx.hpp"
 
 #include "intersect-tt.hpp"
-#include "tesselation-tree1.hpp"
+#include "tesselation-tree4.hpp"
 
-inline static bool intersect(const uint32_t patch_index, const TesselationTree1Pointers& tes_tree, const Ray& ray, Hit& hit)
+inline static bool intersect( const uint32_t patch_index, const TesselationTree4Pointers& tes_tree, const Ray& ray, Hit& hit)
 {
 	struct NodeStackEntry
 	{
@@ -16,7 +16,7 @@ inline static bool intersect(const uint32_t patch_index, const TesselationTree1P
 			uint32_t tri_type : 2;
 		};
 		uint32_t dbs;
-	} 
+	}
 	node_stack[3 * 8];
 
 	struct TriangleStackEntry
@@ -27,36 +27,33 @@ inline static bool intersect(const uint32_t patch_index, const TesselationTree1P
 	}
 	tri_stack[8];
 
-	TesselationTree1::Header header;
+	TesselationTree4::Header header;
 	move_to_stack(header, tes_tree.headers[patch_index]);
 
 	glm::vec3 inv_d = glm::vec3(1.0f) / ray.d;
 	float max_db_over_max_error = header.max_db * ray.rcp_max_error;
-	const TesselationTree1::Node* nodes = &tes_tree.nodes[header.root_node_offset];
-	const CompactTri* triangles = &tes_tree.triangles[header.root_node_offset];
-
-	TesselationTree1::Node root_node;
-	move_to_stack(root_node, nodes[0]);
+	const TesselationTree4::CompressedNode4* nodes = &tes_tree.nodes[header.root_node_offset];
+	const CompactTri* triangles = &tes_tree.triangles[header.root_tri_offset];
 
 	uint32_t node_stack_size = 1u;
-	node_stack[0].t = intersect(root_node.aabb, ray, inv_d);
+	node_stack[0].t = intersect(decompress(header.node.aabb), ray, inv_d);
 	node_stack[0].node_index = 0;
 	node_stack[0].lod = 0;
 	node_stack[0].tri_type = 0;
-	node_stack[0].dbs = root_node.dbs;
+	node_stack[0].dbs = header.node.dbs;
 
 	uint32_t hit_lod = ~0u;
 	do
 	{
-		const NodeStackEntry current_entry = node_stack[--node_stack_size];
-		if(current_entry.t >= hit.t) continue;
+		const NodeStackEntry current_node_entry = node_stack[--node_stack_size];
+		if(current_node_entry.t >= hit.t) continue;
 
-		uint32_t dbs = current_entry.dbs;
-		uint32_t node_index = current_entry.node_index;
-		uint32_t lod = current_entry.lod;
-		uint32_t tri_type = current_entry.tri_type;
+		uint32_t dbs = current_node_entry.dbs;
+		uint32_t node_index = current_node_entry.node_index;
+		uint32_t lod = current_node_entry.lod;
+		uint32_t tri_type = current_node_entry.tri_type;
 
-		if(lod == 0) tri_stack[lod].tri = Triangle(tes_tree.vertices[header.vi[0]], tes_tree.vertices[header.vi[1]], tes_tree.vertices[header.vi[2]]);
+		if(lod == 0) tri_stack[lod].tri = decompact(header.tri);
 		else         tri_stack[lod].tri = reconstruct_triangle(tri_stack[lod - 1u].tri, tri_stack[lod - 1u].new_center_tri, tri_type);
 
 		//determine if triangle needs subdivision. Probably should use hardware
@@ -75,15 +72,15 @@ inline static bool intersect(const uint32_t patch_index, const TesselationTree1P
 
 		//load the center triangle in the 4 triangles that subdivide the current triangle. This can be used along with the parent to recontruct the other 3 children effectivley reducing memory trafic (I think).		
 		uint32_t absoulte_node_index = lod_node_offset[lod] + node_index;
-		CompactTri new_tri;
+		CompactTri new_tri; 
 		move_to_stack(new_tri, triangles[absoulte_node_index]);
 		tri_stack[lod].new_center_tri = get_transformed_triangle(tri_stack[lod].tri, decompact(new_tri), edge_states);
 
 		//if the next LOD is the leaf intersect othewise push the child nodes onto the stack
 		uint32_t next_level = lod + 1;
-		uint32_t first_child_index = node_index << 2; //compute first child idnex
+		uint32_t first_child_index = node_index << 2; //compute first child index
 		
-		if((next_level) == header.last_lod) //leaf node
+		if(next_level == header.last_lod) //leaf node
 		{
 			for(uint32_t i = 0; i < 4; ++i)
 			{
@@ -99,28 +96,25 @@ inline static bool intersect(const uint32_t patch_index, const TesselationTree1P
 			tri_stack[lod].child_transformed = (edge_states[0] < 1.0f) || (edge_states[1] < 1.0f) || (edge_states[2] < 1.0f) || ((lod != 0) && tri_stack[lod - 1].child_transformed);
 
 			uint32_t temp_node_stack_size = node_stack_size;
-			uint32_t absolute_first_child_index = lod_node_offset[next_level] + first_child_index;
+			TesselationTree4::CompressedNode4 node4;
+			move_to_stack(node4, nodes[absoulte_node_index]);
+			
 			for(uint32_t i = 0; i < 4; ++i)
 			{
-				TesselationTree1::Node node;
-				move_to_stack(node, nodes[absolute_first_child_index + i]);
+				AABB aabb = decompress(node4.nodes[i].aabb);
 				if(tri_stack[lod].child_transformed)
 				{
 					Triangle tri = reconstruct_triangle(tri_stack[lod].tri, tri_stack[lod].new_center_tri, i);
-					for(uint32_t j = 0; j < 3; ++j)
-					{
-						node.aabb.min = glm::min(node.aabb.min, tri.vrts[j]);
-						node.aabb.max = glm::max(node.aabb.max, tri.vrts[j]);
-					}
+					aabb.add(tri.aabb());
 				}
 
-				NodeStackEntry new_entry;
-				new_entry.t = intersect(node.aabb, ray, inv_d);
-				new_entry.node_index = first_child_index + i;
-				new_entry.lod = next_level;
-				new_entry.tri_type = i;
-				new_entry.dbs = node.dbs;
-				if(new_entry.t < hit.t) insert(new_entry, node_stack, node_stack_size++, temp_node_stack_size);
+				NodeStackEntry entry;
+				entry.t = intersect(aabb, ray, inv_d);
+				entry.node_index = first_child_index + i;
+				entry.lod = next_level;
+				entry.tri_type = i;
+				entry.dbs = node4.nodes[i].dbs;
+				if(entry.t < hit.t) insert(entry, node_stack, node_stack_size++, temp_node_stack_size);
 			}
 		}
 	} while(node_stack_size);
@@ -129,7 +123,7 @@ inline static bool intersect(const uint32_t patch_index, const TesselationTree1P
 	if(hit_lod != ~0u)
 	{
 	#if 0
-		for(uint32_t i = hit_lod; i < header.last_lod; ++i)
+		for(uint32_t i = hit_lod; i < lli; ++i)
 		{
 			uint32_t tri_type;
 			hit.bc *= glm::vec2(2.0f);
@@ -166,14 +160,9 @@ inline static bool intersect(const uint32_t patch_index, const TesselationTree1P
 
 
 
-
-
-
-
-
 ///////////////////////////////////secondary\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-inline bool intersect(const uint32_t patch_index, const TesselationTree1SecondaryRayData& data, const Ray& ray, Hit& hit)
+inline bool intersect(const uint32_t patch_index, const TesselationTree4SecondaryRayData& data, const Ray& ray, Hit& hit)
 {
 	struct NodeStackEntry
 	{
@@ -197,23 +186,23 @@ inline bool intersect(const uint32_t patch_index, const TesselationTree1Secondar
 	}
 	tri_stack[8];
 
-	TesselationTree1::Header header;
+	TesselationTree4::Header header;
 	move_to_stack(header, data.tes_tree.headers[patch_index]);
 
 	glm::vec3 inv_d = glm::vec3(1.0f) / ray.d;
 	float max_db_over_max_error = header.max_db * ray.rcp_max_error;
-	const TesselationTree1::Node* nodes = &data.tes_tree.nodes[header.root_node_offset];
-	const CompactTri* triangles = &data.tes_tree.triangles[header.root_node_offset];
+	const TesselationTree4::CompressedNode4* nodes = &data.tes_tree.nodes[header.root_node_offset];
+	const CompactTri* triangles = &data.tes_tree.triangles[header.root_tri_offset];
 
 	uint32_t node_stack_size = 1u;
-	node_stack[0].t = intersect(nodes[0].aabb, ray, inv_d);
-	node_stack[0].dbs = nodes[0].dbs;
+	node_stack[0].t = intersect(decompress(header.node.aabb), ray, inv_d);
+	node_stack[0].dbs = header.node.dbs;
 	node_stack[0].node_index = 0;
 	node_stack[0].lod = 0;
 	node_stack[0].tri_type = 0;
 
 	glm::uvec3 previous_patch_indices(0);
-	if(data.last_patch_index != ~0) previous_patch_indices  = data.tes_tree.headers[data.last_patch_index].vi;
+	if(data.last_patch_index != ~0) previous_patch_indices  = data.tes_tree.vertex_indices[data.last_patch_index];
 
 	uint32_t hit_lod = ~0u;
 	do
@@ -228,8 +217,8 @@ inline bool intersect(const uint32_t patch_index, const TesselationTree1Secondar
 
 		if(lod == 0)
 		{
-			tri_stack[lod].tri = Triangle(data.tes_tree.vertices[header.vi[0]], data.tes_tree.vertices[header.vi[1]], data.tes_tree.vertices[header.vi[2]]);
-			if(data.last_patch_index != ~0) tri_stack[0].shared_edge = find_shared_edge(header.vi, previous_patch_indices);
+			tri_stack[lod].tri = decompact(header.tri);
+			if(data.last_patch_index != ~0) tri_stack[0].shared_edge = find_shared_edge(data.tes_tree.vertex_indices[patch_index], previous_patch_indices);
 			else                            tri_stack[0].shared_edge = 3;
 		}
 		else
@@ -281,29 +270,25 @@ inline bool intersect(const uint32_t patch_index, const TesselationTree1Secondar
 			tri_stack[lod].child_transformed = (edge_states[0] < 1.0f) || (edge_states[1] < 1.0f) || (edge_states[2] < 1.0f) || ((lod != 0) && tri_stack[lod - 1].child_transformed);
 
 			uint32_t temp_node_stack_size = node_stack_size;
-			uint32_t absolute_first_child_index = lod_node_offset[next_level] + first_child_index;
+			TesselationTree4::CompressedNode4 node4;
+			move_to_stack(node4, nodes[absoulte_node_index]);
+			
 			for(uint32_t i = 0; i < 4; ++i)
 			{
-				TesselationTree1::Node node;
-				move_to_stack(node, nodes[absolute_first_child_index + i]);
-
+				AABB aabb = decompress(node4.nodes[i].aabb);
 				if(tri_stack[lod].child_transformed)
 				{
 					Triangle tri = reconstruct_triangle(tri_stack[lod].tri, tri_stack[lod].new_center_tri, i);
-					for(uint32_t j = 0; j < 3; ++j)
-					{
-						node.aabb.min = glm::min(node.aabb.min, tri.vrts[j]);
-						node.aabb.max = glm::max(node.aabb.max, tri.vrts[j]);
-					}
+					aabb.add(tri.aabb());
 				}
 
-				NodeStackEntry new_entry;
-				new_entry.t = intersect(node.aabb, ray, inv_d);
-				new_entry.node_index = first_child_index + i;
-				new_entry.lod = next_level;
-				new_entry.tri_type = i;
-				new_entry.dbs = node.dbs;
-				if(new_entry.t < hit.t) insert(new_entry, node_stack, node_stack_size++, temp_node_stack_size);
+				NodeStackEntry entry;
+				entry.t = intersect(aabb, ray, inv_d);
+				entry.node_index = first_child_index + i;
+				entry.lod = next_level;
+				entry.tri_type = i;
+				entry.dbs = node4.nodes[i].dbs;
+				if(entry.t < hit.t) insert(entry, node_stack, node_stack_size++, temp_node_stack_size);
 			}
 		}
 	} while(node_stack_size);

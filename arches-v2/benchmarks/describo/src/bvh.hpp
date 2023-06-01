@@ -19,23 +19,94 @@ struct BuildObject
 class BVH
 {
 public:
-	struct NodeData
+	union NodeData
 	{
-		uint32_t is_leaf : 1;
-		uint32_t lst_chld_ofst : 3;
-		uint32_t fst_chld_ind : 28;
+		struct
+		{
+			uint32_t is_leaf : 1;
+			uint32_t lst_chld_ofst : 3;
+			uint32_t fst_chld_ind : 28;
+		};
+		uint32_t _u32;
 	};
 
-	struct Node
+	struct alignas(32) Node
 	{
 		AABB     aabb;
 		NodeData data;
 		uint32_t _pad;
 	};
 
+	struct alignas(16) CompressedNode
+	{
+		AABB16 aabb;
+		NodeData data;
+	};
+
+	struct alignas(64) CompressedNode4
+	{
+		CompressedNode nodes[4];
+	};
+
 #ifdef ARCH_X86
 	float cost{1.0f};
 	std::vector<Node> nodes;
+
+	void compress_and_pack(std::vector<CompressedNode4>& packed_nodes)
+	{
+		size_t num_packed_nodes = 0;
+		struct NodeSet
+		{
+			BVH::NodeData data;
+			uint32_t      index;
+
+			NodeSet() = default;
+			NodeSet(BVH::NodeData data, uint32_t index) : data(data), index(index) {};
+		};
+
+		packed_nodes.clear();
+
+		std::vector<NodeSet> stack; stack.reserve(96);
+		stack.emplace_back(nodes[0].data, 0);
+		packed_nodes.emplace_back();
+
+		while(!stack.empty())
+		{
+			NodeSet current_set = stack.back();
+			stack.pop_back();
+
+			for(uint i = 0; i < 4; ++i)
+			{
+				CompressedNode4& current_packed_node = packed_nodes[current_set.index];
+				current_packed_node.nodes[i].aabb.min[0] = 0.0f;
+				current_packed_node.nodes[i].aabb.max[0] = 0.0f;
+				current_packed_node.nodes[i].aabb.min[1] = 0.0f;
+				current_packed_node.nodes[i].aabb.max[1] = 0.0f;
+				current_packed_node.nodes[i].aabb.min[2] = 0.0f;
+				current_packed_node.nodes[i].aabb.max[2] = 0.0f;
+				current_packed_node.nodes[i].data.fst_chld_ind = 0u;
+				current_packed_node.nodes[i].data.lst_chld_ofst = 0u;
+				current_packed_node.nodes[i].data.is_leaf = 1;
+			}
+
+			for(uint i = 0; i <= current_set.data.lst_chld_ofst; ++i)
+			{
+				uint index = current_set.data.fst_chld_ind + i;
+				BVH::Node node = nodes[index];
+
+				CompressedNode4& current_packed_node = packed_nodes[current_set.index];
+				current_packed_node.nodes[i].aabb = AABB16(node.aabb);
+				current_packed_node.nodes[i].data = node.data;
+
+				if(!node.data.is_leaf)
+				{
+					stack.emplace_back(node.data, packed_nodes.size());
+					current_packed_node.nodes[i].data.fst_chld_ind = packed_nodes.size();
+					packed_nodes.emplace_back();
+				}
+			}
+		}
+	}
 
 private:
 	class _BuildObjectComparatorSpacial
@@ -125,7 +196,7 @@ private:
 public:
 	void build(std::vector<BuildObject>& build_objects, uint splits = 2)
 	{
-		printf("BVH%d Building\n", 1 << splits);
+		printf("BVH%d Building\r", 1 << splits);
 		nodes.clear();
 
 		std::vector<_BuildEvent> event_stack;
@@ -223,7 +294,7 @@ public:
 		}
 		cost = costs[0];
 
-		printf("BVH%d Built: %.2f\n", 1 << splits, cost);
+		printf("BVH%d Built: %.2f \n", 1 << splits, cost);
 	}
 #endif
 };

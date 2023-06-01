@@ -4,8 +4,8 @@
 
 #include "arches/units/unit-dram.hpp"
 #include "arches/units/unit-cache.hpp"
-#include "arches/units/uint-atomic-reg-file.hpp"
-#include "arches/units/uint-tile-scheduler.hpp"
+#include "arches/units/unit-atomic-reg-file.hpp"
+#include "arches/units/unit-tile-scheduler.hpp"
 
 #include "arches/units/unit-sfu.hpp"
 #include "arches/units/unit-tp.hpp"
@@ -100,11 +100,6 @@ namespace ISA { namespace RISCV { namespace DTRaX {
 
 }}}
 
-static paddr_t align_to(size_t alignment, paddr_t paddr)
-{
-	return (paddr + alignment - 1) & ~(alignment - 1);
-}
-
 template <typename RET>
 static RET* write_array(Units::UnitMainMemoryBase* main_memory, size_t alignment, RET* data, size_t size, paddr_t& heap_address)
 {
@@ -120,7 +115,9 @@ static RET* write_vector(Units::UnitMainMemoryBase* main_memory, size_t alignmen
 	return write_array(main_memory, alignment, v.data(), v.size(), heap_address);
 }
 
-static GlobalData initilize_buffers(std::string exe_path, std::string mesh_path, rtm::vec3 camera_pos, Units::UnitMainMemoryBase* main_memory, paddr_t& heap_address)
+#define ARRAY_ALIGNMENT 64
+
+static GlobalData initilize_buffers(uint config, std::string mesh_path, rtm::vec3 camera_pos, uint camera_index, Units::UnitMainMemoryBase* main_memory, paddr_t& heap_address)
 {
 	GlobalData global_data;
 	global_data.framebuffer_width = 1024;
@@ -130,96 +127,75 @@ static GlobalData initilize_buffers(std::string exe_path, std::string mesh_path,
 	heap_address = align_to(8 * 1024, heap_address);
 	global_data.framebuffer = reinterpret_cast<uint32_t*>(heap_address); heap_address += global_data.framebuffer_size * sizeof(uint32_t);
 
+	//camera_pos *= (1 << camera_index);
 	Camera camera(global_data.framebuffer_width, global_data.framebuffer_height, 35.0f, camera_pos);
 	//Camera camera(global_data.framebuffer_width, global_data.framebuffer_height, 35.0f, rtm::vec3(0.0f, 0.0f, 6.0f));
 	global_data.camera = camera;
+	global_data.bounces = camera_index;
 
 	Mesh mesh(mesh_path + ".obj");
-	if(exe_path.back() == '1')
-	{
-		TesselationTree1 tt(mesh_path + ".tt1");
+	TesselationTree1 tt1(mesh_path + ".tt1");
+	TesselationTree4 tt4(mesh_path + ".tt4");
 
+	global_data.config = config;
+	printf("Configuration: %d\n", config);
+
+	if(config == 0) //BVHC
+	{
 		BVH blas;
 		std::vector<BuildObject> build_objects;
-		for(uint i = 0; i < tt.size(); ++i)
-			build_objects.push_back(tt.get_build_object(i));
+		for(uint i = 0; i < mesh.size(); ++i)
+			build_objects.push_back(mesh.get_build_object(i));
 		blas.build(build_objects);
-		tt.reorder(build_objects);
+		mesh.reorder(build_objects);
 
-		printf("Headers: %lld\n", tt.headers.size());
-		printf("Vertices: %lld\n", tt.vertices.size());
-		printf("Triangles: %lld\n", tt.triangles.size());
-		printf("Nodes: %lld\n", tt.nodes.size() + blas.nodes.size());
-		printf("Total Size: %lld bytes\n",
-			tt.vertices.size() * sizeof(rtm::vec3) +
-			tt.headers.size() * sizeof(TesselationTree1::Header) +
-			tt.nodes.size() * sizeof(TesselationTree1::Node) +
-			tt.triangles.size() * sizeof(CompactTri) +
-			blas.nodes.size() * sizeof(BVH::Node)
+		std::vector<BVH::CompressedNode4> cblas;
+		blas.compress_and_pack(cblas);
+
+		printf("Vertices: %lld\n", mesh.vertices.size());
+		printf("Faces: %lld\n", mesh.vertex_indices.size());
+		printf("Nodes: %lld\n", cblas.size());
+		printf("Total Size: %.2f MB\n",
+			(mesh.vertices.size() * sizeof(rtm::vec3) +
+			mesh.vertex_indices.size() * sizeof(rtm::uvec3) +
+			cblas.size() * sizeof(BVH::CompressedNode4)) /
+			(1.0f * 1024 * 1024)
 		);
 
-		global_data.tt1.blas = write_vector(main_memory, CACHE_BLOCK_SIZE, blas.nodes, heap_address);
-		global_data.tt1.headers = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.headers, heap_address);
-		global_data.tt1.nodes = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.nodes, heap_address);
-		global_data.tt1.vertices = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.vertices, heap_address);
-		global_data.tt1.triangles = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.triangles, heap_address);
+		global_data.cblas = write_vector(main_memory, ARRAY_ALIGNMENT, cblas, heap_address);
+		global_data.mesh.vertex_indices = write_vector(main_memory, ARRAY_ALIGNMENT, mesh.vertex_indices, heap_address);
+		global_data.mesh.vertices = write_vector(main_memory, ARRAY_ALIGNMENT, mesh.vertices, heap_address);
 	}
-	else if(exe_path.back() == '2')
+	if(config == 1) //TTC
 	{
-		TesselationTree2 tt(mesh_path + ".tt2");
-
 		BVH blas;
 		std::vector<BuildObject> build_objects;
-		for(uint i = 0; i < tt.size(); ++i)
-			build_objects.push_back(tt.get_build_object(i));
+		for(uint i = 0; i < tt4.size(); ++i)
+			build_objects.push_back(tt4.get_build_object(i));
 		blas.build(build_objects);
-		tt.reorder(build_objects);
+		tt4.reorder(build_objects);
 
-		printf("Headers: %lld\n", tt.headers.size());
-		printf("Vertices: %lld\n", tt.vertices.size());
-		printf("Nodes: %lld\n", tt.nodes.size() + blas.nodes.size());
-		printf("Total Size: %lld bytes\n",
-			tt.vertices.size() * sizeof(rtm::vec3) +
-			tt.headers.size() * sizeof(TesselationTree2::Header) +
-			tt.nodes.size() * sizeof(TesselationTree2::Node) +
-			blas.nodes.size() * sizeof(BVH::Node)
+		std::vector<BVH::CompressedNode4> cblas_nodes;
+		blas.compress_and_pack(cblas_nodes);
+
+		printf("Headers: %lld\n", tt4.headers.size());
+		printf("Triangles: %lld\n", tt4.triangles.size());
+		printf("Nodes: %lld\n", tt4.nodes.size() * 4 + cblas_nodes.size() * 4);
+		printf("Total Size: %.2f MB\n",
+			(tt4.headers.size() * sizeof(TesselationTree4::Header) +
+			tt4.nodes.size() * sizeof(TesselationTree4::CompressedNode4) +
+			tt4.triangles.size() * sizeof(CompactTri) +
+			cblas_nodes.size() * sizeof(BVH::CompressedNode4)) /
+			(1.0f * 1024 * 1024)
 		);
 
-		global_data.tt2.blas = write_vector(main_memory, CACHE_BLOCK_SIZE, blas.nodes, heap_address);
-		global_data.tt2.headers = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.headers, heap_address);
-		global_data.tt2.nodes = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.nodes, heap_address);
-		global_data.tt2.vertices = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.vertices, heap_address);
+		global_data.cblas = write_vector(main_memory, ARRAY_ALIGNMENT, cblas_nodes, heap_address);
+		global_data.tt4.headers = write_vector(main_memory, ARRAY_ALIGNMENT, tt4.headers, heap_address);
+		global_data.tt4.nodes = write_vector(main_memory, ARRAY_ALIGNMENT, tt4.nodes, heap_address);
+		global_data.tt4.triangles = write_vector(main_memory, ARRAY_ALIGNMENT, tt4.triangles, heap_address);
+		global_data.tt4.vertex_indices = write_vector(main_memory, ARRAY_ALIGNMENT, tt4.vertex_indices, heap_address);
 	}
-	else if(exe_path.back() == '3')
-	{
-		TesselationTree3 tt(mesh_path + ".tt3");
-
-		BVH blas;
-		std::vector<BuildObject> build_objects;
-		for(uint i = 0; i < tt.size(); ++i)
-			build_objects.push_back(tt.get_build_object(i));
-		blas.build(build_objects);
-		tt.reorder(build_objects);
-
-		printf("Headers: %lld\n", tt.headers.size());
-		printf("Vertices: %lld\n", tt.vertices.size());
-		printf("Triangles: %lld\n", tt.triangles.size());
-		printf("Nodes: %lld\n", tt.nodes.size() + blas.nodes.size());
-		printf("Total Size: %lld bytes\n",
-			tt.vertices.size() * sizeof(rtm::vec3) +
-			tt.headers.size() * sizeof(TesselationTree3::Header) +
-			tt.nodes.size() * sizeof(TesselationTree3::Node) +
-			tt.triangles.size() * sizeof(CompactTri) +
-			blas.nodes.size() * sizeof(BVH::Node)
-		);
-
-		global_data.tt3.blas = write_vector(main_memory, CACHE_BLOCK_SIZE, blas.nodes, heap_address);
-		global_data.tt3.headers = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.headers, heap_address);
-		global_data.tt3.nodes = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.nodes, heap_address);
-		global_data.tt3.vertices = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.vertices, heap_address);
-		global_data.tt3.triangles = write_vector(main_memory, CACHE_BLOCK_SIZE, tt.triangles, heap_address);
-	}
-	else
+	else if(config == 2) //BVH
 	{
 		BVH blas;
 		std::vector<BuildObject> build_objects;
@@ -231,20 +207,49 @@ static GlobalData initilize_buffers(std::string exe_path, std::string mesh_path,
 		printf("Vertices: %lld\n", mesh.vertices.size());
 		printf("Faces: %lld\n", mesh.vertex_indices.size());
 		printf("Nodes: %lld\n", blas.nodes.size());
-		printf("Total Size: %lld bytes\n",
-			mesh.vertices.size() * sizeof(rtm::vec3) +
+		printf("Total Size: %.2f MB\n",
+			(mesh.vertices.size() * sizeof(rtm::vec3) +
 			mesh.vertex_indices.size() * sizeof(rtm::uvec3) +
-			blas.nodes.size() * sizeof(BVH::Node)
+			blas.nodes.size() * sizeof(BVH::Node)) / 
+			(1.0f * 1024 * 1024)
 		);
 
-		global_data.mesh.blas = write_vector(main_memory, CACHE_BLOCK_SIZE, blas.nodes, heap_address);
-		global_data.mesh.vertex_indices = write_vector(main_memory, CACHE_BLOCK_SIZE, mesh.vertex_indices, heap_address);
-		global_data.mesh.vertices = write_vector(main_memory, CACHE_BLOCK_SIZE, mesh.vertices, heap_address);
+		global_data.blas = write_vector(main_memory, ARRAY_ALIGNMENT, blas.nodes, heap_address);
+		global_data.mesh.vertex_indices = write_vector(main_memory, ARRAY_ALIGNMENT, mesh.vertex_indices, heap_address);
+		global_data.mesh.vertices = write_vector(main_memory, ARRAY_ALIGNMENT, mesh.vertices, heap_address);
+	}
+	else if(config == 3) //TT
+	{
+		BVH blas;
+		std::vector<BuildObject> build_objects;
+		for(uint i = 0; i < tt1.size(); ++i)
+			build_objects.push_back(tt1.get_build_object(i));
+		blas.build(build_objects);
+		tt1.reorder(build_objects);
+
+		printf("Headers: %lld\n", tt1.headers.size());
+		printf("Vertices: %lld\n", tt1.vertices.size());
+		printf("Triangles: %lld\n", tt1.triangles.size());
+		printf("Nodes: %lld\n", tt1.nodes.size() + blas.nodes.size());
+		printf("Total Size: %.2f MB\n",
+			(tt1.vertices.size() * sizeof(rtm::vec3) +
+			tt1.headers.size() * sizeof(TesselationTree1::Header) +
+			tt1.nodes.size() * sizeof(TesselationTree1::Node) +
+			tt1.triangles.size() * sizeof(CompactTri) +
+			blas.nodes.size() * sizeof(BVH::Node)) /
+			(1.0f * 1024 * 1024)
+		);
+
+		global_data.blas = write_vector(main_memory, ARRAY_ALIGNMENT, blas.nodes, heap_address);
+		global_data.tt1.headers = write_vector(main_memory, ARRAY_ALIGNMENT, tt1.headers, heap_address);
+		global_data.tt1.nodes = write_vector(main_memory, ARRAY_ALIGNMENT, tt1.nodes, heap_address);
+		global_data.tt1.vertices = write_vector(main_memory, ARRAY_ALIGNMENT, tt1.vertices, heap_address);
+		global_data.tt1.triangles = write_vector(main_memory, ARRAY_ALIGNMENT, tt1.triangles, heap_address);
 	}
 
 	//we must preform mesh.reorder before copying the arrays
-	global_data.ni = write_vector(main_memory, CACHE_BLOCK_SIZE, mesh.normal_indices, heap_address);
-	global_data.normals = write_vector(main_memory, CACHE_BLOCK_SIZE, mesh.normals, heap_address);
+	global_data.ni = write_vector(main_memory, ARRAY_ALIGNMENT, mesh.normal_indices, heap_address);
+	global_data.normals = write_vector(main_memory, ARRAY_ALIGNMENT, mesh.normals, heap_address);
 
 	main_memory->direct_write(&global_data, sizeof(GlobalData), GLOBAL_DATA_ADDRESS);
 
@@ -255,22 +260,24 @@ static GlobalData initilize_buffers(std::string exe_path, std::string mesh_path,
 static void run_sim_describo(int argc, char* argv[])
 {
 	//simulate perameters
-	std::string binary_path = argv[1];
-	std::string mesh_path = argv[2];
+	uint argi = 1;
+	std::string binary_path = argv[argi++];
+	uint config = std::atoi(argv[argi++]);
+	std::string mesh_path = argv[argi++];
 	rtm::vec3 camera_vector;
-	camera_vector.x = std::atof(argv[3]);
-	camera_vector.y = std::atof(argv[4]);
-	camera_vector.z = std::atof(argv[5]);
-	uint camera_index = std::atoi(argv[6]);
-	rtm::vec3 camera_pos = (1 << camera_index) * camera_vector;
-	std::string profile_path = argv[7];
-	std::string framebuffer_path = argv[8];
+	camera_vector.x = std::atof(argv[argi++]);
+	camera_vector.y = std::atof(argv[argi++]);
+	camera_vector.z = std::atof(argv[argi++]);
+	uint camera_index = std::atoi(argv[argi++]);
+	rtm::vec3 camera_pos = camera_vector;
+	std::string profile_path = argv[argi++];
+	std::string framebuffer_path = argv[argi++];
 
 	//hardware spec
-	uint mc_ports = 32;
-	uint tp_port_size = 32;
+	uint mc_ports = 8;
+	uint tp_port_size = 16;
 
-	uint num_tps_per_tm = 16;
+	uint num_tps_per_tm = 64;
 	uint num_tms_per_l2 = 64;
 	uint num_l2 = 1;
 
@@ -281,7 +288,7 @@ static void run_sim_describo(int argc, char* argv[])
 	uint64_t mem_size = 4ull * 1024ull * 1024ull * 1024ull; //4GB
 
 	//cached global data
-	uint64_t stack_size = 2048 * 2; //2KB
+	uint64_t stack_size = 4 * 1024; //2KB
 	uint64_t global_data_size = 64 * 1024; //64KB for global data
 	uint64_t binary_size = 64 * 1024; //64KB for executable data
 
@@ -295,11 +302,11 @@ static void run_sim_describo(int argc, char* argv[])
 	vaddr_t mm_stack_start = mem_size - stack_size;
 	vaddr_t stack_pointer = mem_size;
 
-	float l2_dynamic_read_energy = 0.240039e-9;
-	float l2_bank_leakge_power = 30.6609e-3;
+	float l2_dynamic_read_energy = 0.0940184e-9;
+	float l2_bank_leakge_power = 29.0936e-3;
 
-	float l1_dynamic_read_energy = 0.0464909e-9;
-	float l1_bank_leakge_power = 3.11185e-3;
+	float l1_dynamic_read_energy = 0.0267189e-9;
+	float l1_bank_leakge_power = 3.18625e-3;
 
 	//Custom instr. See defenitions above
 	ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE0] = ISA::RISCV::DTRaX::custom0;
@@ -310,6 +317,7 @@ static void run_sim_describo(int argc, char* argv[])
 	std::vector<Units::UnitCache*> l1s;
 	std::vector<Units::UnitCache*> l2s;
 	std::vector<Units::UnitSFU*> sfus;
+	std::vector<Units::UnitThreadScheduler*> thread_schedulers;
 
 	std::vector<Units::UnitSFU*> sfu_tables(sfu_table_size* num_tms);
 
@@ -319,24 +327,21 @@ static void run_sim_describo(int argc, char* argv[])
 	ELF elf(binary_path);
 	vaddr_t global_pointer;
 	paddr_t heap_address = mm.write_elf(elf);
-	GlobalData global_data = initilize_buffers(binary_path, mesh_path, camera_pos, &mm, heap_address);
+	GlobalData global_data = initilize_buffers(config, mesh_path, camera_pos, camera_index, &mm, heap_address);
 
-	Units::UnitTileScheduler tile_scheduler(num_tps, num_tms, global_data.framebuffer_width, global_data.framebuffer_height, 8, 8, &simulator);
-	simulator.register_unit(&tile_scheduler);
+	Units::UnitAtomicRegfile atomic_regs(num_tms);
+	simulator.register_unit(&atomic_regs);
 
 	for(uint l2_index = 0; l2_index < num_l2; ++l2_index)
 	{
 		Units::UnitCache::Configuration l2_config;
 		l2_config.size = 2 * 1024 * 1024;
 		l2_config.associativity = 4;
-		l2_config.penalty = 4;
+		l2_config.data_array_access_cycles = 3;
 		l2_config.num_ports = num_tms_per_l2;
 		l2_config.num_banks = 32;
-		l2_config.num_lfb = 4;
+		l2_config.num_lfb = 8;
 		l2_config.mem_map.add_unit(mm_null_address, &mm, l2_index * mc_ports, mc_ports);
-
-		l2_config.dynamic_read_energy = 0.240039e-9;
-		l2_config.bank_leakge_power = 30.6609e-3;
 
 		l2s.push_back(new Units::UnitCache(l2_config));
 
@@ -348,17 +353,14 @@ static void run_sim_describo(int argc, char* argv[])
 			uint tm_index = l2_index * num_tms_per_l2 + tm_i;
 
 			Units::UnitCache::Configuration l1_config;
-			l1_config.size = 16 * 1024;
-			l1_config.associativity = 2;
-			l1_config.penalty = 1;
+			l1_config.size = 32 * 1024;
+			l1_config.associativity = 4;
+			l1_config.data_array_access_cycles = 1;
 			l1_config.num_ports = num_tps_per_tm;
 			l1_config.port_size = tp_port_size;
-			l1_config.num_banks = 4;
+			l1_config.num_banks = 8;
 			l1_config.num_lfb = 4;
 			l1_config.mem_map.add_unit(mm_null_address, l2s.back(), tm_i, 1);
-
-			l1_config.dynamic_read_energy = 0.0464909e-9;
-			l1_config.bank_leakge_power = 3.11185e-3;
 
 			l1s.push_back(new Units::UnitCache(l1_config));
 			simulator.register_unit(l1s.back());
@@ -399,6 +401,9 @@ static void run_sim_describo(int argc, char* argv[])
 			//simulator.register_unit(sfus.back());
 			//sfu_table[(uint)ISA::RISCV::Type::TRIISECT] = sfus.back();
 
+			thread_schedulers.push_back(_new  Units::UnitThreadScheduler(num_tps_per_tm, tm_index, &atomic_regs));
+			simulator.register_unit(thread_schedulers.back());
+
 			for(uint tp_index = 0; tp_index < num_tps_per_tm; ++tp_index)
 			{
 				Units::UnitTP::Configuration tp_config;
@@ -410,7 +415,7 @@ static void run_sim_describo(int argc, char* argv[])
 				tp_config.backing_memory = mm._data_u8;
 				tp_config.sfu_table = sfu_table;
 				tp_config.port_size = tp_port_size;
-				tp_config.mem_map.add_unit(mm_null_address, &tile_scheduler, tm_index * num_tps_per_tm + tp_index, 1);
+				tp_config.mem_map.add_unit(mm_null_address, thread_schedulers.back(), tp_index, 1);
 				tp_config.mem_map.add_unit(mm_global_data_start, l1s.back(), tp_index, 1);
 				tp_config.mem_map.add_unit(mm_stack_start, nullptr, 0, 0);
 
@@ -472,7 +477,7 @@ static void run_sim_describo(int argc, char* argv[])
 	printf("\n");
 
 	//power in watts
-	float l1_power = (l1_log.get_total_data_array_accesses() * l1_dynamic_read_energy) / frame_time + num_tms * l1_bank_leakge_power * 4;
+	float l1_power = (l1_log.get_total_data_array_accesses() * l1_dynamic_read_energy) / frame_time + num_tms * l1_bank_leakge_power * 8;
 	float l2_power = (l2_log.get_total_data_array_accesses() * l2_dynamic_read_energy) / frame_time + num_l2 * l2_bank_leakge_power * 32;
 	float mm_power = mm.total_power_in_watts();
 	float total_power = l1_power + l2_power + mm_power;

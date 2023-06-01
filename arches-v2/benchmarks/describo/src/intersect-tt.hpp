@@ -162,3 +162,49 @@ inline Triangle get_tri(const IAO& iao, uint lod, const CompactTri* triangles)
 		return Triangle(decompact(tri0).vrts[0], decompact(tri1).vrts[1], decompact(tri2).vrts[2]);
 	}
 }
+
+inline uint find_shared_edge(const glm::uvec3& crnt_ptch_inds, const glm::uvec3& prev_ptch_inds)
+{
+	uint32_t match_mask = 0;
+	for(uint i = 0; i < 3; ++i)
+		for(uint j = 0; j < 3; ++j)
+			if(crnt_ptch_inds[i] == prev_ptch_inds[j])
+			{
+				match_mask |= 1 << i;
+				break;
+			}
+
+	if(match_mask == 6) return 0;
+	if(match_mask == 5) return 1; 
+	if(match_mask == 3) return 2;
+	return 3;
+}
+
+inline uint propagate_shared_edge(uint prnt_shrd_edg, uint tri_typ)
+{
+	if(prnt_shrd_edg == 3 || tri_typ == 3 || prnt_shrd_edg == tri_typ) return 3;
+	return prnt_shrd_edg;
+}
+
+inline glm::vec3 evalute_deformation_bounds(uint32_t qdb, float max_db_over_max_error, const Triangle& tri, const Ray& last_ray,  const Ray& ray, const bool edge_mask[3])
+{
+	glm::vec3 fdbs((float)(qdb >> 00 & 0x3ff), (float)(qdb >> 10 & 0x3ff), (float)(qdb >> 20 & 0x3ff));
+	fdbs *= (1.0f / 1023.0f);
+	fdbs *= fdbs;
+	fdbs *= max_db_over_max_error;
+
+	glm::vec3 dlen(glm::dot(tri.vrts[0] - ray.o, ray.d), glm::dot(tri.vrts[1] - ray.o, ray.d), glm::dot(tri.vrts[2] - ray.o, ray.d));
+	glm::vec3 last_dlen(glm::dot(tri.vrts[0] - last_ray.o, last_ray.d), glm::dot(tri.vrts[1] - last_ray.o, last_ray.d), glm::dot(tri.vrts[2] - last_ray.o, last_ray.d));
+	
+	glm::vec3 r;
+	if(edge_mask[0]) r[0] = std::min(last_dlen[1], last_dlen[2]) * last_ray.drdt + last_ray.radius;
+	else             r[0] = std::min(     dlen[1],      dlen[2]) *      ray.drdt +      ray.radius;
+	if(edge_mask[1]) r[1] = std::min(last_dlen[2], last_dlen[0]) * last_ray.drdt + last_ray.radius;
+	else             r[1] = std::min(     dlen[2],      dlen[0]) *      ray.drdt +      ray.radius;
+	if(edge_mask[2]) r[2] = std::min(last_dlen[0], last_dlen[1]) * last_ray.drdt + last_ray.radius;
+	else             r[2] = std::min(     dlen[0],      dlen[1]) *      ray.drdt +      ray.radius;
+	glm::vec3 recip_r(_rcp(r[0]), _rcp(r[1]), _rcp(r[2]));
+
+	glm::vec3 delta = fdbs * recip_r - 1.0f;
+	return glm::clamp(delta, 0.0f, 1.0f);
+}

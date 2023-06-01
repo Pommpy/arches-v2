@@ -16,7 +16,8 @@ public:
 		uint size{1024};
 		uint associativity{1};
 
-		uint penalty{1};
+		uint tag_array_access_cycles{1};
+		uint data_array_access_cycles{1};
 
 		uint num_ports{1};
 		uint port_size{CACHE_BLOCK_SIZE};
@@ -73,7 +74,7 @@ private:
 		union
 		{
 			uint64_t byte_mask;                                 //used by stores
-			uint64_t pword_request_masks[CACHE_BLOCK_SIZE / 8]; //used by loads
+			uint64_t chunk_request_masks[CACHE_BLOCK_SIZE / 8]; //used by loads
 		};
 
 		uint8_t lru{0u};
@@ -85,7 +86,7 @@ private:
 		_LFB()
 		{
 			for(uint i = 0; i < CACHE_BLOCK_SIZE / 8; ++i)
-				pword_request_masks[i] = 0;
+				chunk_request_masks[i] = 0;
 		}
 
 		bool operator==(const _LFB& other) const
@@ -130,7 +131,7 @@ private:
 		uint64_t outgoing_request_byte_mask{0x0ull};
 
 		uint outgoing_return_lfb{~0u};
-		uint outgoing_return_pword_index{0u};
+		uint outgoing_return_chunk_index{0u};
 
 		_Bank(uint num_lfb) : lfbs(num_lfb) {}
 	};
@@ -140,10 +141,10 @@ private:
 
 	uint _bank_priority_index{0};
 
-	uint _set_index_offset, _tag_offset, _bank_index_offset, _port_width, _pwords_per_block;
+	uint _set_index_offset, _tag_offset, _bank_index_offset, _chunk_width, _chunks_per_block;
 	uint64_t _set_index_mask, _tag_mask, _bank_index_mask, _block_offset_mask;
 
-	uint _penalty, _associativity;
+	uint _data_array_access_cycles, _tag_array_access_cycles, _associativity;
 	std::vector<_BlockMetaData> _tag_array;
 	std::vector<_BlockData> _data_array;
 
@@ -181,8 +182,10 @@ public:
 	class Log
 	{
 	public:
+		uint64_t _total;
 		uint64_t _hits;
 		uint64_t _misses;
+		uint64_t _lfb_hits;
 		uint64_t _half_misses;
 		uint64_t _bank_conflicts;
 		uint64_t _lfb_stalls;
@@ -193,6 +196,8 @@ public:
 
 		void reset()
 		{
+			_total = 0;
+			_lfb_hits = 0;
 			_hits = 0;
 			_misses = 0;
 			_half_misses = 0;
@@ -204,6 +209,8 @@ public:
 
 		void accumulate(const Log& other)
 		{
+			_total += other._total;
+			_lfb_hits += other._lfb_hits;
 			_hits += other._hits;
 			_misses += other._misses;
 			_half_misses += other._half_misses;;
@@ -213,9 +220,13 @@ public:
 			_data_array_writes += other._data_array_writes;
 		}
 
+		void log_requests(uint n = 1) { _total += n; } //TODO hit under miss logging
+
 		void log_hit(uint n = 1) { _hits += n; } //TODO hit under miss logging
-		void log_half_miss(uint n = 1) { _half_misses += n; }
 		void log_miss(uint n = 1) { _misses += n; }
+
+		void log_lfb_hit(uint n = 1) { _lfb_hits += n; }
+		void log_half_miss(uint n = 1) { _half_misses += n; }
 
 		void log_bank_conflict() { _bank_conflicts++; }
 		void log_lfb_stall() { _lfb_stalls++; }
@@ -223,26 +234,27 @@ public:
 		void log_data_array_read() { _data_array_reads++; }
 		void log_data_array_write() { _data_array_writes++; }
 
-		uint64_t get_total() { return _misses + _half_misses + _hits; }
+		uint64_t get_total() { return _hits + _misses + _lfb_hits + _half_misses; }
 		uint64_t get_total_data_array_accesses() { return _data_array_reads + _data_array_writes; }
 
 		void print_log(FILE* stream = stdout, uint units = 1)
 		{
 			uint64_t total = get_total();
-			float hit_rate = static_cast<float>(_hits) / total;
-			float miss_rate = static_cast<float>(_misses + _half_misses) / total;
+			float ft = total / 100.0f;
+
+			uint64_t da_total = get_total_data_array_accesses();
 
 			fprintf(stream, "Total: %lld\n", total / units);
-			fprintf(stream, "Hits: %lld\n", _hits / units);
-			fprintf(stream, "Misses: %lld\n", _misses / units);
-			fprintf(stream, "Half Misses: %lld\n", _half_misses / units);
-			fprintf(stream, "Hit Rate: %.2f%%\n", hit_rate * 100.0f);
-			fprintf(stream, "Miss Rate: %.2f%%\n", miss_rate * 100.0f);
+			fprintf(stream, "Total2: %lld\n", _total / units);
+			fprintf(stream, "Hits: %lld(%.2f%%)\n", _hits / units, _hits / ft);
+			fprintf(stream, "Misses: %lld(%.2f%%)\n", _misses / units, _misses / ft);
+			fprintf(stream, "LFB Hits: %lld(%.2f%%)\n", _lfb_hits / units, _lfb_hits / ft);
+			fprintf(stream, "Half Misses: %lld(%.2f%%)\n", _half_misses / units, _half_misses / ft);
 			fprintf(stream, "Bank Conflicts: %lld\n", _bank_conflicts / units);
 			fprintf(stream, "LFB Stalls: %lld\n", _lfb_stalls / units);
+			fprintf(stream, "Data Array Total: %lld\n", da_total);
 			fprintf(stream, "Data Array Reads: %lld\n", _data_array_reads);
 			fprintf(stream, "Data Array Writes: %lld\n", _data_array_writes);
-			fprintf(stream, "Data Array Total: %lld\n", get_total_data_array_accesses());
 		}
 	}log;
 };

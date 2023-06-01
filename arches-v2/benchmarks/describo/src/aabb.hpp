@@ -47,3 +47,22 @@ public:
 		return axis;
 	}
 };
+
+
+class AABB16
+{
+public:
+	uint16_t min[3];
+	uint16_t max[3];
+
+	AABB16() {}
+
+	AABB16(const AABB& aabb)
+	{
+		for(uint i = 0; i < 3; ++i)
+		{
+			min[i] = f32_to_u16_rd(aabb.min[i] * 0.5f + 0.5f);
+			max[i] = f32_to_u16_ru(aabb.max[i] * 0.5f + 0.5f);
+		}
+	}
+};

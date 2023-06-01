@@ -2,7 +2,7 @@
 
 namespace Arches { namespace Units {
 
-//#define LOGGING_ENABLED (_tp_index == 16 && _tm_index == 0)
+//#define LOGGING_ENABLED (_tp_index == 32 && _tm_index == 11)
 #define LOGGING_ENABLED (false)
 
 UnitTP::UnitTP(const Configuration& config) : log(0x10000), UnitBase(), ISA::RISCV::ExecutionBase(&_int_regs, &_float_regs)
@@ -196,7 +196,7 @@ REPEAT_SFU_LOOP: //TODO make this less janky
 	}
 }
 
-//#define MAGIC_COMPUTE
+#define MAGIC_COMPUTE
 
 void UnitTP::clock_fall()
 {

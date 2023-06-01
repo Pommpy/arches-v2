@@ -73,14 +73,14 @@ public:
 
 		if(stalled_for_atomic_reg || current_port_index == ~0u) return;
 
-		if(current_offset == num_tp)
+		if(current_offset == 64)
 		{
 			MemoryRequest req;
 			req.type = MemoryRequest::Type::AMO_ADD;
 			req.size = 4;
 			req.paddr = 0x0ull;
 			req.data = &req_reg;
-			req_reg = num_tp;
+			req_reg = 1;
 			atomic_regs->interconnect.add_request(req, tm_index);
 			stalled_for_atomic_reg = true;
 		}
@@ -91,7 +91,11 @@ public:
 			ret.size = 4;
 			ret.paddr = current_req.paddr;
 			ret.data = &ret_reg;
-			ret_reg = current_tile + current_offset;
+
+			//TODO: Tile
+			uint x = (current_tile % (1024 / 8)) * 8 + (current_offset % 8);
+			uint y = (current_tile / (1024 / 8)) * 8 + (current_offset / 8);
+			ret_reg = y * 1024 + x;
 
 			interconnect.add_return(ret, 0, current_port_index);
 

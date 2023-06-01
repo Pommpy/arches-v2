@@ -9,7 +9,7 @@
 #define PI 3.14159265358f
 
 #define T_MAX 4294967296.0f
-#define T_MIN 0.0015f
+#define T_MIN 0.00098f;
 
 namespace glm = rtm;
 

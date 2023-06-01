@@ -10,14 +10,14 @@ inline uint log2i(uint64_t in)
 
 inline uint64_t generate_nbit_mask(uint n)
 {
+	if(n >= 64) return ~0ull;
 	return ~(~0ull << n);
 }
 
-inline Arches::paddr_t align_to_nbits(Arches::paddr_t paddr, uint n)
+
+inline Arches::paddr_t align_to(size_t alignment, Arches::paddr_t paddr)
 {
-	uint bytes = log2i(n);
-	Arches::paddr_t mask = generate_nbit_mask(bytes);
-	return (paddr + mask) & ~mask;
+	return (paddr + alignment - 1) & ~(alignment - 1);
 }
 
 inline uint64_t rotr(uint64_t mask, uint n)

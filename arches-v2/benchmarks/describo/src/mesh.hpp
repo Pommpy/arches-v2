@@ -113,7 +113,7 @@ public:
 
 	bool load_obj(const char* file_path)
 	{
-		printf("Loading: %s\n", file_path);
+		printf("Loading: %s\r", file_path);
 
 		std::ifstream is(file_path);
 		if(!is.is_open()) return false;

@@ -59,7 +59,6 @@ bool UnitDRAM::_load(const MemoryRequest& request_item, uint port_index)
 
 	if (request.retLatencyKnown)
 	{
-		//printf("%llu", request.completionTime / DRAM_CLOCK_MULTIPLIER - _current_cycle);
 		_channels[dram_addr.channel].return_queue.emplace(request_item.paddr, port_index, request.completionTime / DRAM_CLOCK_MULTIPLIER);
 	}
 

@@ -12,6 +12,7 @@ struct Ray
 	
 	float     drdt;
 	float     radius;
+	float     rcp_max_error;
 };
 
 struct Hit

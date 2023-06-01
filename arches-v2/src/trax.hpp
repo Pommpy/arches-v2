@@ -143,7 +143,7 @@ static void run_sim_trax(int argc, char* argv[])
 		Units::UnitCache::Configuration l2_config;
 		l2_config.size = 512 * 1024;
 		l2_config.associativity = 1;
-		l2_config.penalty = 3;
+		l2_config.data_array_access_cycles = 3;
 		l2_config.num_ports = num_tms_per_l2;
 		l2_config.num_banks = 16;
 		l2_config.num_lfb = 4;
@@ -161,7 +161,7 @@ static void run_sim_trax(int argc, char* argv[])
 			Units::UnitCache::Configuration l1_config;
 			l1_config.size = 32 * 1024;
 			l1_config.associativity = 1;
-			l1_config.penalty = 1;
+			l1_config.data_array_access_cycles = 1;
 			l1_config.num_ports = num_tps_per_tm;
 			l1_config.port_size = 16;
 			l1_config.num_banks = 8;

@@ -9,6 +9,7 @@
 namespace Arches { namespace Units {
 
 #define CACHE_BLOCK_SIZE 32
+#define ROW_BUFFER_SIZE (8 * 1024)
 
 struct MemoryRequest
 {

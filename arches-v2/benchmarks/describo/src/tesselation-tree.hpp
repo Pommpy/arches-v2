@@ -1,7 +1,7 @@
 #pragma once
 #include "stdafx.hpp"
 
-struct CompactTri
+struct alignas(32) CompactTri
 {
 	uint64_t data[4];
 };
