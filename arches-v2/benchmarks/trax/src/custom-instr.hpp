@@ -11,7 +11,7 @@ uint32_t inline atomicinc()
 {
 	#ifdef ARCH_RISCV
 	uint32_t value;
-	asm volatile("traxamoin %[rd]\n\t" : [rd] "=r" (value));
+	asm volatile("fchthrd %[rd]\n\t" : [rd] "=r" (value));
 	return value;
 	#endif
 
