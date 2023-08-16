@@ -16,9 +16,17 @@
 
 namespace Arches { namespace Units {
 
+/*! \class UnitTP
+	\brief Class describes Thread-Processor unit
+
+	This class describes the RISCV based core processor used by the simulator
+*/
 class UnitTP : public UnitBase, public ISA::RISCV::ExecutionBase
 {
 public:
+	/*! \struct Configuration
+	*	\brief	describes TP config characteristics
+	*/
 	struct Configuration
 	{
 		vaddr_t pc{0x0};
@@ -39,6 +47,9 @@ public:
 	};
 
 private:
+	/*! \struct _LSE
+	*	\brief	TODO:
+	*/
 	struct _LSE
 	{
 		enum class State : uint8_t
@@ -106,6 +117,9 @@ private:
 	void _drain_lsq();
 
 public:
+	/*! \class Log
+	*	\brief	logger class to display debug info
+	*/
 	class Log
 	{
 	protected:

@@ -8,9 +8,19 @@
 
 namespace Arches { namespace Units {
 
+/*! \struct UnitSFU
+*	\brief	Class describes shared functional unit structure
+*
+*	TODO: long description
+*/
 class UnitSFU : public UnitBase
 {
 public:
+	/*! \struct Request
+	*	\brief	Defines request register address
+	*
+	*	TODO: long description
+	*/
 	struct Request
 	{
 		ISA::RISCV::RegAddr dst;
@@ -38,6 +48,11 @@ public:
 private:
 	cycles_t current_cycle{0};
 	
+	/*! \struct Return
+	*	\brief	TODO:
+	*
+	*	TODO: long description
+	*/
 	struct Return
 	{
 		Request  request;

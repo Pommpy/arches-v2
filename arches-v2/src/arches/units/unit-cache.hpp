@@ -8,9 +8,20 @@
 
 namespace Arches { namespace Units {
 
+
+/*! \class UnitCache
+	\brief Class defines cache memory configuration and its execution routines
+
+*/
 class UnitCache final : public UnitMemoryBase
 {
 public:
+
+	/*! \struct Configuration
+	*	\brief	struct describes cache configuration
+	*
+	*	TODO: long description
+	*/
 	struct Configuration
 	{
 		uint size{1024};
@@ -36,6 +47,11 @@ public:
 	void clock_fall() override;
 
 private:
+	/*! \struct _BlockMetaData
+	*	\brief	struct describes tag, lru and valid bit sizes
+	*
+	*	TODO: long description
+	*/
 	struct _BlockMetaData
 	{
 		uint64_t tag     : 59;
@@ -43,12 +59,19 @@ private:
 		uint64_t valid   : 1;
 	};
 
+	/*! \struct _BlockData
+	*	\brief	struct describes total byte size of cache
+	*/
 	struct alignas(CACHE_BLOCK_SIZE) _BlockData
 	{
 		uint8_t bytes[CACHE_BLOCK_SIZE];
 	};
 
-	struct _LFB //Line Fill Buffer
+
+	/*! \struct _LFB
+	*	\brief	Line Fill Buffer: TODO
+	*/
+	struct _LFB 
 	{
 		enum class Type : uint8_t
 		{
@@ -120,6 +143,11 @@ private:
 		}
 	};
 
+	/*! \struct _Bank
+	*	\brief	Describes behavior of banks within the cache
+	*
+	*	TODO: long description
+	*/
 	struct _Bank
 	{
 		std::vector<_LFB> lfbs;
@@ -179,6 +207,10 @@ private:
 	paddr_t _get_tag(paddr_t paddr) { return (paddr >> _tag_offset) & _tag_mask; }
 
 public:
+
+	/*! \struct Log
+	*	\brief	Logger class that logs debug info to track execution
+	*/
 	class Log
 	{
 	public:

@@ -8,6 +8,12 @@
 
 namespace Arches { namespace Units {
 
+/*! \class UnitAtomicRegfile
+	\brief Class implements thread safe routines to arbitrate memory requests 
+
+	TODO: long description
+*/
+
 class UnitAtomicRegfile : public UnitMemoryBase
 {
 public:

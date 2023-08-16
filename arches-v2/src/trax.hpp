@@ -69,7 +69,7 @@ static GlobalData initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 12.0f, rtm::vec3(-900.6f, 150.8f, 120.74f), rtm::vec3(79.7f, 14.0f, -17.4f));
 	//global_data.camera = Camera(global_data.framebuffer_width, global_data.framebuffer_height, 24.0f, rtm::vec3(0.0f, 0.0f, 5.0f));
 
-	Mesh mesh("benchmarks/trax/res/sponza.obj");
+	Mesh mesh("benchmarks/trax/res/sponza2_triangulated.obj");
 	BVH blas;
 	std::vector<BuildObject> build_objects;
 	for(uint i = 0; i < mesh.size(); ++i)
@@ -104,7 +104,7 @@ static void run_sim_trax(int argc, char* argv[])
 	uint64_t global_data_size = 64 * 1024; //64KB for global data
 	uint64_t binary_size = 64 * 1024; //64KB for executable data
 
-	//glboal data
+	//global data
 	vaddr_t mm_null_address = 0x0ull;
 	vaddr_t mm_global_data_start = GLOBAL_DATA_ADDRESS;
 	vaddr_t mm_binary_start = mm_global_data_start + global_data_size;

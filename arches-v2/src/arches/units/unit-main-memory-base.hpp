@@ -7,6 +7,9 @@
 
 namespace Arches { namespace Units {
 
+/*! \struct UnitMainMemoryBase
+*	\brief	Class describes main memory execution routines
+*/
 class UnitMainMemoryBase : public UnitMemoryBase
 {
 public:

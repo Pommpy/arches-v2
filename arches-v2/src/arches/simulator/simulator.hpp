@@ -1,5 +1,10 @@
+/*! \file simulator.h 
+*	\brief Describes generic simulator class
+*/
+
 #pragma once
 #include "../../stdafx.hpp"
+
 
 #if 1
 namespace Arches {
@@ -9,9 +14,17 @@ namespace Units
 	class UnitBase;
 }
 
+/*! \class Simulator
+	\brief Generic simulator template.
+
+	This class can be further specialized to provide specific implementations.
+*/
 class Simulator
 {
 private:
+	/*! \struct UnitGroup
+	* 
+	*/
 	struct UnitGroup
 	{
 		uint start;
@@ -21,21 +34,36 @@ private:
 		UnitGroup(uint start, uint end) : start(start), end(end) {}
 	};
 
-	std::vector<UnitGroup> _unit_groups;
+	//! Collection of unit groups.
+	std::vector<UnitGroup> _unit_groups; 
+	
+	//! Collection of unit bases. 
 	std::vector<Units::UnitBase*> _units;
-
+	
 public:
+	
+	//! Thread safe unit execution counter
 	std::atomic_uint units_executing{0};
-	cycles_t current_cycle{0};
-
+	
+	//! 64 bit cycle counter
+	cycles_t current_cycle{ 0 };
+	
+	//! Default Constructor
 	Simulator() { _unit_groups.emplace_back(0u, 0u); }
 
+	//! A function to register unit to be executed by this simulator
 	void register_unit(Units::UnitBase* unit);
+
+	//! A function to clear and recreate unit base collection
 	void start_new_unit_group();
 
+	//! A function to define routines executed by simulator when it receives clock rise signal
 	void _clock_rise();
+
+	//! A function to define routines executed by simulator when it receives clock fall signal
 	void _clock_fall();
 
+	//! A function to define all the execution routines
 	void execute();
 };
 

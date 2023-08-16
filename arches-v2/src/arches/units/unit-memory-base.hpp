@@ -11,6 +11,11 @@ namespace Arches { namespace Units {
 #define CACHE_BLOCK_SIZE 32
 #define ROW_BUFFER_SIZE (8 * 1024)
 
+/*! \struct MemoryRequest
+*	\brief Class declares various memory request operation types for custom hardware
+*	
+*	Currently the memory requests are similar to that of RISCV with some additional types to support our customized ray-tracing HW
+*/
 struct MemoryRequest
 {
 	enum class Type : uint8_t
@@ -56,13 +61,18 @@ struct MemoryRequest
 		return type == other.type && size == other.size && paddr == other.paddr;
 	}
 
-	//Only atomic instructions actually pass or recive data.
-	//The data pointed to by this must precist until the pending line in cleared.
-	//Coppying data into the request would be very inefficent (especially when passing full blocks of data).
-	//Hence why we handle it by passing a pointer the data can then be coppied directly by the reciver
+	//Only atomic instructions actually pass or receive data.
+	//The data pointed to by this must persist until the pending line in cleared.
+	//Copying data into the request would be very inefficient (especially when passing full blocks of data).
+	//Hence why we handle it by passing a pointer the data can then be copied directly by the receiver
 	void* data{nullptr};
 };
 
+/*! \struct MemoryReturn
+*	\brief Class declares various memory return operation types for custom hardware
+*
+*	Currently the memory returns are similar to that of RISCV with some additional types to support our customized ray-tracing HW
+*/
 struct MemoryReturn
 {
 	enum class Type : uint8_t
@@ -86,13 +96,17 @@ struct MemoryReturn
 		return type == other.type && size == other.size && paddr == other.paddr;
 	}
 
-	//Only atomic instructions actually pass or recive data.
-	//The data pointed to by this must precist until the pending line in cleared.
-	//Coppying data into the request would be very inefficent (especially when passing full blocks of data).
-	//Hence why we handle it by passing a pointer the data can then be coppied directly by the reciver
+	//Only atomic instructions actually pass or receive data.
+	//The data pointed to by this must persist until the pending line in cleared.
+	//Copying data into the request would be very inefficient (especially when passing full blocks of data).
+	//Hence why we handle it by passing a pointer the data can then be copied directly by the receiver
 	void* data{nullptr};
 };
 
+
+/*! \struct UnitMemoryBase
+*	\brief Class describes general layout structure of main memory
+*/
 class UnitMemoryBase : public UnitBase
 {
 public:
@@ -105,6 +119,9 @@ public:
 
 }}
 
+/*! \struct MemoryMap
+*	\brief	TODO
+*/
 class MemoryMap
 {
 private:
@@ -116,7 +133,7 @@ public:
 		Arches::Units::UnitMemoryBase* unit;
 		uint16_t        port_index; //port index within unit
 		uint16_t        num_ports; //number of ports reserved for this mapping
-		uint16_t        port_id; //provides unqie ids for all ports
+		uint16_t        port_id; //provides unique ids for all ports
 
 		bool operator==(const MemoryMapping& other) const
 		{

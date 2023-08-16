@@ -7,22 +7,37 @@
 
 namespace Arches { namespace Units {
 
+
+/*! \class UnitBuffer
+	\brief Class defines memory buffer with configuration and its execution routines
+
+*/
 class UnitBuffer : public UnitMemoryBase
 {
 public:
+	/*! \struct Configuration
+	*	\brief	struct describes memory configuration
+	* 
+	*	TODO: long description
+	*/
 	struct Configuration
 	{
-		uint64_t size{1024};
-		uint port_width{CACHE_BLOCK_SIZE};
-		uint num_banks{1};
-		uint num_ports{1};
-		uint penalty{1};
+		uint64_t size{1024};				//!< memory buffer size
+		uint port_width{CACHE_BLOCK_SIZE};	//!< memory port width 
+		uint num_banks{1};					//!< number of constituting banks
+		uint num_ports{1};					//!< number of ports
+		uint penalty{1};					//!< ??
 
-		float dynamic_read_energy;
-		float bank_leakge_power;
+		float dynamic_read_energy;			//!< dynamic read energy usage
+		float bank_leakge_power;			//!< ??
 	};
 
 private:
+	/*! \struct _Bank
+	*	\brief	struct describes memory bank
+	*
+	*	TODO: long description
+	*/
 	struct _Bank
 	{
 		uint cycles_remaining{0u};

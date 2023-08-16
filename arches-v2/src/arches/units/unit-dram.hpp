@@ -9,9 +9,19 @@
 
 namespace Arches { namespace Units {
 
+/*! \struct UnitDRAM
+*	\brief	Class defines DRAM design, behaviour and execution routines
+*
+*	TODO: long description
+*/
 class UnitDRAM : public UnitMainMemoryBase, public UsimmListener
 {
 private:
+	/*! \struct ReturnItem
+	*	\brief	TODO:
+	*
+	*	TODO: long description
+	*/
 	struct ReturnItem
 	{
 		paddr_t	 paddr;
@@ -28,6 +38,11 @@ private:
 
 	bool _busy{false};
 
+	/*! \struct Channel
+	*	\brief	TODO:
+	*
+	*	TODO: long description
+	*/
 	struct Channel
 	{
 		std::priority_queue<ReturnItem> return_queue;
