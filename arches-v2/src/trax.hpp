@@ -29,8 +29,8 @@ const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::FCHTHRD, Enco
 	unit->mem_req.size = 4;
 	unit->mem_req.vaddr = 0x0ull;
 });
-
 }}}
+
 
 static paddr_t align_to(size_t alignment, paddr_t paddr)
 {
