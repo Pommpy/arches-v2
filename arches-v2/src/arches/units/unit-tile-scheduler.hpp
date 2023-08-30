@@ -10,9 +10,13 @@ namespace Arches { namespace Units {
 
 class UnitThreadScheduler : public UnitMemoryBase
 {
+private:
+	CrossBar<MemoryRequest> _request_cross_bar;
+	CrossBar<MemoryReturn> _return_cross_bar;
+
 public:
-	UnitThreadScheduler(uint num_tp, uint tm_index, UnitAtomicRegfile* atomic_regs) : UnitMemoryBase(num_tp, 1),
-		num_tp(num_tp), tm_index(tm_index), atomic_regs(atomic_regs)
+	UnitThreadScheduler(uint num_tp, uint tm_index, UnitAtomicRegfile* atomic_regs) : UnitMemoryBase(),
+		_request_cross_bar(num_tp, 1), _return_cross_bar(1, num_tp), num_tp(num_tp), tm_index(tm_index), atomic_regs(atomic_regs)
 	{
 		current_offset = num_tp;
 	}
@@ -28,82 +32,85 @@ public:
 	MemoryRequest current_req;
 	uint current_port_index{~0u};
 
-	uint32_t req_reg;
-	uint32_t ret_reg;
-
 	bool stalled_for_atomic_reg{false};
 
 	void clock_rise() override
 	{
-		interconnect.propagate_requests([](const MemoryRequest& req, uint client, uint num_clients, uint num_servers)->uint
-		{
-			return 0;
-		});
-
 		if(stalled_for_atomic_reg)
 		{
-			const MemoryReturn* ret = atomic_regs->interconnect.get_return(tm_index);
-			if(ret)
+			if(atomic_regs->return_port_read_valid(tm_index))
 			{
-				current_tile = *((uint32_t*)ret->data);
+				const MemoryReturn& ret = atomic_regs->read_return(tm_index);
+				current_tile = *((uint32_t*)ret.data);
 				current_offset = 0;
 
 				stalled_for_atomic_reg = false;
-				atomic_regs->interconnect.acknowlege_return(tm_index);
 			}
 			return;
 		}
 
 		if(current_port_index == ~0u)
 		{
-			uint port_index;
-			const MemoryRequest* req = interconnect.get_request(0, port_index);
-			if(!req) return;
-
-			assert(req->type == MemoryRequest::Type::FCHTHRD);
-			interconnect.acknowlege_request(0, port_index);
-			current_req = *req;
-			current_port_index = port_index;
+			if(!_request_cross_bar.is_read_valid(0)) return;
+			current_req = _request_cross_bar.read(0, current_port_index);
+			assert(current_req.type == MemoryRequest::Type::FCHTHRD);
 		}
 	}
 
 	void clock_fall() override
 	{
-		interconnect.propagate_ack();
-
 		if(stalled_for_atomic_reg || current_port_index == ~0u) return;
 
 		if(current_offset == 64)
 		{
-			MemoryRequest req;
-			req.type = MemoryRequest::Type::AMO_ADD;
-			req.size = 4;
-			req.paddr = 0x0ull;
-			req.data = &req_reg;
-			req_reg = 1;
-			atomic_regs->interconnect.add_request(req, tm_index);
-			stalled_for_atomic_reg = true;
+			if(atomic_regs->request_port_write_valid(tm_index))
+			{
+				MemoryRequest req;
+				req.type = MemoryRequest::Type::AMO_ADD;
+				req.size = 4;
+				req.paddr = 0x0ull;
+				req.data_u32 = 1;
+				atomic_regs->write_request(req, tm_index);
+				stalled_for_atomic_reg = true;
+			}
 		}
-		else if(!interconnect.return_pending(0))
+		else if(_return_cross_bar.is_write_valid(0))
 		{
-			MemoryReturn ret;
-			ret.type = MemoryReturn::Type::LOAD_RETURN;
-			ret.size = 4;
-			ret.paddr = current_req.paddr;
-			ret.data = &ret_reg;
-
-			//TODO: Tile
+			MemoryReturn ret = current_req;
 			uint x = (current_tile % (1024 / 8)) * 8 + (current_offset % 8);
 			uint y = (current_tile / (1024 / 8)) * 8 + (current_offset / 8);
-			ret_reg = y * 1024 + x;
+			ret.data_u32 = y * 1024 + x;
 
-			interconnect.add_return(ret, 0, current_port_index);
+			_return_cross_bar.write(ret, 0, current_port_index);
 
 			current_offset++;
 			current_port_index = ~0u;
 		}
+	}
 
-		interconnect.propagate_returns();
+	bool request_port_write_valid(uint port_index) override
+	{
+		return _request_cross_bar.is_write_valid(port_index);
+	}
+
+	void write_request(const MemoryRequest& request, uint port_index) override
+	{
+		_request_cross_bar.write(request, port_index, 0);
+	}
+
+	bool return_port_read_valid(uint port_index) override
+	{
+		return _return_cross_bar.is_read_valid(port_index);
+	}
+
+	const MemoryReturn& peek_return(uint port_index) override
+	{
+		return _return_cross_bar.peek(port_index);
+	}
+
+	const MemoryReturn& read_return(uint port_index) override
+	{
+		return _return_cross_bar.read(port_index);
 	}
 };
 

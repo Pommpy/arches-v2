@@ -34,14 +34,14 @@
     <Filter Include="benchmarks\dual-streaming\src">
       <UniqueIdentifier>{53ae0324-555a-46f2-988b-a2c13270a9ed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="arches\units\util">
-      <UniqueIdentifier>{136ef3ef-4008-4896-8341-c5df009e6691}</UniqueIdentifier>
-    </Filter>
     <Filter Include="benchmarks\describo">
       <UniqueIdentifier>{13c19245-b4e6-4238-ba93-667a29abc3d8}</UniqueIdentifier>
     </Filter>
     <Filter Include="benchmarks\describo\src">
       <UniqueIdentifier>{83c1544b-aa74-4f93-b0af-6d7e5da00b7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arches\util">
+      <UniqueIdentifier>{136ef3ef-4008-4896-8341-c5df009e6691}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -70,19 +70,19 @@
       <Filter>arches\units</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\util\bit-manipulation.hpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\util\elf.hpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\util\endian.hpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\util\file.hpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\util\string.hpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClInclude>
     <ClInclude Include="src\stdafx.hpp" />
     <ClInclude Include="src\arches\units\unit-atomic-reg-file.hpp">
@@ -92,10 +92,10 @@
       <Filter>arches\units</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\util\stb_image.h">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\util\stb_image_write.h">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\units\usimm\configfile.h">
       <Filter>arches\units\usimm</Filter>
@@ -119,9 +119,9 @@
       <Filter>arches\units\usimm</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\util\arbitration.hpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\units\unit-cache.hpp">
+    <ClInclude Include="src\arches\units\unit-l1-cache.hpp">
       <Filter>arches\units</Filter>
     </ClInclude>
     <ClInclude Include="src\trax.hpp" />
@@ -170,7 +170,13 @@
       <Filter>arches\simulator</Filter>
     </ClInclude>
     <ClInclude Include="src\arches\util\memory-map.hpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\util\transactions.hpp">
+      <Filter>arches\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\arches\units\unit-cache-base.hpp">
+      <Filter>arches\units</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -184,17 +190,17 @@
       <Filter>arches\simulator</Filter>
     </ClCompile>
     <ClCompile Include="src\arches\util\elf.cpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClCompile>
     <ClCompile Include="src\arches\util\file.cpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClCompile>
     <ClCompile Include="src\arches\util\string.cpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\arches\util\stbi.cpp">
-      <Filter>arches\units\util</Filter>
+      <Filter>arches\util</Filter>
     </ClCompile>
     <ClCompile Include="src\arches\units\unit-dram.cpp">
       <Filter>arches\units</Filter>
@@ -208,10 +214,13 @@
     <ClCompile Include="src\arches\units\usimm\usimm.cc">
       <Filter>arches\units\usimm</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\unit-cache.cpp">
+    <ClCompile Include="src\arches\units\unit-l1-cache.cpp">
       <Filter>arches\units</Filter>
     </ClCompile>
     <ClCompile Include="src\arches\units\unit-tp.cpp">
+      <Filter>arches\units</Filter>
+    </ClCompile>
+    <ClCompile Include="src\arches\units\unit-cache-base.cpp">
       <Filter>arches\units</Filter>
     </ClCompile>
   </ItemGroup>

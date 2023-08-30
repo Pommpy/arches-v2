@@ -8,6 +8,8 @@ namespace Arches { namespace Units {
 class UnitBase
 {
 public:
+	UnitBase() = default;
+
 	Simulator* simulator{nullptr};
 	uint64_t   unit_id{~0ull};
 	virtual void clock_rise() = 0;

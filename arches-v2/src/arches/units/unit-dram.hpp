@@ -31,16 +31,25 @@ private:
 	struct Channel
 	{
 		std::priority_queue<ReturnItem> return_queue;
-		bool return_pending;
 	};
 
 	std::vector<Channel> _channels;
+
+	CrossBar<MemoryRequest> _request_cross_bar;
+	CrossBar<MemoryReturn> _return_cross_bar;
 
 	cycles_t _current_cycle{ 0 };
 
 public:
 	UnitDRAM(uint num_clients, uint64_t size, Simulator* simulator);
 	virtual ~UnitDRAM() override;
+
+	bool request_port_write_valid(uint port_index) override;
+	void write_request(const MemoryRequest& request, uint port_index) override;
+
+	bool return_port_read_valid(uint port_index) override;
+	const MemoryReturn& peek_return(uint port_index) override;
+	const MemoryReturn& read_return(uint port_index) override;
 
 	void clock_rise() override;
 	void clock_fall() override;

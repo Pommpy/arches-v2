@@ -53,24 +53,21 @@ private:
 	{
 		for(uint port_index = 0; port_index < request_bus.size(); ++port_index)
 		{
-			if(!request_bus.transfer_pending(port_index)) continue;
+			if(!request_bus.transaction_pending(port_index)) continue;
 
 			arb.add(port_index);
 		}
-
-		arb.update();
 
 		for(uint i = 0; i < issue_width; ++i)
 		{
 			if(issue_counters[i] == 0)
 			{
-				uint request_index = arb.current();
+				uint request_index = arb.get_index();
 				if(request_index == ~0u) break;
 
-				Request request_item = request_bus.transfer(request_index);
+				Request request_item = request_bus.get_transaction(request_index);
 				request_bus.acknowlege(request_index);
 				arb.remove(request_index);
-				arb.update();
 
 				_return_queue.push({request_item, static_cast<uint16_t>(request_index), current_cycle + std::max(1u, latency - 1u)});//simulate forwarding by returning a cycle eraly single cycle instruction will have to be handeled sepratly
 				issue_counters[i] = issue_rate - 1;
@@ -87,7 +84,7 @@ private:
 		while(!_return_queue.empty() && _return_queue.top().return_cycle <= current_cycle)
 		{
 			Return return_item = _return_queue.top(); _return_queue.pop();
-			return_bus.add_transfer(return_item.request, return_item.index);
+			return_bus.add_transaction(return_item.request, return_item.index);
 		}
 
 		current_cycle++;

@@ -173,8 +173,8 @@ inline bool intersect(const Triangle tri, const Ray& ray, Hit& hit)
 #endif
 }
 
-template<typename T>
-void insert(const T& entry, T* stack, uint stack_size, uint min = 0)
+template<typename RET>
+void insert(const RET& entry, RET* stack, uint stack_size, uint min = 0)
 {
 	uint32_t j = stack_size;
 	for(; j != min; --j)
@@ -197,8 +197,8 @@ inline bool intersect(uint face_index, const MeshPointers& mesh, const Ray& ray,
 	return false;
 }
 
-template<typename T>
-inline bool intersect(const BVH::Node* blas, const T& mesh, const Ray& ray, Hit& hit)
+template<typename RET>
+inline bool intersect(const BVH::Node* blas, const RET& mesh, const Ray& ray, Hit& hit)
 {
 	struct NodeStackEntry
 	{
@@ -246,8 +246,8 @@ inline bool intersect(const BVH::Node* blas, const T& mesh, const Ray& ray, Hit&
 	return found_hit;
 }
 
-template<typename T>
-inline bool intersect(const BVH::CompressedNode4* blas, const T& mesh, const Ray& ray, Hit& hit)
+template<typename RET>
+inline bool intersect(const BVH::CompressedNode4* blas, const RET& mesh, const Ray& ray, Hit& hit)
 {
 	struct NodeStackEntry
 	{

@@ -3,7 +3,7 @@
 #include "arches/simulator/simulator.hpp"
 
 #include "arches/units/unit-dram.hpp"
-#include "arches/units/unit-cache.hpp"
+#include "arches/units/unit-l1-cache.hpp"
 #include "arches/units/unit-atomic-reg-file.hpp"
 #include "arches/units/unit-tile-scheduler.hpp"
 
@@ -20,13 +20,18 @@ namespace Arches {
 namespace ISA { namespace RISCV { namespace TRaX {
 
 //TRAXAMOIN
-const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::FCHTHRD, Encoding::U, RegFile::INT, IMPL_DECL
+const static InstructionInfo traxamoin(0b00010, "traxamoin", Type::FCHTHRD, Encoding::U, RegType::INT, IMPL_DECL
 {
-	unit->mem_req.type = Units::MemoryRequest::Type::FCHTHRD;
-	unit->mem_req.dst.reg = instr.i.rd;
-	unit->mem_req.dst.reg_file = 0;
-	unit->mem_req.dst.sign_ext = 0;
-	unit->mem_req.size = 4;
+	unit->mem_req.type = MemoryRequest::Type::FCHTHRD;
+
+	RegAddr reg_addr;
+	reg_addr.reg = instr.i.rd;
+	reg_addr.reg_file = 0;
+	reg_addr.reg_type = 0;
+	reg_addr.sign_ext = 0;
+
+	unit->mem_req.dst = reg_addr.u16;
+	unit->mem_req.size = sizeof(uint32_t);
 	unit->mem_req.vaddr = 0x0ull;
 });
 
@@ -120,8 +125,8 @@ static void run_sim_trax(int argc, char* argv[])
 
 	std::vector<Units::UnitTP*> tps;
 	std::vector<Units::UnitSFU*> sfus;
-	std::vector<Units::UnitCache*> l1s;
-	std::vector<Units::UnitCache*> l2s;
+	std::vector<Units::UnitL1Cache*> l1s;
+	std::vector<Units::UnitL1Cache*> l2s;
 	std::vector<Units::UnitThreadScheduler*> thread_schedulers;
 
 	std::vector<Units::UnitSFU*> sfu_tables(sfu_table_size * num_tms);
@@ -140,7 +145,7 @@ static void run_sim_trax(int argc, char* argv[])
 
 	for(uint l2_index = 0; l2_index < num_l2; ++l2_index)
 	{
-		Units::UnitCache::Configuration l2_config;
+		Units::UnitL1Cache::Configuration l2_config;
 		l2_config.size = 512 * 1024;
 		l2_config.associativity = 1;
 		l2_config.data_array_access_cycles = 3;
@@ -149,7 +154,7 @@ static void run_sim_trax(int argc, char* argv[])
 		l2_config.num_lfb = 4;
 		l2_config.mem_map.add_unit(mm_null_address, &mm, l2_index, 1);
 
-		l2s.push_back(new Units::UnitCache(l2_config));
+		l2s.push_back(new Units::UnitL1Cache(l2_config));
 
 		for(uint tm_i = 0; tm_i < num_tms_per_l2; ++tm_i)
 		{
@@ -158,7 +163,7 @@ static void run_sim_trax(int argc, char* argv[])
 
 			uint tm_index = l2_index * num_tms_per_l2 + tm_i;
 
-			Units::UnitCache::Configuration l1_config;
+			Units::UnitL1Cache::Configuration l1_config;
 			l1_config.size = 32 * 1024;
 			l1_config.associativity = 1;
 			l1_config.data_array_access_cycles = 1;
@@ -168,7 +173,7 @@ static void run_sim_trax(int argc, char* argv[])
 			l1_config.num_lfb = 4;
 			l1_config.mem_map.add_unit(mm_null_address, l2s.back(), tm_i, 1);
 
-			l1s.push_back(new Units::UnitCache(l1_config));
+			l1s.push_back(new Units::UnitL1Cache(l1_config));
 			simulator.register_unit(l1s.back());
 
 			Units::UnitSFU** sfu_table = &sfu_tables[sfu_table_size * tm_index];
@@ -234,13 +239,13 @@ static void run_sim_trax(int argc, char* argv[])
 	tp_log.print_log();
 
 	printf("\nL1\n");
-	Units::UnitCache::Log l1_log;
+	Units::UnitL1Cache::Log l1_log;
 	for(auto& l1 : l1s)
 		l1_log.accumulate(l1->log);
 	l1_log.print_log();
 
 	printf("\nL2\n");
-	Units::UnitCache::Log l2_log;
+	Units::UnitL1Cache::Log l2_log;
 	for(auto& l2 : l2s)
 		l2_log.accumulate(l2->log);
 	l2_log.print_log();

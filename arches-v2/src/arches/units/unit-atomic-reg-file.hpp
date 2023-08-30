@@ -14,11 +14,13 @@ public:
 	uint32_t iregs[32];
 
 	uint port_index{~0u};
-	MemoryRequest req;
+	MemoryRequest current_request;
 
-	uint32_t return_reg;
+	CrossBar<MemoryRequest> _request_cross_bar;
+	CrossBar<MemoryReturn> _return_cross_bar;
 
-	UnitAtomicRegfile(uint num_clients) : UnitMemoryBase(num_clients, 1)
+	UnitAtomicRegfile(uint num_clients) : UnitMemoryBase(),
+		_request_cross_bar(num_clients, 1), _return_cross_bar(1, num_clients)
 	{
 		for(uint i = 0; i < 32; ++i)
 			iregs[i] = 0;
@@ -26,31 +28,23 @@ public:
 
 	void clock_rise() override
 	{
-		interconnect.propagate_requests([](const MemoryRequest& req, uint client, uint num_clients, uint num_servers)->uint
+		if(_request_cross_bar.is_read_valid(0))
 		{
-			//only one server so everything goes to index 0
-			return 0;
-		});
-
-		const MemoryRequest* req = interconnect.get_request(0, port_index);
-		if(req)
-		{
-			this->req = *req;
-			interconnect.acknowlege_request(0, port_index);
+			current_request = _request_cross_bar.read(0, port_index);
 		}
 	}
 
 	void clock_fall() override
 	{
-		interconnect.propagate_ack();
-
 		if(port_index != ~0)
 		{
-			uint32_t reg_index = (req.paddr >> 2) & 0b1'1111;
-			uint32_t request_data = *(uint32_t*)req.data;
-			return_reg = iregs[reg_index];
+			if(current_request.type != MemoryRequest::Type::STORE && !_return_cross_bar.is_write_valid(0)) return;
 
-			switch(req.type)
+			uint32_t reg_index = (current_request.paddr >> 2) & 0b1'1111;
+			uint32_t request_data = current_request.data_u32;
+			uint32_t ret_val = iregs[reg_index];
+
+			switch(current_request.type)
 			{
 			case MemoryRequest::Type::STORE:
 				iregs[reg_index] = request_data;
@@ -61,7 +55,8 @@ public:
 
 			case MemoryRequest::Type::AMO_ADD:
 				iregs[reg_index] += request_data;
-				if(return_reg % 1024 == 0) printf("Tiles Launched: %d\n", return_reg);
+				//if(ret_val % 1024 == 0) 
+					printf("Tiles Launched: %d\n", ret_val);
 				break;
 
 			case MemoryRequest::Type::AMO_AND:
@@ -93,18 +88,40 @@ public:
 				break;
 			}
 
-			if(req.type != MemoryRequest::Type::STORE && !interconnect.return_pending(0))
+			if(current_request.type != MemoryRequest::Type::STORE)
 			{
-				MemoryReturn ret;
-				ret.type = MemoryReturn::Type::LOAD_RETURN;
-				ret.size = req.size;
-				ret.paddr = req.paddr;
-				ret.data = &return_reg;
-				interconnect.add_return(ret, 0, port_index);
+				MemoryReturn ret = current_request;
+				ret.data_u32 = ret_val;
+				_return_cross_bar.write(ret, 0, port_index);
 			}
-		}
 
-		interconnect.propagate_returns();
+			port_index = ~0u;
+		}
+	}
+
+	bool request_port_write_valid(uint port_index) override
+	{
+		return _request_cross_bar.is_write_valid(port_index);
+	}
+
+	void write_request(const MemoryRequest& request, uint port_index) override
+	{
+		_request_cross_bar.write(request, port_index, 0);
+	}
+
+	bool return_port_read_valid(uint port_index) override
+	{
+		return _return_cross_bar.is_read_valid(port_index);
+	}
+
+	const MemoryReturn& peek_return(uint port_index) override
+	{
+		return _return_cross_bar.peek(port_index);
+	}
+
+	const MemoryReturn& read_return(uint port_index) override
+	{
+		return _return_cross_bar.read(port_index);
 	}
 };
 

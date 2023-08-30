@@ -43,8 +43,12 @@ private:
 	uint8_t* data_u8;
 	std::vector<_Bank> _banks;
 
+	CrossBar<MemoryRequest> _request_cross_bar;
+	CrossBar<MemoryReturn> _return_cross_bar;
+
 public:
-	UnitBuffer(Configuration config) : UnitMemoryBase(config.num_ports, config.num_banks)
+	UnitBuffer(Configuration config) : UnitMemoryBase(),
+		_request_cross_bar(config.num_ports, config.num_banks), _return_cross_bar(config.num_banks, config.num_ports)
 	{
 		data_u8 = (uint8_t*)malloc(config.size);
 
@@ -64,33 +68,21 @@ public:
 
 	void clock_rise() override
 	{
-		interconnect.propagate_requests([](const MemoryRequest& req, uint client, uint num_clients, uint num_servers)->uint
-		{
-			return (req.paddr >> log2i(CACHE_BLOCK_SIZE)) % num_servers;
-		});
-
 		//select next request
 		for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
 		{
 			_Bank& bank = _banks[bank_index];
 			if(bank.request_mask) continue;
 
+			if(!_request_cross_bar.is_read_valid(bank_index)) continue;
 			uint port_index;
-			const MemoryRequest* req = interconnect.get_request(bank_index, port_index);
-			if(!req) continue;
-
-			//merge identical requests
-			bank.request = *req;
-			uint64_t request_mask = interconnect.merge_requests(bank.request);
-			interconnect.acknowlege_requests(bank_index, request_mask);
-			bank.request_mask |= request_mask;
+			bank.request = _request_cross_bar.read(bank_index, port_index);
+			bank.request_mask |= 0x1ull << port_index;
 		}
 	}
 
 	void clock_fall() override
 	{
-		interconnect.propagate_ack();
-
 		for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
 		{
 			_Bank& bank = _banks[bank_index];
@@ -99,7 +91,7 @@ public:
 			paddr_t buffer_addr = _get_buffer_addr(bank.request.paddr);
 			if(bank.request.type == MemoryRequest::Type::LOAD)
 			{
-				if(interconnect.return_pending(bank_index))
+				if(!_return_cross_bar.is_write_valid(bank_index))
 				{
 					//cant return because of network trafic we must stall and try again next cycle
 					bank.cycles_remaining = 1;
@@ -110,11 +102,9 @@ public:
 				ret.type = MemoryReturn::Type::LOAD_RETURN;
 				ret.size = bank.request.size;
 				ret.paddr = bank.request.paddr;
+				std::memcpy(ret.data, &data_u8[buffer_addr], bank.request.size);
 
-				std::memcpy(bank.return_reg, &data_u8[buffer_addr], bank.request.size);
-				ret.data = bank.return_reg;
-
-				interconnect.add_returns(ret, bank_index, bank.request_mask);
+				_return_cross_bar.broadcast(ret, bank_index, bank.request_mask);
 				bank.request_mask = 0x0ull;//we are ready for the next request
 			}
 			else if(bank.request.type == MemoryRequest::Type::STORE)
@@ -123,8 +113,32 @@ public:
 				bank.request_mask = 0x0ull;
 			}
 		}
+	}
 
-		interconnect.propagate_returns();
+	bool request_port_write_valid(uint port_index)
+	{
+		return _request_cross_bar.is_write_valid(port_index);
+	}
+
+	void write_request(const MemoryRequest& request, uint port_index)
+	{
+		uint bank_index = _get_bank_index(request.paddr);
+		_request_cross_bar.write(request, port_index, bank_index);
+	}
+
+	bool return_port_read_valid(uint port_index)
+	{
+		return _return_cross_bar.is_read_valid(port_index);
+	}
+
+	const MemoryReturn& peek_return(uint port_index)
+	{
+		return _return_cross_bar.peek(port_index);
+	}
+
+	const MemoryReturn& read_return(uint port_index)
+	{
+		return _return_cross_bar.read(port_index);
 	}
 
 private:

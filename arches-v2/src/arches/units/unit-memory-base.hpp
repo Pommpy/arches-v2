@@ -5,105 +5,24 @@
 #include "unit-base.hpp"
 #include "../simulator/interconnects.hpp"
 #include "../util/memory-map.hpp"
+#include "../util/transactions.hpp"
 
 namespace Arches { namespace Units {
-
-#define CACHE_BLOCK_SIZE 32
-#define ROW_BUFFER_SIZE (8 * 1024)
-
-struct MemoryRequest
-{
-	enum class Type : uint8_t
-	{
-		//must match the first part of ISA::RISCV::Type f
-		//TODO: We should figure a way to make this and the isa RISCV enum the same structure. Right now this isn't maintainable. Also it should be impmnetation dependent somehow so that we can have diffrent isntruction based on impl.
-
-		NA,
-
-		LOAD,
-		STORE,
-
-		AMO_ADD,
-		AMO_XOR,
-		AMO_OR,
-		AMO_AND,
-		AMO_MIN,
-		AMO_MAX,
-		AMO_MINU,
-		AMO_MAXU,
-
-		FCHTHRD,
-		LBRAY,
-		SBRAY,
-		CSHIT,
-
-		//other non instruction mem ops
-		LOAD_RAY_BUCKET,
-	};
-
-	//meta data 
-	Type    type;
-	uint8_t size;
-
-	union
-	{
-		paddr_t paddr;
-		vaddr_t vaddr;
-	};
-
-	bool operator==(const MemoryRequest& other) const
-	{
-		return type == other.type && size == other.size && paddr == other.paddr;
-	}
-
-	//Only atomic instructions actually pass or recive data.
-	//The data pointed to by this must precist until the pending line in cleared.
-	//Coppying data into the request would be very inefficent (especially when passing full blocks of data).
-	//Hence why we handle it by passing a pointer the data can then be coppied directly by the reciver
-	void* data{nullptr};
-};
-
-struct MemoryReturn
-{
-	enum class Type : uint8_t
-	{
-		NA,
-		LOAD_RETURN,
-	};
-
-	//meta data 
-	Type    type;
-	uint8_t size;
-
-	union
-	{
-		paddr_t paddr;
-		vaddr_t vaddr;
-	};
-
-	bool operator==(const MemoryReturn& other) const
-	{
-		return type == other.type && size == other.size && paddr == other.paddr;
-	}
-
-	//Only atomic instructions actually pass or recive data.
-	//The data pointed to by this must precist until the pending line in cleared.
-	//Coppying data into the request would be very inefficent (especially when passing full blocks of data).
-	//Hence why we handle it by passing a pointer the data can then be coppied directly by the reciver
-	void* data{nullptr};
-};
 
 class UnitMemoryBase : public UnitBase
 {
 public:
-	InterconnectionNetwork<MemoryRequest, MemoryReturn> interconnect;
-	UnitMemoryBase(uint clients, uint servers) : interconnect(clients, servers), UnitBase()
- 	{
-		
-	}
-};
+	UnitMemoryBase() = default;
 
-}}
+	//Should only be used on clock fall
+	virtual bool request_port_write_valid(uint port_index) = 0;
+	virtual void write_request(const MemoryRequest& request, uint port_index) = 0;
+
+	//Should only be used on clock rise
+	virtual bool return_port_read_valid(uint port_index) = 0;
+	virtual const MemoryReturn& peek_return(uint port_index) = 0;
+	virtual const MemoryReturn& read_return(uint port_index) = 0;
+};
 
 class MemoryMap
 {
@@ -189,3 +108,5 @@ public:
 		return start;
 	}
 };
+
+}}

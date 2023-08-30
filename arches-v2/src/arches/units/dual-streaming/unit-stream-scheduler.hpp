@@ -272,27 +272,27 @@ public:
 	{
 		auto& mmint = _main_mem->interconnect;
 
-		if(!mmint.request_pending(0) && !scene_stream.fully_requested())
+		if(!mmint.request_port_write_valid(0) && !scene_stream.fully_requested())
 		{
 			MemoryRequest req = scene_stream.get_next_request();
 			_main_mem->interconnect.add_request(req, 0);
 		}
 
 		//forward the scene stream
-		if(_scene_buffer->interconnect.request_pending(_num_tms) && (scene_buffer_request.type == MemoryRequest::Type::STORE))
+		if(_scene_buffer->interconnect.request_port_write_valid(_num_tms) && (scene_buffer_request.type == MemoryRequest::Type::STORE))
 		{
 			_scene_buffer->interconnect.add_request(scene_buffer_request, _num_tms);
 			scene_stream.num_returned++;
 			scene_buffer_request.type = MemoryRequest::Type::NA;
 		}
 
-		if(!mmint.request_pending(1) && !ray_stream.fully_requested())
+		if(!mmint.request_port_write_valid(1) && !ray_stream.fully_requested())
 		{
 			MemoryRequest req = ray_stream.get_next_request();
 			_main_mem->interconnect.add_request(req, 1);
 		}
 
-		if(!mmint.request_pending(2) && !ray_write_queue.empty())
+		if(!mmint.request_port_write_valid(2) && !ray_write_queue.empty())
 		{
 			//write next ray
 			uint segment_index = ray_write_queue.front().segment_index;
@@ -330,7 +330,7 @@ public:
 			ray_write_queue.pop();
 		}
 
-		if(!mmint.request_pending(3) )
+		if(!mmint.request_port_write_valid(3) )
 		{
 			if(!hit_record_read_queue.empty())
 			{
@@ -357,7 +357,7 @@ public:
 	void issue_returns()
 	{
 		//forward the ray stream
-		if(interconnect.return_pending(0) && (ray_stream_return.type == MemoryReturn::Type::LOAD_RETURN))
+		if(interconnect.return_port_read_valid(0) && (ray_stream_return.type == MemoryReturn::Type::LOAD_RETURN))
 		{
 			interconnect.add_return(ray_stream_return, 0, ray_stream.dst);
 			ray_stream.num_returned++;

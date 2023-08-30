@@ -32,6 +32,11 @@ public:
 		pending |= mask;
 	}
 
+	void add_mask_safe(uint64_t mask)
+	{
+		std::atomic_fetch_or(reinterpret_cast<std::atomic_uint64_t*>(&pending), mask);
+	}
+
 	void remove(uint index)
 	{
 		remove_mask(0x1ull << index);
@@ -43,17 +48,25 @@ public:
 		pending &= ~mask;
 	}
 
-	void update()
+	void remove_mask_safe(uint64_t mask)
+	{
+		std::atomic_fetch_and(reinterpret_cast<std::atomic_uint64_t*>(&pending), ~mask);
+	}
+
+	uint get_index()
+	{
+		if(!pending) return ~0u;
+
+		_update();
+		return index;
+	}
+
+private:
+	void _update()
 	{
 		uint64_t rot_mask = rotr(pending, index); //rotate the mask so the last index flag is in the 0 bit
 		uint64_t offset = ctz(rot_mask); //count the number of 0s till the next 1
 		index = (index + offset) & 0x3fu; //advance the index to the next set bit
-	}
-
-	uint current()
-	{
-		if(!((pending >> index) & 0x1ull)) return ~0u;
-		return index;
 	}
 };
 
@@ -89,22 +102,12 @@ public:
 
 	uint src(uint dst)
 	{
-		return arbitrators[dst].current();
+		return arbitrators[dst].get_index();
 	}
 
 	uint srcs_pending(uint dst)
 	{
 		return arbitrators[dst].num_pending();
-	}
-
-	void update()
-	{
-		for(uint i = 0; i < arbitrators.size(); ++i) arbitrators[i].update();
-	}
-
-	void update(uint dst)
-	{
-		arbitrators[dst].update();
 	}
 };
 #endif

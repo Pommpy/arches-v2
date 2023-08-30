@@ -24,22 +24,22 @@ private:
 	//Should be much more efficent since each line has one byte and they are alligne they will likely be on the same line
 	//reads to the data only happen if pending flag is set and ack is done by clearing the pending bit
 	std::vector<_64Aligned> _pending;
-	std::vector<RET>          _data;
+	std::vector<RET>        _transactions;
 
 public:
 	Bus(uint size)
 	{
 		_pending.resize((size + 63) / 64);
-		_data.resize(size);
+		_transactions.resize(size);
 	}
 
 	~Bus()
 	{
 	}
 
-	uint size() const { return _data.size(); }
+	uint size() const { return _transactions.size(); }
 
-	bool transfer_pending(uint index) const
+	bool transaction_pending(uint index) const
 	{
 		uint8_t* pending = (uint8_t*)_pending.data();
 
@@ -56,30 +56,98 @@ public:
 
 		pending[index] = 0;
 	}
-	const RET& transfer(uint index) const
+	const RET& get_transaction(uint index) const
 	{
 		uint8_t* pending = (uint8_t*)_pending.data();
 
 		assert(index < size());
 		assert(pending[index]);
 
-		return _data[index];
+		return _transactions[index];
 	}
-	void add_transfer(const RET& data, uint index)
+	void add_transaction(const RET& data, uint index)
 	{
 		uint8_t* pending = (uint8_t*)_pending.data();
 
 		assert(index < size());
 		assert(!pending[index]);
 
-		_data[index] = data;
+		_transactions[index] = data;
 		pending[index] = 1;
 	}
 };
 
+template<typename T>
+class CrossBar
+{
+private:
+	_64Aligned _pending_transaction;
+	std::vector<T> _source_regs;
+	std::vector<RoundRobinArbitrator64> _arbiters;
+
+public:
+	CrossBar(uint sources, uint sinks) : _source_regs(sources), _arbiters(sinks) {}
+
+
+
+	//Sink interface. Clock rise only. 
+	bool is_read_valid(uint sink_index)
+	{
+		return (_arbiters[sink_index].pending_mask() != 0x0ull);
+	}
+
+	const T& peek(uint sink_index)
+	{
+		uint source_index;
+		return peek(sink_index, source_index);
+	}
+
+	const T& peek(uint sink_index, uint& source_index)
+	{
+		assert(is_read_valid(sink_index));
+		source_index = _arbiters[sink_index].get_index();
+		return _source_regs[source_index];
+	}
+
+	const T& read(uint sink_index)
+	{
+		uint source_index;
+		return read(sink_index, source_index);
+	}
+
+	const T& read(uint sink_index, uint& source_index)
+	{
+		const T& ret = peek(sink_index, source_index);
+		_pending_transaction[source_index] = 0;
+		_arbiters[sink_index].remove(source_index);
+		return ret;
+	}
+
+
+
+	//Source Interface. Clock fall only.
+	bool is_write_valid(uint source_index)
+	{
+		return _pending_transaction[source_index] == 0;
+	}
+
+	void write(const T& transaction, uint source_index, uint sink_index)
+	{
+		assert(sink_index < _arbiters.size());
+		assert(source_index < _source_regs.size());
+		assert(is_write_valid(source_index));
+
+		_pending_transaction[source_index] = 1;
+		_source_regs[source_index] = transaction;
+		_arbiters[sink_index].add_mask_safe(0x1ull << source_index);
+	}
+};
+
+
+/*
 //up to 64 client and servers
 template<typename REQ, typename RET>
-class InterconnectionNetwork
+class CrossBar
 {
 private:
 	_64Aligned _request_pending; //these are used as a thread safe way of setting pending bit
@@ -88,12 +156,12 @@ private:
 	std::vector<REQ>                    _request_regs; //the requests but
 	std::vector<RoundRobinArbitrator64> _request_arbs; //the arbitrator for putting incoming request on the data lines
 
-	std::vector<RET>                    _return_regs; //the return regs
+	std::vector<RET>                      _return_regs; //the return regs
 	std::vector<RoundRobinArbitrator64> _return_arbs; //the arbitrators for selecting which request to service
 	uint64_t _server_pending_mask;
 
 public:
-	InterconnectionNetwork(uint clients, uint servers)
+	CrossBar(uint clients, uint servers)
 	{
 		_request_regs.resize(clients);
 		_return_regs.resize(servers);
@@ -188,7 +256,7 @@ public:
 		}
 	}
 
-	bool return_pending(uint server)
+	bool return_port_read_valid(uint server)
 	{
 		return (_server_pending_mask >> server) & 0x1ull;
 	}
@@ -221,8 +289,9 @@ public:
 		_request_pending[client] = 1;
 	}
 
-	bool request_pending(uint client)
+	bool request_port_write_valid(uint client)
 	{
 		return _request_pending[client];
 	}
 };
+*/

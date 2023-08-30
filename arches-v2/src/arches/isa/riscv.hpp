@@ -167,10 +167,29 @@ enum class Encoding : uint8_t
 	J
 };
 
-enum class RegFile : uint8_t
+enum class RegType : uint8_t
 {
 	INT,
 	FLOAT,
+};
+
+struct RegAddr
+{
+	union
+	{
+		struct
+		{
+			uint16_t reg : 5;
+			uint16_t reg_file : 9;
+			uint16_t reg_type : 1;
+			uint16_t sign_ext : 1;
+		};
+
+		uint16_t u16;
+	};
+
+	RegAddr() = default;
+	RegAddr(uint16_t u16) : u16(u16) {}
 };
 
 class InstructionInfo;
@@ -328,8 +347,8 @@ public:
 			uint32_t    op_code;
 			Type        type;
 			Encoding    encoding;
-			RegFile     dst_reg_file;
-			RegFile     src_reg_file;
+			RegType     dst_reg_type;
+			RegType     src_reg_type;
 		};
 
 		struct
@@ -345,11 +364,11 @@ private:
 
 public:
 	InstructionInfo() = default;
-	InstructionInfo(uint32_t opcode, FunctionProcessor impl_fn) : InstructionInfo(opcode, nullptr, Type::NA, Encoding::NA, RegFile::INT, RegFile::INT, impl_fn) {}
-	InstructionInfo(uint32_t opcode, char const* mnemonic, FunctionProcessor impl_fn) : InstructionInfo(opcode, mnemonic, Type::NA, Encoding::NA, RegFile::INT, RegFile::INT, impl_fn) {}
-	InstructionInfo(uint32_t opcode, char const* mnemonic, Type type, Encoding encoding, RegFile reg_file, FunctionProcessor impl_fn) : InstructionInfo(opcode, mnemonic, type, encoding, reg_file, reg_file, impl_fn) {}
-	InstructionInfo(uint32_t opcode, char const* mnemonic, Type type, Encoding encoding, RegFile dst_reg_file, RegFile src_reg_file, FunctionProcessor impl_fn) :
-		_impl_fn(impl_fn), _is_meta(false), op_code(opcode), type(type), encoding(encoding), dst_reg_file(dst_reg_file), src_reg_file(src_reg_file), mnemonic(mnemonic)
+	InstructionInfo(uint32_t opcode, FunctionProcessor impl_fn) : InstructionInfo(opcode, nullptr, Type::NA, Encoding::NA, RegType::INT, RegType::INT, impl_fn) {}
+	InstructionInfo(uint32_t opcode, char const* mnemonic, FunctionProcessor impl_fn) : InstructionInfo(opcode, mnemonic, Type::NA, Encoding::NA, RegType::INT, RegType::INT, impl_fn) {}
+	InstructionInfo(uint32_t opcode, char const* mnemonic, Type type, Encoding encoding, RegType reg_type, FunctionProcessor impl_fn) : InstructionInfo(opcode, mnemonic, type, encoding, reg_type, reg_type, impl_fn) {}
+	InstructionInfo(uint32_t opcode, char const* mnemonic, Type type, Encoding encoding, RegType dst_reg_type, RegType src_reg_type, FunctionProcessor impl_fn) :
+		_impl_fn(impl_fn), _is_meta(false), op_code(opcode), type(type), encoding(encoding), dst_reg_type(dst_reg_type), src_reg_type(src_reg_type), mnemonic(mnemonic)
 	{
 			
 	}
@@ -375,8 +394,8 @@ public:
 
 	void print_instr(Instruction const& instr, FILE* stream = stdout) const
 	{
-		char drfc = dst_reg_file == RegFile::INT ? 'x' : 'f';
-		char srfc = src_reg_file == RegFile::INT ? 'x' : 'f';
+		char drfc = dst_reg_type == RegType::INT ? 'x' : 'f';
+		char srfc = src_reg_type == RegType::INT ? 'x' : 'f';
 
 		switch(encoding)
 		{

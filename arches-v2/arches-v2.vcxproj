@@ -34,10 +34,11 @@
     <ClInclude Include="src\arches\units\dual-streaming\unit-ray-staging-buffer.hpp" />
     <ClInclude Include="src\arches\units\dual-streaming\unit-stream-scheduler.hpp" />
     <ClInclude Include="src\arches\units\unit-atomic-reg-file.hpp" />
+    <ClInclude Include="src\arches\units\unit-cache-base.hpp" />
     <ClInclude Include="src\arches\units\unit-tile-scheduler.hpp" />
     <ClInclude Include="src\arches\units\unit-base.hpp" />
     <ClInclude Include="src\arches\units\unit-buffer.hpp" />
-    <ClInclude Include="src\arches\units\unit-cache.hpp" />
+    <ClInclude Include="src\arches\units\unit-l1-cache.hpp" />
     <ClInclude Include="src\arches\units\unit-dram.hpp" />
     <ClInclude Include="src\arches\units\unit-main-memory-base.hpp" />
     <ClInclude Include="src\arches\units\unit-memory-base.hpp" />
@@ -59,6 +60,7 @@
     <ClInclude Include="src\arches\util\stb_image.h" />
     <ClInclude Include="src\arches\util\stb_image_write.h" />
     <ClInclude Include="src\arches\util\string.hpp" />
+    <ClInclude Include="src\arches\util\transactions.hpp" />
     <ClInclude Include="src\describo.hpp" />
     <ClInclude Include="src\dual-streaming.hpp" />
     <ClInclude Include="src\riscv\trax\src\ray-tracing-include.hpp" />
@@ -69,7 +71,8 @@
     <ClCompile Include="src\arches\isa\registers.cpp" />
     <ClCompile Include="src\arches\isa\riscv.cpp" />
     <ClCompile Include="src\arches\simulator\simulator.cpp" />
-    <ClCompile Include="src\arches\units\unit-cache.cpp" />
+    <ClCompile Include="src\arches\units\unit-cache-base.cpp" />
+    <ClCompile Include="src\arches\units\unit-l1-cache.cpp" />
     <ClCompile Include="src\arches\units\unit-dram.cpp" />
     <ClCompile Include="src\arches\units\unit-tp.cpp" />
     <ClCompile Include="src\arches\units\usimm\memory_controller.cc" />
@@ -216,6 +219,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <Optimization>Full</Optimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

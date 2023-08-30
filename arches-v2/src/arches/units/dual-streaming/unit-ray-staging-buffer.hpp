@@ -123,7 +123,7 @@ public:
 		else if(request.type == MemoryRequest::Type::SBRAY || request.type == MemoryRequest::Type::CSHIT) //ray write or conditionally store hit
 		{
 			//forward to stream scheduler
-			if(!stream_scheduler->interconnect.request_pending(tm_index))
+			if(!stream_scheduler->interconnect.request_port_write_valid(tm_index))
 			{
 				stream_scheduler->interconnect.add_request(request, tm_index);
 			}

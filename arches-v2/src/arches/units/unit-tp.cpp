@@ -2,10 +2,10 @@
 
 namespace Arches { namespace Units {
 
-//#define LOGGING_ENABLED (_tp_index == 32 && _tm_index == 11)
+//#define LOGGING_ENABLED (_tp_index == 0 && _tm_index == 0)
 #define LOGGING_ENABLED (false)
 
-UnitTP::UnitTP(const Configuration& config) : log(0x10000), UnitBase(), ISA::RISCV::ExecutionBase(&_int_regs, &_float_regs)
+UnitTP::UnitTP(const Configuration& config) : log(0x10000), ISA::RISCV::ExecutionBase(&_int_regs, &_float_regs)
 {
 	int_regs->sp.u64 = config.sp;
 	int_regs->ra.u64 = 0x0ull;
@@ -35,14 +35,14 @@ UnitTP::UnitTP(const Configuration& config) : log(0x10000), UnitBase(), ISA::RIS
 
 void UnitTP::_clear_register_pending(const ISA::RISCV::RegAddr& dst)
 {
-	     if(dst.reg_file == 0) _int_regs_pending[dst.reg] = 0;
-	else if(dst.reg_file == 1) _float_regs_pending[dst.reg] = 0;
+	     if(dst.reg_type == 0) _int_regs_pending[dst.reg] = 0;
+	else if(dst.reg_type == 1) _float_regs_pending[dst.reg] = 0;
 }
 
 uint8_t UnitTP::_check_dependancies(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info)
 {
-	uint8_t* dst_pending = (uint8_t)instr_info.dst_reg_file ? _float_regs_pending : _int_regs_pending;
-	uint8_t* src_pending = (uint8_t)instr_info.src_reg_file ? _float_regs_pending : _int_regs_pending;
+	uint8_t* dst_pending = (uint8_t)instr_info.dst_reg_type ? _float_regs_pending : _int_regs_pending;
+	uint8_t* src_pending = (uint8_t)instr_info.src_reg_type ? _float_regs_pending : _int_regs_pending;
 
 	if(instr.opcode == ISA::RISCV::CUSTOM_OPCODE0)
 	{
@@ -104,62 +104,24 @@ uint8_t UnitTP::_check_dependancies(const ISA::RISCV::Instruction instr, ISA::RI
 void UnitTP::_process_load_return(const MemoryReturn& ret)
 {
 	if(LOGGING_ENABLED) printf("LOAD RETURN(%d):%lld\n", _tp_index, ret.vaddr);
-	for(uint i = 0; i < _lsq.size(); ++i)
-	{
-		_LSE& lse = _lsq[i];
-
-		//TODO not clear that we can commit multiple registers in a single cycle
-		//Commit all the lse that have already issued if they havent issued we will short circuit when we try to issue
-		if(lse.state == _LSE::State::ISSUED && lse.vaddr == ret.paddr)
-		{
-			if(ret.data) _write_register(lse.dst, ((uint8_t*)ret.data) + lse.offset, lse.size);
-			_clear_register_pending(lse.dst);
-			lse.state = _LSE::State::COMMITED;
-		}
-	}
+	_write_register(ret.dst, ((uint8_t*)ret.data), ret.size);
+	_clear_register_pending(ret.dst);
 }
 
-void UnitTP::_drain_lsq()
+void UnitTP::_try_drain_lsq()
 {
-	//Try to issue next entry from LSQ. If issue LSE == next LSE then we have drained the queue
-	while(_lsq[_oldest_lse].state == _LSE::State::VALID)
-	{
-		//If we havent issued or commited check to see if another entry commited or issued the same address
-		_LSE& lse = _lsq[_oldest_lse];
-		_LSE::State highest_exiting_state = _LSE::State::VALID;
-		if(lse.type == MemoryRequest::Type::LOAD)
-			for(uint i = 0; i < _lsq.size(); ++i)
-				if(_lsq[i].type == MemoryRequest::Type::LOAD && _lsq[i].vaddr == lse.vaddr && _lsq[i].state == _LSE::State::ISSUED)
-					highest_exiting_state = std::max(highest_exiting_state, _lsq[i].state);
+	if(_lsq.empty()) return;
 
-		if(highest_exiting_state == _LSE::State::ISSUED)
-		{
-			//We have already issued this request so we can mark as issued
-			lse.state = _LSE::State::ISSUED;
-		}
-		else //VALID
-		{
-			//Not issued or in the queue so we need to fetch it
-			const MemoryMap::MemoryMapping& mapping = mem_map.mappings[lse.unit_index];
-			if(mapping.unit->interconnect.request_pending(mapping.port_index)) break; //For now issue in order
+	const MemoryRequest& req = _lsq.front();
 
-			MemoryRequest request;
-			request.paddr = lse.vaddr;
-			request.type = lse.type;
-			request.data = lse.data;
+	//Not issued or in the queue so we need to fetch it
+	uint mappig_index = mem_map.get_mapping_index(req.vaddr);
+	const MemoryMap::MemoryMapping& mapping = mem_map.mappings[mappig_index];
+	if(!mapping.unit->request_port_write_valid(mapping.port_index)) return; //For now issue requests in order
 
-			if(lse.type == MemoryRequest::Type::LOAD) request.size = _port_size;
-			else                                      request.size = lse.size;
-
-			if(LOGGING_ENABLED && lse.type == MemoryRequest::Type::LOAD) printf("LOAD(%d):%lld\n",_tp_index, request.vaddr);
-			mapping.unit->interconnect.add_request(request, mapping.port_index);
-
-			if(lse.type == MemoryRequest::Type::STORE) lse.state = _LSE::State::COMMITED;
-			else                                       lse.state = _LSE::State::ISSUED;
-		}
-
-		_oldest_lse = (_oldest_lse + 1) % _lsq.size();
-	}
+	if(LOGGING_ENABLED && req.type == MemoryRequest::Type::LOAD) printf("LOAD(%d):%lld\n",_tp_index, req.vaddr);
+	mapping.unit->write_request(req, mapping.port_index);
+	_lsq.pop();
 }
 
 void UnitTP::clock_rise()
@@ -169,20 +131,18 @@ void UnitTP::clock_rise()
 		MemoryMap::MemoryMapping mapping = mem_map.mappings[i];
 		for(uint j = 0; j < mapping.num_ports; ++j, ++mapping.port_index, ++mapping.port_id)
 		{
-			const MemoryReturn* ret = mapping.unit->interconnect.get_return(mapping.port_index);
-			if(!ret) continue;
-
-			_process_load_return(*ret);
-			mapping.unit->interconnect.acknowlege_return(mapping.port_index);
+			if(!mapping.unit->return_port_read_valid(mapping.port_index)) continue;
+			const MemoryReturn& ret = mapping.unit->read_return(mapping.port_index);
+			_process_load_return(ret);
 		}
 	}
 
 REPEAT_SFU_LOOP: //TODO make this less janky
 	for(auto& a : _issued_sfus)
 	{
-		if(a.first->return_bus.transfer_pending(_tp_index))
+		if(a.first->return_bus.transaction_pending(_tp_index))
 		{
-			UnitSFU::Request return_item = a.first->return_bus.transfer(_tp_index);
+			UnitSFU::Request return_item = a.first->return_bus.get_transaction(_tp_index);
 			a.first->return_bus.acknowlege(_tp_index);
 
 			_clear_register_pending(return_item.dst);
@@ -196,7 +156,7 @@ REPEAT_SFU_LOOP: //TODO make this less janky
 	}
 }
 
-#define MAGIC_COMPUTE
+//#define MAGIC_COMPUTE
 
 void UnitTP::clock_fall()
 {
@@ -206,16 +166,16 @@ FREE_INSTR:
 	//If the instruction wasn't accepted by the sfu we must stall
 	if(_last_issue_sfu)
 	{
-		if(_last_issue_sfu->request_bus.transfer_pending(_tp_index))
+		if(_last_issue_sfu->request_bus.transaction_pending(_tp_index))
 		{
 			log.log_resource_stall(_last_instr_info);
-			_drain_lsq();
+			_try_drain_lsq();
 			return;
 		}
 		else if(_last_issue_sfu->latency == 1) //Simulate forwarding on single cycle instructions
 		{
-			if((uint8_t)_last_instr_info.dst_reg_file == 0) _int_regs_pending[_last_instr.rd] = 0;
-			else if((uint8_t)_last_instr_info.dst_reg_file == 1) _float_regs_pending[_last_instr.rd] = 0;
+			if((uint8_t)_last_instr_info.dst_reg_type == 0) _int_regs_pending[_last_instr.rd] = 0;
+			else if((uint8_t)_last_instr_info.dst_reg_type == 1) _float_regs_pending[_last_instr.rd] = 0;
 		}
 	}
 	_last_issue_sfu = nullptr;
@@ -231,7 +191,7 @@ FREE_INSTR:
 		if(uint8_t type = _check_dependancies(instr, instr_info))
 		{
 			log.log_data_stall(type);
-			_drain_lsq();
+			_try_drain_lsq();
 			return;
 		}
 
@@ -264,41 +224,16 @@ FREE_INSTR:
 	{
 		//Create LSE
 		uint mappig_index = mem_map.get_mapping_index(mem_req.vaddr);
-		if(mappig_index != ~0)
+		if(mappig_index != ~0u)
 		{
-			const MemoryMap::MemoryMapping& mapping = mem_map.mappings[mappig_index];
-			_LSE& lse = _lsq[_next_lse];
-
-			//If the next entry in the circular buffer is free or commited we can reuse it
-			if(lse.state == _LSE::State::COMMITED || lse.state == _LSE::State::FREE)
+			//If the the lsq is not full add the request to it
+			if(true)
 			{
-				//If this is a load we need to align it to the port width
-				//TODO make this variable based on the mem-unit
-				if(mem_req.type == MemoryRequest::Type::LOAD)
-				{
-					lse.vaddr = mem_req.vaddr & _port_mask;
-				}
-				else
-				{
-					lse.vaddr = mem_req.vaddr;
-					std::memcpy(lse.data, mem_req.store_data, mem_req.size);
-				}
-
-				lse.offset = mem_req.vaddr - lse.vaddr;
-				lse.size = mem_req.size;
-
-				lse.type = mem_req.type;
-				lse.dst = mem_req.dst;
-				lse.unit_index = mappig_index;
-
-				lse.state = _LSE::State::VALID;
-				
-				_next_lse = (_next_lse + 1) % _lsq.size();
-				_stalled_for_lsq = false;
+				_lsq.push(mem_req);
 			}
 			else
 			{
-				//stall since LSE is full
+				//stall since LSQ is full
 				log.log_resource_stall(_last_instr_info);
 				_stalled_for_lsq = true;
 			}
@@ -315,7 +250,7 @@ FREE_INSTR:
 			else if(_last_instr_info.type == ISA::RISCV::Type::STORE)
 			{
 				paddr_t buffer_addr = mem_req.vaddr & _stack_mask;
-				std::memcpy(&_stack_mem[buffer_addr], mem_req.store_data, mem_req.size);
+				std::memcpy(&_stack_mem[buffer_addr], mem_req.data, mem_req.size);
 			}
 			else
 			{
@@ -331,7 +266,7 @@ FREE_INSTR:
 		//Issue to SFU
 		UnitSFU::Request request;
 		request.dst.reg = _last_instr.rd;
-		request.dst.reg_file = (uint8_t)_last_instr_info.dst_reg_file;
+		request.dst.reg_type = (uint8_t)_last_instr_info.dst_reg_type;
 
 	#ifdef MAGIC_COMPUTE
 		_last_issue_sfu = nullptr;  
@@ -341,7 +276,7 @@ FREE_INSTR:
 
 		if(_last_issue_sfu)
 		{
-			_last_issue_sfu->request_bus.add_transfer(request, _tp_index);
+			_last_issue_sfu->request_bus.add_transaction(request, _tp_index);
 			_issued_sfus[_last_issue_sfu]++;
 		}
 		else
@@ -354,7 +289,7 @@ FREE_INSTR:
 		}
 	}
 
-	_drain_lsq();
+	_try_drain_lsq();
 }
 
 }}

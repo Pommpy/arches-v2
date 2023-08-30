@@ -4,8 +4,8 @@
 
 namespace Arches { namespace Units {
 
-UnitDRAM::UnitDRAM(uint num_ports, uint64_t size, Simulator* simulator) : 
-	UnitMainMemoryBase(num_ports, 16, size)
+UnitDRAM::UnitDRAM(uint num_ports, uint64_t size, Simulator* simulator) : UnitMainMemoryBase(size),
+	_request_cross_bar(num_ports, 16), _return_cross_bar(16, num_ports)
 {
 	char* usimm_config_file = (char*)REL_PATH_BIN_TO_SAMPLES"gddr5.cfg";
 	char* usimm_vi_file = (char*)REL_PATH_BIN_TO_SAMPLES"1Gb_x16_amd2GHz.vi";
@@ -17,6 +17,32 @@ UnitDRAM::UnitDRAM(uint num_ports, uint64_t size, Simulator* simulator) :
 UnitDRAM::~UnitDRAM() /*override*/
 {
 	usimmDestroy();
+}
+
+bool UnitDRAM::request_port_write_valid(uint port_index)
+{
+	return _request_cross_bar.is_write_valid(port_index);
+}
+
+void UnitDRAM::write_request(const MemoryRequest& request, uint port_index)
+{
+	uint channel_index = calcDramAddr(request.paddr).channel;
+	_request_cross_bar.write(request, port_index, channel_index);
+}
+
+bool UnitDRAM::return_port_read_valid(uint port_index)
+{
+	return _return_cross_bar.is_read_valid(port_index);
+}
+
+const MemoryReturn& UnitDRAM::peek_return(uint port_index)
+{
+	return _return_cross_bar.peek(port_index);
+}
+
+const MemoryReturn& UnitDRAM::read_return(uint port_index)
+{
+	return _return_cross_bar.read(port_index);
 }
 
 bool UnitDRAM::usimm_busy() {
@@ -83,7 +109,6 @@ bool UnitDRAM::_store(const MemoryRequest& request_item, uint port_index)
 	assert(request.retType == reqInsertRet_tt::RRT_WRITE_QUEUE);
 
 	//printf("Store(%d): %lld (%d, %d, %d, %lld, %d)\n", req.id, request_item.paddr, dram_addr.channel, dram_addr.rank, dram_addr.bank, dram_addr.row, dram_addr.column);
-
 	std::memcpy(&_data_u8[request_item.paddr], request_item.data, request_item.size);
 
 	return true;
@@ -91,26 +116,22 @@ bool UnitDRAM::_store(const MemoryRequest& request_item, uint port_index)
 
 void UnitDRAM::clock_rise()
 {
-	interconnect.propagate_requests([](const MemoryRequest& req, uint client, uint num_clients, uint num_servers)->uint
-	{
-		return calcDramAddr(req.paddr).channel;
-	});
-
 	for(uint channel_index = 0; channel_index < _channels.size(); ++channel_index)
 	{
-		uint port_index;
-		const MemoryRequest* request = interconnect.get_request(channel_index, port_index);
-		if(!request) continue;
+		if(!_request_cross_bar.is_read_valid(channel_index)) continue;
 
-		if(request->type == MemoryRequest::Type::STORE)
+		uint port_index;
+		const MemoryRequest& request = _request_cross_bar.peek(channel_index, port_index);
+
+		if(request.type == MemoryRequest::Type::STORE)
 		{
-			if(_store(*request, port_index))
-				interconnect.acknowlege_request(channel_index, port_index);
+			if(_store(request, port_index))
+				_request_cross_bar.read(channel_index, port_index);
 		}
-		else if(request->type == MemoryRequest::Type::LOAD)
+		else if(request.type == MemoryRequest::Type::LOAD)
 		{
-			if(_load(*request, port_index))
-				interconnect.acknowlege_request(channel_index, port_index);
+			if(_load(request, port_index))
+				_request_cross_bar.read(channel_index, port_index);
 		}
 
 		if(!_busy)
@@ -123,8 +144,6 @@ void UnitDRAM::clock_rise()
 
 void UnitDRAM::clock_fall()
 {
-	interconnect.propagate_ack();
-
 	for(uint i = 0; i < DRAM_CLOCK_MULTIPLIER; ++i)
 		usimmClock();
 
@@ -138,7 +157,7 @@ void UnitDRAM::clock_fall()
 	for(uint channel_index = 0; channel_index < _channels.size(); ++channel_index)
 	{
 		Channel& channel = _channels[channel_index];
-		if(!interconnect.return_pending(channel_index) && !channel.return_queue.empty())
+		if(_return_cross_bar.is_write_valid(channel_index) && !channel.return_queue.empty())
 		{
 			const ReturnItem& return_item = channel.return_queue.top();
 			if(_current_cycle >= return_item.return_cycle)
@@ -147,15 +166,15 @@ void UnitDRAM::clock_fall()
 				ret.type = MemoryReturn::Type::LOAD_RETURN;
 				ret.size = CACHE_BLOCK_SIZE;
 				ret.paddr = return_item.paddr;
-				ret.data = &_data_u8[return_item.paddr];
-				interconnect.add_return(ret, channel_index, return_item.port);
-
+				std::memcpy(ret.data, &_data_u8[return_item.paddr], CACHE_BLOCK_SIZE);
+				_return_cross_bar.write(ret, channel_index, return_item.port);
 				channel.return_queue.pop();
+				//printf("Load Return(%d): %lld\n", return_item.port, return_item.paddr);
 			}
 		}
 	}
-
-	interconnect.propagate_returns();
 }
+
+
 
 }}

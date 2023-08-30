@@ -1,14 +1,12 @@
 #pragma once 
 #include "../../stdafx.hpp"
 
-#include "../util/bit-manipulation.hpp"
 #include "../util/arbitration.hpp"
-#include "unit-base.hpp"
-#include "unit-memory-base.hpp"
+#include "unit-cache-base.hpp"
 
 namespace Arches { namespace Units {
 
-class UnitCache final : public UnitMemoryBase
+class UnitL1Cache : public UnitCacheBase
 {
 public:
 	struct Configuration
@@ -30,26 +28,31 @@ public:
 		float bank_leakge_power;
 	};
 
-	UnitCache(Configuration config);
-	virtual ~UnitCache();
+	UnitL1Cache(Configuration config);
+	virtual ~UnitL1Cache();
+
 	void clock_rise() override;
 	void clock_fall() override;
 
+	bool request_port_write_valid(uint port_index) override;
+	void write_request(const MemoryRequest& request, uint port_index) override;
+
+	bool return_port_read_valid(uint port_index) override;
+	const MemoryReturn& peek_return(uint port_index) override;
+	const MemoryReturn& read_return(uint port_index) override;
+
 private:
-	struct _BlockMetaData
-	{
-		uint64_t tag     : 59;
-		uint64_t lru     : 4;
-		uint64_t valid   : 1;
-	};
-
-	struct alignas(CACHE_BLOCK_SIZE) _BlockData
-	{
-		uint8_t bytes[CACHE_BLOCK_SIZE];
-	};
-
 	struct _LFB //Line Fill Buffer
 	{
+		struct SubEntry
+		{
+			uint8_t  offset;
+			uint8_t  size;
+			uint16_t dst;
+
+			uint     port;
+		};
+
 		enum class Type : uint8_t
 		{
 			READ,
@@ -66,35 +69,27 @@ private:
 			MISSED,
 			ISSUED,
 			FILLED,
+			RETIRED,
 		};
 
 		_BlockData block_data;
 		addr_t block_addr{~0ull};
 
-		union
-		{
-			uint64_t byte_mask;                                 //used by stores
-			uint64_t chunk_request_masks[CACHE_BLOCK_SIZE / 8]; //used by loads
-		};
+		uint64_t write_mask{0x0};
+		std::queue<SubEntry> sub_entries;
 
 		uint8_t lru{0u};
 		Type type{Type::READ};
 		State state{State::INVALID};
-		bool commited{false};
-		bool returned{false};
 
-		_LFB()
-		{
-			for(uint i = 0; i < CACHE_BLOCK_SIZE / 8; ++i)
-				chunk_request_masks[i] = 0;
-		}
+		_LFB() = default;
 
 		bool operator==(const _LFB& other) const
 		{
 			return block_addr == other.block_addr && type == other.type;
 		}
 
-		uint64_t get_next(uint8_t& offset, uint8_t& size)
+		uint64_t get_next_write(uint8_t& offset, uint8_t& size)
 		{
 			assert(type == _LFB::Type::WRITE_COMBINING);
 
@@ -105,9 +100,9 @@ private:
 				uint64_t comb_mask = generate_nbit_mask(size);
 				for(offset = 0; offset < CACHE_BLOCK_SIZE; offset += size)
 				{
-					if((comb_mask & byte_mask) == comb_mask)
+					if((comb_mask & write_mask) == comb_mask)
 					{
-						byte_mask &= ~(comb_mask);
+						write_mask &= ~(comb_mask);
 						return 1;
 					}
 
@@ -123,36 +118,31 @@ private:
 	struct _Bank
 	{
 		std::vector<_LFB> lfbs;
-
-		uint cycles_remaining{0u};
-		uint lfb_accessing_cache{~0u}; 
-
-		uint outgoing_request_lfb{~0u};
-		uint64_t outgoing_request_byte_mask{0x0ull};
-
-		uint outgoing_return_lfb{~0u};
-		uint outgoing_return_chunk_index{0u};
-
+		std::queue<uint> lfb_request_queue;
+		std::queue<uint> lfb_return_queue;
+		uint64_t outgoing_write_mask;
 		_Bank(uint num_lfb) : lfbs(num_lfb) {}
 	};
 
 
 	Configuration _configuration; //nice for debugging
 
-	uint _bank_priority_index{0};
+	uint _bank_index_offset;
+	uint64_t _bank_index_mask;
 
-	uint _set_index_offset, _tag_offset, _bank_index_offset, _chunk_width, _chunks_per_block;
-	uint64_t _set_index_mask, _tag_mask, _bank_index_mask, _block_offset_mask;
-
-	uint _data_array_access_cycles, _tag_array_access_cycles, _associativity;
-	std::vector<_BlockMetaData> _tag_array;
-	std::vector<_BlockData> _data_array;
+	uint _data_array_access_cycles, _tag_array_access_cycles;
 
 	std::vector<_Bank> _banks;
 	MemoryMap _mem_map;
 
+	CrossBar<MemoryRequest> _request_cross_bar;
+	CrossBar<MemoryReturn>  _return_cross_bar;
+
 	ArbitrationNetwork64 incoming_return_network;
 	ArbitrationNetwork64 outgoing_request_network;
+
+	void _push_request(_LFB& lfb, const MemoryRequest& request, uint port);
+	MemoryRequest _pop_request(_LFB& lfb, uint& port);
 
 	uint _fetch_lfb(uint bank_index, _LFB& lfb);
 	uint _allocate_lfb(uint bank_index, _LFB& lfb);
@@ -162,21 +152,13 @@ private:
 	void _propagate_ack();
 	void _interconnects_fall();
 
-	void _proccess_returns(uint bank_index);
-	void _proccess_requests(uint bank_index);
+	bool _proccess_return(uint bank_index);
+	bool _proccess_request(uint bank_index);
 
-	void _update_bank(uint bank_index);
-	void _try_issue_lfb(uint bank_index);
+	void _try_request_lfb(uint bank_index);
 	void _try_return_lfb(uint bank_index);
 
-	_BlockData* _get_block(paddr_t paddr);
-	_BlockData* _insert_block(paddr_t paddr, _BlockData& data);
-
-	paddr_t _get_block_offset(paddr_t paddr) { return  (paddr >> 0) & _block_offset_mask; }
-	paddr_t _get_block_addr(paddr_t paddr) { return paddr & ~_block_offset_mask; }
 	paddr_t _get_bank_index(paddr_t paddr) { return (paddr >> _bank_index_offset) & _bank_index_mask; }
-	paddr_t _get_set_index(paddr_t paddr) { return  (paddr >> _set_index_offset) & _set_index_mask; }
-	paddr_t _get_tag(paddr_t paddr) { return (paddr >> _tag_offset) & _tag_mask; }
 
 public:
 	class Log
@@ -189,6 +171,7 @@ public:
 		uint64_t _half_misses;
 		uint64_t _bank_conflicts;
 		uint64_t _lfb_stalls;
+		uint64_t _tag_array_access;
 		uint64_t _data_array_reads;
 		uint64_t _data_array_writes;
 
@@ -203,6 +186,7 @@ public:
 			_half_misses = 0;
 			_bank_conflicts = 0;
 			_lfb_stalls = 0;
+			_tag_array_access = 0;
 			_data_array_reads = 0;
 			_data_array_writes = 0;
 		}
@@ -216,6 +200,7 @@ public:
 			_half_misses += other._half_misses;;
 			_bank_conflicts += other._bank_conflicts;
 			_lfb_stalls += other._lfb_stalls;
+			_tag_array_access += other._tag_array_access;
 			_data_array_reads += other._data_array_reads;
 			_data_array_writes += other._data_array_writes;
 		}
@@ -231,6 +216,7 @@ public:
 		void log_bank_conflict() { _bank_conflicts++; }
 		void log_lfb_stall() { _lfb_stalls++; }
 
+		void log_tag_array_access() { _tag_array_access++; }
 		void log_data_array_read() { _data_array_reads++; }
 		void log_data_array_write() { _data_array_writes++; }
 
@@ -252,6 +238,7 @@ public:
 			fprintf(stream, "Half Misses: %lld(%.2f%%)\n", _half_misses / units, _half_misses / ft);
 			fprintf(stream, "Bank Conflicts: %lld\n", _bank_conflicts / units);
 			fprintf(stream, "LFB Stalls: %lld\n", _lfb_stalls / units);
+			fprintf(stream, "Tag Array Total: %lld\n", _tag_array_access);
 			fprintf(stream, "Data Array Total: %lld\n", da_total);
 			fprintf(stream, "Data Array Reads: %lld\n", _data_array_reads);
 			fprintf(stream, "Data Array Writes: %lld\n", _data_array_writes);

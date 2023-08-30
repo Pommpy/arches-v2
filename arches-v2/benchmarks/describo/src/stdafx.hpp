@@ -137,10 +137,10 @@ inline void __ebreak()
 }
 
 //copy data 8 bytes at a time
-template <typename T>
-inline void move_to_stack(T& dst, const T& src)
+template <typename RET>
+inline void move_to_stack(RET& dst, const RET& src)
 {
-	for(uint i = 0; i < sizeof(T) / sizeof(uint64_t); ++i)
+	for(uint i = 0; i < sizeof(RET) / sizeof(uint64_t); ++i)
 	{
 		uint64_t r = ((uint64_t*)&src)[i];
 		((uint64_t*)&dst)[i] = r;

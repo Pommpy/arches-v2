@@ -21,8 +21,7 @@ public:
 	};
 
 public:
-	UnitMainMemoryBase(uint num_clients, uint num_servers, size_t size) :
-		UnitMemoryBase(num_clients, num_servers)
+	UnitMainMemoryBase(size_t size) : UnitMemoryBase()
 	{
 		size_bytes = size;
 		_data_u64 = (uint64_t*)malloc(size);
@@ -60,44 +59,10 @@ public:
 		return paddr;
 	}
 
-	void dump_as_ppm_uint8(paddr_t from_paddr, size_t width, size_t height, std::string const& path)
-	{
-		uint8_t const* src = _data_u8 + from_paddr;
-
-		FILE* file = fopen(path.c_str(), "wb");
-		fprintf(file, "P6\n%zu %zu\n255\n", width, height);
-		for(size_t j = 0; j < height; ++j)
-			for(size_t i = 0; i < width; ++i)
-			{
-				size_t index = (j * width + i) * 4;
-				fwrite(src + index, sizeof(uint8_t), 3, file);
-			}
-		fclose(file);
-	}
-
 	void dump_as_png_uint8(paddr_t from_paddr, size_t width, size_t height, std::string const& path)
 	{
 		uint8_t const* src = _data_u8 + from_paddr;
 		stbi_write_png(path.c_str(), static_cast<int>(width), static_cast<int>(height), 4, src, 0);
-	}
-
-	void dump_as_ppm_float(paddr_t from_paddr, size_t width, size_t height, std::string const& path)
-	{
-		float const* src = reinterpret_cast<float const*>(_data_u8 + from_paddr);
-
-		FILE* file = fopen(path.c_str(), "wb");
-		fprintf(file, "P6\n%zu %zu\n255\n", width, height);
-		for(size_t j = 0; j < height; ++j)
-			for(size_t i = 0; i < width; ++i)
-			{
-				size_t index = (j * width + i) * 3;
-				uint8_t out[3];
-				out[0] = static_cast<uint8_t>(std::min(std::max(src[index + 0], 0.0f), 1.0f) * 255.0f + 0.5f);
-				out[1] = static_cast<uint8_t>(std::min(std::max(src[index + 1], 0.0f), 1.0f) * 255.0f + 0.5f);
-				out[2] = static_cast<uint8_t>(std::min(std::max(src[index + 2], 0.0f), 1.0f) * 255.0f + 0.5f);
-				fwrite(out, sizeof(uint8_t), 3, file);
-			}
-		fclose(file);
 	}
 
 	void _print_data(uint8_t* data, int size) const

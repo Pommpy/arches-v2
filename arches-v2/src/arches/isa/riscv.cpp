@@ -81,36 +81,40 @@ int64_t j_imm(Instruction instr)
 
 template <typename RET> inline static void _prepare_load(ExecutionBase* unit, Instruction const& instr)
 {
-	unit->mem_req.type = Units::MemoryRequest::Type::LOAD;
+	unit->mem_req.type = MemoryRequest::Type::LOAD;
 	unit->mem_req.size = sizeof(RET);
 	unit->mem_req.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + i_imm(instr);
 
-	unit->mem_req.dst.reg = instr.i.rd;
+	RegAddr dst_reg;
+	dst_reg.reg = instr.i.rd;
+	dst_reg.reg_file = 0;
 	if(typeid(RET) == typeid(float) || typeid(RET) == typeid(double))
 	{
-		unit->mem_req.dst.reg_file = static_cast<uint8_t>(RegFile::FLOAT);
-		unit->mem_req.dst.sign_ext = 0;
+		dst_reg.reg_type = static_cast<uint8_t>(RegType::FLOAT);
+		dst_reg.sign_ext = 0;
 	}
 	else
 	{
-		unit->mem_req.dst.reg_file = static_cast<uint8_t>(RegFile::INT);
-		unit->mem_req.dst.sign_ext = std::is_signed_v<RET>;
+		dst_reg.reg_type = static_cast<uint8_t>(RegType::INT);
+		dst_reg.sign_ext = std::is_signed_v<RET>;
 	}
+
+	unit->mem_req.dst = dst_reg.u16;
 }
 
 template <typename RET> inline static void _prepare_store(ExecutionBase* unit, Instruction const& instr)
 {
-	unit->mem_req.type = Units::MemoryRequest::Type::STORE;
+	unit->mem_req.type = MemoryRequest::Type::STORE;
 	unit->mem_req.size = sizeof(RET);
 	unit->mem_req.vaddr = unit->int_regs->registers[instr.s.rs1].u64 + s_imm(instr);
 
 	if(typeid(RET) == typeid(float) || typeid(RET) == typeid(double))
 	{
-		std::memcpy(unit->mem_req.store_data, &unit->float_regs->registers[instr.s.rs2], sizeof(RET));
+		std::memcpy(unit->mem_req.data, &unit->float_regs->registers[instr.s.rs2], sizeof(RET));
 	}
 	else
 	{
-		std::memcpy(unit->mem_req.store_data, &unit->int_regs->registers[instr.s.rs2], sizeof(RET));
+		std::memcpy(unit->mem_req.data, &unit->int_regs->registers[instr.s.rs2], sizeof(RET));
 	}
 }
 
@@ -121,7 +125,7 @@ InstructionInfo isa[32] =
 	InstructionInfo(0b00010, IMPL_NONE),//custom-0
 	InstructionInfo(0b00011, IMPL_NOTI),//MISC-MEM
 	InstructionInfo(0b00100, META_DECL { return isa_OP_IMM[instr.i.funct3]; }),
-	InstructionInfo(0b00101, "auipc", Type::IADD, Encoding::U, RegFile::INT, IMPL_DECL 
+	InstructionInfo(0b00101, "auipc", Type::IADD, Encoding::U, RegType::INT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.u.rd].u64 = unit->pc + u_imm(instr);
 	}),
@@ -132,25 +136,25 @@ InstructionInfo isa[32] =
 	InstructionInfo(0b01010, IMPL_NONE),//custom-1
 	InstructionInfo(0b01011, META_DECL { return isa_AMO[instr.r.funct3 & 0x1]; }),
 	InstructionInfo(0b01100, META_DECL { return isa_OP[(instr.r.funct7 >> 4) & 0x2 | instr.r.funct7 & 0x1]; }),
-	InstructionInfo(0b01101, "lui", Type::MOVE, Encoding::U, RegFile::INT, IMPL_DECL 
+	InstructionInfo(0b01101, "lui", Type::MOVE, Encoding::U, RegType::INT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.u.rd].u64 = u_imm(instr);
 	}),
 	InstructionInfo(0b01110, META_DECL { return isa_OP_32[instr.r.funct7 & 0b01 | instr.r.funct7 >> 4 & 0b10]; }),
 	InstructionInfo(0b01111, IMPL_NOTI),//64b
-	InstructionInfo(0b10000, "fmadd.s", Type::FFMAD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
+	InstructionInfo(0b10000, "fmadd.s", Type::FFMAD, Encoding::R4,  RegType::FLOAT, IMPL_DECL
 	{
 		unit->float_regs->registers[instr.r4.rd].f32 = (unit->float_regs->registers[instr.r4.rs1].f32 * unit->float_regs->registers[instr.r4.rs2].f32) + unit->float_regs->registers[instr.r4.rs3].f32;
 	}),
-	InstructionInfo(0b10001, "fmsub.s", Type::FFMAD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
+	InstructionInfo(0b10001, "fmsub.s", Type::FFMAD, Encoding::R4,  RegType::FLOAT, IMPL_DECL
 	{
 		unit->float_regs->registers[instr.r4.rd].f32 = (unit->float_regs->registers[instr.r4.rs1].f32 * unit->float_regs->registers[instr.r4.rs2].f32) - unit->float_regs->registers[instr.r4.rs3].f32;
 	}),
-	InstructionInfo(0b10010, "fnmsub.s", Type::FFMAD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
+	InstructionInfo(0b10010, "fnmsub.s", Type::FFMAD, Encoding::R4,  RegType::FLOAT, IMPL_DECL
 	{
 		unit->float_regs->registers[instr.r4.rd].f32 = -(unit->float_regs->registers[instr.r4.rs1].f32 * unit->float_regs->registers[instr.r4.rs2].f32) + unit->float_regs->registers[instr.r4.rs3].f32;
 	}),
-	InstructionInfo(0b10011, "fnmadd.s", Type::FFMAD, Encoding::R4,  RegFile::FLOAT, IMPL_DECL
+	InstructionInfo(0b10011, "fnmadd.s", Type::FFMAD, Encoding::R4,  RegType::FLOAT, IMPL_DECL
 	{
 		unit->float_regs->registers[instr.r4.rd].f32 = -(unit->float_regs->registers[instr.r4.rs1].f32 * unit->float_regs->registers[instr.r4.rs2].f32) - unit->float_regs->registers[instr.r4.rs3].f32;
 	}),
@@ -159,7 +163,7 @@ InstructionInfo isa[32] =
 	InstructionInfo(0b10110, IMPL_NONE),//custom-2/rv128
 	InstructionInfo(0b10111, IMPL_NOTI),//48b
 	InstructionInfo(0b11000, META_DECL{ return isa_BRANCH[instr.b.funct3]; }),
-	InstructionInfo(0b11001, "jalr", Type::JUMP, Encoding::I,  RegFile::INT, IMPL_DECL
+	InstructionInfo(0b11001, "jalr", Type::JUMP, Encoding::I,  RegType::INT, IMPL_DECL
 	{
 		vaddr_t next_PC = unit->pc + 4;
 		unit->pc = (unit->int_regs->registers[instr.i.rs1].u64 + i_imm(instr)) & ~0x1ull; //zeroing lowbit is explicitly defined in the spec
@@ -167,7 +171,7 @@ InstructionInfo isa[32] =
 		unit->branch_taken = true;
 	}),
 	InstructionInfo(0b11010, IMPL_NOTI),//reserved
-	InstructionInfo(0b11011, "jal", Type::JUMP, Encoding::J,  RegFile::INT, IMPL_DECL
+	InstructionInfo(0b11011, "jal", Type::JUMP, Encoding::J,  RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.j.rd].u64 = unit->pc + 4;
 		unit->pc += j_imm(instr);
@@ -181,11 +185,11 @@ InstructionInfo isa[32] =
 
 InstructionInfo const isa_SYSTEM[2] =
 {
-	InstructionInfo(0b000000000000, "ecall", Type::SYS, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000000000000, "ecall", Type::SYS, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		//TODO this could be useful for things like printing to console
 	}),
-	InstructionInfo(0b000000000001, "ebreak", Type::SYS, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000000000001, "ebreak", Type::SYS, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		//break point
 		__debugbreak();
@@ -194,31 +198,31 @@ InstructionInfo const isa_SYSTEM[2] =
 
 InstructionInfo const isa_LOAD[7] =
 {
-	InstructionInfo(0b000, "lb", Type::LOAD, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "lb", Type::LOAD, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		_prepare_load<int8_t >(unit, instr);
 	}),
-	InstructionInfo(0b001, "lh", Type::LOAD, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b001, "lh", Type::LOAD, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		_prepare_load<int16_t>(unit, instr);
 	}),
-	InstructionInfo(0b010, "lw", Type::LOAD, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b010, "lw", Type::LOAD, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		_prepare_load<int32_t>(unit, instr);
 	}),
-	InstructionInfo(0b011, "ld", Type::LOAD, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b011, "ld", Type::LOAD, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		_prepare_load<uint64_t>(unit, instr);
 	}),
-	InstructionInfo(0b100, "lbu", Type::LOAD, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b100, "lbu", Type::LOAD, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		_prepare_load<uint8_t >(unit, instr);
 	}),
-	InstructionInfo(0b101, "lhu", Type::LOAD, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b101, "lhu", Type::LOAD, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		_prepare_load<uint16_t>(unit, instr);
 	}),
-	InstructionInfo(0b110, "lwu", Type::LOAD, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b110, "lwu", Type::LOAD, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		_prepare_load<uint32_t>(unit, instr);
 	}),
@@ -226,19 +230,19 @@ InstructionInfo const isa_LOAD[7] =
 
 InstructionInfo const isa_STORE[4] =
 {
-	InstructionInfo(0b000, "sb", Type::STORE, Encoding::S, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "sb", Type::STORE, Encoding::S, RegType::INT, IMPL_DECL
 	{
 		_prepare_store<uint8_t>(unit, instr);
 	}),
-	InstructionInfo(0b001, "sh", Type::STORE, Encoding::S, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b001, "sh", Type::STORE, Encoding::S, RegType::INT, IMPL_DECL
 	{
 		_prepare_store<uint16_t>(unit, instr);
 	}),
-	InstructionInfo(0b010, "sw", Type::STORE, Encoding::S, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b010, "sw", Type::STORE, Encoding::S, RegType::INT, IMPL_DECL
 	{
 		_prepare_store<uint32_t>(unit, instr);
 	}),
-	InstructionInfo(0b011, "sd", Type::STORE, Encoding::S, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b011, "sd", Type::STORE, Encoding::S, RegType::INT, IMPL_DECL
 	{
 		_prepare_store<uint64_t>(unit, instr);
 	}),
@@ -246,7 +250,7 @@ InstructionInfo const isa_STORE[4] =
 
 InstructionInfo const isa_BRANCH[8] =
 {
-	InstructionInfo(0b000, "beq", Type::BRANCH, Encoding::B, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "beq", Type::BRANCH, Encoding::B, RegType::INT, IMPL_DECL
 	{
 		if(unit->int_regs->registers[instr.b.rs1].u64 == unit->int_regs->registers[instr.b.rs2].u64)
 		{
@@ -255,7 +259,7 @@ InstructionInfo const isa_BRANCH[8] =
 		} 
 		else unit->branch_taken = false;
 	}),
-	InstructionInfo(0b001, "bne", Type::BRANCH, Encoding::B, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b001, "bne", Type::BRANCH, Encoding::B, RegType::INT, IMPL_DECL
 	{
 		if(unit->int_regs->registers[instr.b.rs1].u64 != unit->int_regs->registers[instr.b.rs2].u64)
 		{
@@ -266,7 +270,7 @@ InstructionInfo const isa_BRANCH[8] =
 	}),
 	InstructionInfo(0b010, IMPL_NONE),
 	InstructionInfo(0b011, IMPL_NONE),
-	InstructionInfo(0b100, "blt", Type::BRANCH, Encoding::B, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b100, "blt", Type::BRANCH, Encoding::B, RegType::INT, IMPL_DECL
 	{
 		if(unit->int_regs->registers[instr.b.rs1].s64 < unit->int_regs->registers[instr.b.rs2].s64)
 		{
@@ -275,7 +279,7 @@ InstructionInfo const isa_BRANCH[8] =
 		}
 		else unit->branch_taken = false;
 	}),
-	InstructionInfo(0b101, "bge", Type::BRANCH, Encoding::B, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b101, "bge", Type::BRANCH, Encoding::B, RegType::INT, IMPL_DECL
 	{
 		if(unit->int_regs->registers[instr.b.rs1].s64 >= unit->int_regs->registers[instr.b.rs2].s64)
 		{
@@ -284,7 +288,7 @@ InstructionInfo const isa_BRANCH[8] =
 		}
 		else unit->branch_taken = false;
 	}),
-	InstructionInfo(0b110, "bltu", Type::BRANCH, Encoding::B, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b110, "bltu", Type::BRANCH, Encoding::B, RegType::INT, IMPL_DECL
 	{
 		if(unit->int_regs->registers[instr.b.rs1].u64 < unit->int_regs->registers[instr.b.rs2].u64)
 		{
@@ -293,7 +297,7 @@ InstructionInfo const isa_BRANCH[8] =
 		}
 		else unit->branch_taken = false;
 	}),
-	InstructionInfo(0b111, "bgeu", Type::BRANCH, Encoding::B, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b111, "bgeu", Type::BRANCH, Encoding::B, RegType::INT, IMPL_DECL
 	{
 		if(unit->int_regs->registers[instr.b.rs1].u64 >= unit->int_regs->registers[instr.b.rs2].u64)
 		{
@@ -313,36 +317,36 @@ InstructionInfo const isa_OP[3] = //(instr.r.funct7 >> 4) & 0x2 | instr.r.funct7
 
 InstructionInfo const isa_OP_0x00[8] = //r.funct3
 {
-	InstructionInfo(0b000, "add", Type::IADD, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "add", Type::IADD, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 + unit->int_regs->registers[instr.r.rs2].s64;
 	}),
-	InstructionInfo(0b001, "sll", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b001, "sll", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		//take lowest 5 bits of register[r2] and shift by that ammount
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 << (unit->int_regs->registers[instr.r.rs2].u8 & 0x3f);
 	}),
-	InstructionInfo(0b010, "slt", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b010, "slt", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].s64 < unit->int_regs->registers[instr.r.rs2].s64;
 	}),
-	InstructionInfo(0b011, "sltu", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b011, "sltu", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 < unit->int_regs->registers[instr.r.rs2].u64;
 	}),
-	InstructionInfo(0b100, "xor", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b100, "xor", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 ^ unit->int_regs->registers[instr.r.rs2].u64;
 	}),
-	InstructionInfo(0b101, "srl", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b101, "srl", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 >> (unit->int_regs->registers[instr.r.rs2].u8 & 0x3f);
 	}),
-	InstructionInfo(0b110, "or", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b110, "or", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 | unit->int_regs->registers[instr.r.rs2].u64;
 	}),
-	InstructionInfo(0b111, "and", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b111, "and", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 & unit->int_regs->registers[instr.r.rs2].u64;
 	}),
@@ -350,7 +354,7 @@ InstructionInfo const isa_OP_0x00[8] = //r.funct3
 
 InstructionInfo const isa_OP_0x30[8] = //r.funct3
 {
-	InstructionInfo(0b000, "sub", Type::IADD, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "sub", Type::IADD, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 - unit->int_regs->registers[instr.r.rs2].s64;
 	}),
@@ -358,7 +362,7 @@ InstructionInfo const isa_OP_0x30[8] = //r.funct3
 	InstructionInfo(0b010, IMPL_NONE),
 	InstructionInfo(0b011, IMPL_NONE),
 	InstructionInfo(0b100, IMPL_NONE),
-	InstructionInfo(0b101, "sra", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b101, "sra", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 >> (unit->int_regs->registers[instr.r.rs2].u8 & 0b11'1111);
 	}),
@@ -368,42 +372,42 @@ InstructionInfo const isa_OP_0x30[8] = //r.funct3
 
 InstructionInfo const isa_OP_IMM[8] = //i.funct3
 {
-	InstructionInfo(0b000, "addi", Type::IADD, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "addi", Type::IADD, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.i.rd].s64 = unit->int_regs->registers[instr.i.rs1].s64 + i_imm(instr);
 	}),
-	InstructionInfo(0b001, "slli", Type::ILOGICAL, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b001, "slli", Type::ILOGICAL, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.i.rs1].u64 << instr.i.shamt6;
 	}),
-	InstructionInfo(0b010, "slti", Type::ILOGICAL, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b010, "slti", Type::ILOGICAL, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.i.rd].u64 = unit->int_regs->registers[instr.i.rs1].s64 < i_imm(instr);
 	}),
-	InstructionInfo(0b011, "sltui", Type::ILOGICAL, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b011, "sltui", Type::ILOGICAL, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.i.rd].u64 = unit->int_regs->registers[instr.i.rs1].u64 < (uint64_t)i_imm(instr);
 	}),
-	InstructionInfo(0b100, "xori", Type::ILOGICAL, Encoding::I, RegFile::INT, IMPL_DECL{
+	InstructionInfo(0b100, "xori", Type::ILOGICAL, Encoding::I, RegType::INT, IMPL_DECL{
 		unit->int_regs->registers[instr.i.rd].u64 = unit->int_regs->registers[instr.i.rs1].u64 ^ i_imm(instr);
 	}),
 	InstructionInfo(0b101,	META_DECL { return isa_OP_IMM_SR[instr.i.imm_11_6 >> 4]; }),
-	InstructionInfo(0b110, "ori", Type::ILOGICAL, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b110, "ori", Type::ILOGICAL, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.i.rd].u64 = unit->int_regs->registers[instr.i.rs1].u64 | i_imm(instr);
 	}),
-	InstructionInfo(0b111, "andi", Type::ILOGICAL, Encoding::I, RegFile::INT, IMPL_DECL{
+	InstructionInfo(0b111, "andi", Type::ILOGICAL, Encoding::I, RegType::INT, IMPL_DECL{
 		unit->int_regs->registers[instr.i.rd].u64 = unit->int_regs->registers[instr.i.rs1].u64 & i_imm(instr);
 	}),
 };
 
 InstructionInfo const isa_OP_IMM_SR[2] = //i.imm_11_6 >> 4
 {
-	InstructionInfo(0b00'0000'101, "srli", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b00'0000'101, "srli", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.i.rs1].u64 >> instr.i.shamt6;
 	}),
-	InstructionInfo(0b01'0000'101, "srai", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b01'0000'101, "srai", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.i.rs1].s64 >> instr.i.shamt6;
 	}),
@@ -418,18 +422,18 @@ InstructionInfo const isa_OP_32[3] =
 
 InstructionInfo const isa_OP_32_0x00[8] = //r.funct3
 {
-	InstructionInfo(0b000, "addw", Type::IADD, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "addw", Type::IADD, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s32 + unit->int_regs->registers[instr.r.rs2].s32;
 	}),
-	InstructionInfo(0b001, "sllw", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b001, "sllw", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u32 = unit->int_regs->registers[instr.r.rs1].u32 << (unit->int_regs->registers[instr.r.rs2].u8 & 0x1f);
 	}),
 	InstructionInfo(0b010, IMPL_NONE),
 	InstructionInfo(0b011, IMPL_NONE),
 	InstructionInfo(0b100, IMPL_NONE),
-	InstructionInfo(0b101, "srlw", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b101, "srlw", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u32 = unit->int_regs->registers[instr.r.rs1].u32 >> (unit->int_regs->registers[instr.r.rs2].u8 & 0x1f);
 	}),
@@ -439,7 +443,7 @@ InstructionInfo const isa_OP_32_0x00[8] = //r.funct3
 
 InstructionInfo const isa_OP_32_0x30[8] = //r.funct3
 {
-	InstructionInfo(0b000, "subw", Type::IADD, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "subw", Type::IADD, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s32 - unit->int_regs->registers[instr.r.rs2].s32;
 	}),
@@ -447,7 +451,7 @@ InstructionInfo const isa_OP_32_0x30[8] = //r.funct3
 	InstructionInfo(0b010, IMPL_NONE),
 	InstructionInfo(0b011, IMPL_NONE),
 	InstructionInfo(0b100, IMPL_NONE),
-	InstructionInfo(0b101, "sraw", Type::ILOGICAL, Encoding::R,  RegFile::INT, IMPL_DECL
+	InstructionInfo(0b101, "sraw", Type::ILOGICAL, Encoding::R,  RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s32 = unit->int_regs->registers[instr.r.rs1].s32 >> (unit->int_regs->registers[instr.r.rs2].u8 & 0b1'1111);
 	}),
@@ -457,11 +461,11 @@ InstructionInfo const isa_OP_32_0x30[8] = //r.funct3
 
 InstructionInfo const isa_OP_IMM_32[8] = //i.funct3
 {
-	InstructionInfo(0b000, "addiw", Type::IADD, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "addiw", Type::IADD, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.i.rd].s64 = unit->int_regs->registers[instr.i.rs1].s32 + (int32_t)i_imm(instr);
 	}),
-	InstructionInfo(0b001, "slliw", Type::ILOGICAL, Encoding::I, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b001, "slliw", Type::ILOGICAL, Encoding::I, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.i.rd].u32 = unit->int_regs->registers[instr.i.rs1].u32 << instr.i.shamt5;
 	}),
@@ -475,11 +479,11 @@ InstructionInfo const isa_OP_IMM_32[8] = //i.funct3
 
 InstructionInfo const isa_OP_IMM_32_SR[2] = //i.imm_11_5 >> 5
 {
-	InstructionInfo(0b00'0000'101, "srliw", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b00'0000'101, "srliw", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u32 = unit->int_regs->registers[instr.i.rs1].u32 >> instr.i.shamt5;
 	}),
-	InstructionInfo(0b01'0000'101, "sraiw", Type::ILOGICAL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b01'0000'101, "sraiw", Type::ILOGICAL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 			unit->int_regs->registers[instr.r.rd].s32 = unit->int_regs->registers[instr.i.rs1].s32 >> instr.i.shamt5;
 	}),
@@ -490,26 +494,26 @@ InstructionInfo const isa_OP_IMM_32_SR[2] = //i.imm_11_5 >> 5
 //RV64M
 InstructionInfo const isa_OP_MULDIV[8] = //r.funct3
 {
-	InstructionInfo(0b000, "mul", Type::IMUL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "mul", Type::IMUL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 * unit->int_regs->registers[instr.r.rs2].s64;
 	}),
 	InstructionInfo(0b001, IMPL_NOTI),//mulh
 	InstructionInfo(0b010, IMPL_NOTI),//mulhsu
 	InstructionInfo(0b011, IMPL_NOTI),//mulhu
-	InstructionInfo(0b100, "div", Type::IDIV, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b100, "div", Type::IDIV, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 / unit->int_regs->registers[instr.r.rs2].s64;
 	}),
-	InstructionInfo(0b101, "divu", Type::IDIV, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b101, "divu", Type::IDIV, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 / unit->int_regs->registers[instr.r.rs2].u64;
 	}),
-	InstructionInfo(0b110, "rem", Type::IDIV, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b110, "rem", Type::IDIV, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s64 % unit->int_regs->registers[instr.r.rs2].s64;
 	}),
-	InstructionInfo(0b111, "remu", Type::IDIV, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b111, "remu", Type::IDIV, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = unit->int_regs->registers[instr.r.rs1].u64 % unit->int_regs->registers[instr.r.rs2].u64;
 	}),
@@ -517,26 +521,26 @@ InstructionInfo const isa_OP_MULDIV[8] = //r.funct3
 
 InstructionInfo const isa_OP_32_MULDIV[8] = //r.funct3
 {
-	InstructionInfo(0b000, "mulw", Type::IMUL, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "mulw", Type::IMUL, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s32 * unit->int_regs->registers[instr.r.rs2].s32;
 	}),
 	InstructionInfo(0b001, IMPL_NONE),
 	InstructionInfo(0b010, IMPL_NONE),
 	InstructionInfo(0b011, IMPL_NONE),
-	InstructionInfo(0b100, "divw", Type::IDIV, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b100, "divw", Type::IDIV, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s32 / unit->int_regs->registers[instr.r.rs2].s32;
 	}),
-	InstructionInfo(0b101, "divuw", Type::IDIV, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b101, "divuw", Type::IDIV, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].u32 / unit->int_regs->registers[instr.r.rs2].u32;
 	}),
-	InstructionInfo(0b110, "remw", Type::IDIV, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b110, "remw", Type::IDIV, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].s32 % unit->int_regs->registers[instr.r.rs2].s32;
 	}),
-	InstructionInfo(0b111, "remuw", Type::IDIV, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b111, "remuw", Type::IDIV, Encoding::R, RegType::INT, IMPL_DECL
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->int_regs->registers[instr.r.rs1].u32 % unit->int_regs->registers[instr.r.rs2].u32;
 	}),
@@ -548,14 +552,17 @@ InstructionInfo const isa_OP_32_MULDIV[8] = //r.funct3
 template <typename RET>
 inline static void prepare_amo(ExecutionBase* unit, Instruction instr)
 {
+	RegAddr dst_reg;
+	dst_reg.reg = instr.i.rd;
+	dst_reg.reg_file = 0;
+	dst_reg.reg_type = static_cast<uint8_t>(RegType::INT);
+	dst_reg.sign_ext = std::is_signed_v<RET>;
+
+	unit->mem_req.dst = dst_reg.u16;
 	unit->mem_req.size = sizeof(RET);
 	unit->mem_req.vaddr = unit->int_regs->registers[instr.rs1].u64;
 
-	unit->mem_req.dst.reg = instr.r.rd;
-	unit->mem_req.dst.reg_file = 0;
-	unit->mem_req.dst.sign_ext = std::is_signed_v<RET>;
-
-	std::memcpy(unit->mem_req.store_data, &unit->int_regs->registers[instr.rs2], sizeof(RET));
+	std::memcpy(unit->mem_req.data, &unit->int_regs->registers[instr.rs2], sizeof(RET));
 }
 
 InstructionInfo const isa_AMO[2] = //r.funct3 & 0x1
@@ -566,88 +573,88 @@ InstructionInfo const isa_AMO[2] = //r.funct3 & 0x1
 
 InstructionInfo const isa_AMO_32[8] = //r.funct5 >> 2
 {
-	InstructionInfo(0b000, "amoadd.w", Type::AMO_ADD, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "amoadd.w", Type::AMO_ADD, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_ADD;
+		unit->mem_req.type = MemoryRequest::Type::AMO_ADD;
 		prepare_amo<int32_t>(unit, instr);
 	}),
-	InstructionInfo(0b001, "amoxor.w", Type::AMO_XOR, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b001, "amoxor.w", Type::AMO_XOR, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_XOR;
+		unit->mem_req.type = MemoryRequest::Type::AMO_XOR;
 		prepare_amo<int32_t>(unit, instr);
 	}),
-	InstructionInfo(0b010, "amoor.w", Type::AMO_OR, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b010, "amoor.w", Type::AMO_OR, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_OR;
+		unit->mem_req.type = MemoryRequest::Type::AMO_OR;
 		prepare_amo<int32_t>(unit, instr);
 	}),
-	InstructionInfo(0b011, "amoand.w", Type::AMO_AND, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b011, "amoand.w", Type::AMO_AND, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_AND;
+		unit->mem_req.type = MemoryRequest::Type::AMO_AND;
 		prepare_amo<int32_t>(unit, instr);
 	}),
-	InstructionInfo(0b100, "amomin.w", Type::AMO_MIN, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b100, "amomin.w", Type::AMO_MIN, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MIN;
+		unit->mem_req.type = MemoryRequest::Type::AMO_MIN;
 		prepare_amo<int32_t>(unit, instr);
 	}),
-	InstructionInfo(0b101, "amomax.w", Type::AMO_MAX, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b101, "amomax.w", Type::AMO_MAX, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MAX;
+		unit->mem_req.type = MemoryRequest::Type::AMO_MAX;
 		prepare_amo<int32_t>(unit, instr);
 	}),
-	InstructionInfo(0b110, "amominu.w", Type::AMO_MINU, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b110, "amominu.w", Type::AMO_MINU, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MINU;
+		unit->mem_req.type = MemoryRequest::Type::AMO_MINU;
 		prepare_amo<uint32_t>(unit, instr);
 	}),
-	InstructionInfo(0b111, "amomaxu.w", Type::AMO_MAXU, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b111, "amomaxu.w", Type::AMO_MAXU, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MAXU;
+		unit->mem_req.type = MemoryRequest::Type::AMO_MAXU;
 		prepare_amo<uint32_t>(unit, instr);
 	}),
 };
 
 InstructionInfo const isa_AMO_64[8] = //r.funct5 >> 2
 {
-	InstructionInfo(0b000, "amoadd.d", Type::AMO_ADD, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b000, "amoadd.d", Type::AMO_ADD, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_ADD;
+		unit->mem_req.type = MemoryRequest::Type::AMO_ADD;
 		prepare_amo<uint64_t>(unit, instr);
 	}),
-	InstructionInfo(0b001, "amoxor.d", Type::AMO_XOR, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b001, "amoxor.d", Type::AMO_XOR, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_XOR;
+		unit->mem_req.type = MemoryRequest::Type::AMO_XOR;
 		prepare_amo<uint64_t>(unit, instr);
 	}),
-	InstructionInfo(0b010, "amoor.d", Type::AMO_OR, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b010, "amoor.d", Type::AMO_OR, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_OR;
+		unit->mem_req.type = MemoryRequest::Type::AMO_OR;
 		prepare_amo<uint64_t>(unit, instr);
 	}),
-	InstructionInfo(0b011, "amoand.d", Type::AMO_AND, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b011, "amoand.d", Type::AMO_AND, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_AND;
+		unit->mem_req.type = MemoryRequest::Type::AMO_AND;
 		prepare_amo<uint64_t>(unit, instr);
 	}),
-	InstructionInfo(0b100, "amomin.d", Type::AMO_MIN, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b100, "amomin.d", Type::AMO_MIN, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MIN;
+		unit->mem_req.type = MemoryRequest::Type::AMO_MIN;
 		prepare_amo<uint64_t>(unit, instr);
 	}),
-	InstructionInfo(0b101, "amomax.d", Type::AMO_MAX, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b101, "amomax.d", Type::AMO_MAX, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MAX;
+		unit->mem_req.type = MemoryRequest::Type::AMO_MAX;
 		prepare_amo<uint64_t>(unit, instr);
 	}),
-	InstructionInfo(0b110, "amominu.d", Type::AMO_MINU, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b110, "amominu.d", Type::AMO_MINU, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MINU;
+		unit->mem_req.type = MemoryRequest::Type::AMO_MINU;
 		prepare_amo<uint64_t>(unit, instr);
 	}),
-	InstructionInfo(0b111, "amomaxu.d", Type::AMO_MAXU, Encoding::R, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b111, "amomaxu.d", Type::AMO_MAXU, Encoding::R, RegType::INT, IMPL_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::AMO_MAXU;
+		unit->mem_req.type = MemoryRequest::Type::AMO_MAXU;
 		prepare_amo<uint64_t>(unit, instr);
 	}),
 };
@@ -659,7 +666,7 @@ InstructionInfo const isa_LOAD_FP[4] = //i.funct3
 {
 	InstructionInfo(0b001, IMPL_NOTI),//flb
 	InstructionInfo(0b010, IMPL_NOTI),//flh
-	InstructionInfo(0b010, "flw", Type::LOAD, Encoding::I, RegFile::FLOAT, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b010, "flw", Type::LOAD, Encoding::I, RegType::FLOAT, RegType::INT, IMPL_DECL
 	{
 		_prepare_load<float> (unit, instr);
 	}),
@@ -670,7 +677,7 @@ InstructionInfo const isa_STORE_FP[4] = //r.funct3
 {
 	InstructionInfo(0b001, IMPL_NOTI),//fsb
 	InstructionInfo(0b010, IMPL_NOTI),//fsh
-	InstructionInfo(0b010, "fsw", Type::STORE, Encoding::S, RegFile::FLOAT, RegFile::INT, IMPL_DECL
+	InstructionInfo(0b010, "fsw", Type::STORE, Encoding::S, RegType::FLOAT, RegType::INT, IMPL_DECL
 	{
 		 _prepare_store<float>(unit,instr);
 	}),
@@ -679,19 +686,19 @@ InstructionInfo const isa_STORE_FP[4] = //r.funct3
 
 InstructionInfo const isa_OP_FP[32] = //r.funct5
 {
-	InstructionInfo(0b000'00, "fadd.s", Type::FADD, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b000'00, "fadd.s", Type::FADD, Encoding::R, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = unit->float_regs->registers[instr.r.rs1].f32 + unit->float_regs->registers[instr.r.rs2].f32;
 	}),
-	InstructionInfo(0b000'01, "fsub.s", Type::FADD, Encoding::R, RegFile::FLOAT, IMPL_DECL
+	InstructionInfo(0b000'01, "fsub.s", Type::FADD, Encoding::R, RegType::FLOAT, IMPL_DECL
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = unit->float_regs->registers[instr.r.rs1].f32 - unit->float_regs->registers[instr.r.rs2].f32;
 	}),
-	InstructionInfo(0b000'10, "fmul.s", Type::FMUL, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b000'10, "fmul.s", Type::FMUL, Encoding::R, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = unit->float_regs->registers[instr.r.rs1].f32 * unit->float_regs->registers[instr.r.rs2].f32;
 	}),
-	InstructionInfo(0b000'11, "fdiv.s", Type::FDIV, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b000'11, "fdiv.s", Type::FDIV, Encoding::R, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = unit->float_regs->registers[instr.r.rs1].f32 / unit->float_regs->registers[instr.r.rs2].f32;
 	}),
@@ -703,11 +710,11 @@ InstructionInfo const isa_OP_FP[32] = //r.funct5
 	InstructionInfo(0b010'00, IMPL_NONE),
 	InstructionInfo(0b010'01, IMPL_NONE),
 	InstructionInfo(0b010'10, IMPL_NONE),
-	InstructionInfo(0b010'11, "fsqrt.s", Type::FSQRT, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b010'11, "fsqrt.s", Type::FSQRT, Encoding::R, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ps1(unit->float_regs->registers[instr.r.rs1].f32)));
 	}),
-	InstructionInfo(0b011'00, "frcp.s", Type::FRCP, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b011'00, "frcp.s", Type::FRCP, Encoding::R, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ps1(unit->float_regs->registers[instr.r.rs1].f32)));
 	}),
@@ -730,12 +737,12 @@ InstructionInfo const isa_OP_FP[32] = //r.funct5
 	InstructionInfo(0b110'10, META_DECL {return isa_OP_0x68_FP[instr.r.rs2]; }),//0x68
 	InstructionInfo(0b110'11, IMPL_NONE),
 
-	InstructionInfo(0b111'00, "fmv.x.w", Type::MOVE, Encoding::R, RegFile::INT, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b111'00, "fmv.x.w", Type::MOVE, Encoding::R, RegType::INT, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = unit->float_regs->registers[instr.r.rs1].s32;
 	}),
 	InstructionInfo(0b111'01, IMPL_NOTI),
-	InstructionInfo(0b111'10, "fmv.w.x", Type::MOVE, Encoding::R, RegFile::FLOAT, RegFile::INT, IMPL_DECL 
+	InstructionInfo(0b111'10, "fmv.w.x", Type::MOVE, Encoding::R, RegType::FLOAT, RegType::INT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].u32 = unit->int_regs->registers[instr.r.rs1].u32;
 	}),
@@ -744,15 +751,15 @@ InstructionInfo const isa_OP_FP[32] = //r.funct5
 
 InstructionInfo const isa_OP_FSGNJ_FP[3] = //r.funct3
 {
-	InstructionInfo(0b0'0000, "fsgnj.s", Type::FSIGN, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0000, "fsgnj.s", Type::FSIGN, Encoding::R, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = copysignf(unit->float_regs->registers[instr.r.rs1].f32, unit->float_regs->registers[instr.r.rs2].f32);
 	}),
-	InstructionInfo(0b0'0001, "fsgnjn.s", Type::FSIGN, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0001, "fsgnjn.s", Type::FSIGN, Encoding::R, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = copysignf(unit->float_regs->registers[instr.r.rs1].f32, -unit->float_regs->registers[instr.r.rs2].f32);
 	}),
-	InstructionInfo(0b0'0010, "fsgnjx.s", Type::FSIGN, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0010, "fsgnjx.s", Type::FSIGN, Encoding::R, RegType::FLOAT, IMPL_DECL 
 	{
 		float rs1 = unit->float_regs->registers[instr.r.rs1].f32; 
 		float rs2 = unit->float_regs->registers[instr.r.rs2].f32;
@@ -762,11 +769,11 @@ InstructionInfo const isa_OP_FSGNJ_FP[3] = //r.funct3
 
 InstructionInfo const isa_OP_0x14_FP[2] = //r.funct3
 {
-	InstructionInfo(0b0'0000, "fmin.s", Type::FMIN_MAX, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0000, "fmin.s", Type::FMIN_MAX, Encoding::R, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = std::min(unit->float_regs->registers[instr.r.rs1].f32, unit->float_regs->registers[instr.r.rs2].f32);
 	}),
-	InstructionInfo(0b0'0001, "fmax.s", Type::FMIN_MAX, Encoding::R, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0001, "fmax.s", Type::FMIN_MAX, Encoding::R, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = std::max(unit->float_regs->registers[instr.r.rs1].f32, unit->float_regs->registers[instr.r.rs2].f32);
 	}),
@@ -774,15 +781,15 @@ InstructionInfo const isa_OP_0x14_FP[2] = //r.funct3
 
 InstructionInfo const isa_OP_FCMP_FP[3] = //r.funct3
 {
-	InstructionInfo(0b0'0000, "fle.s", Type::FCMP, Encoding::R, RegFile::INT, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0000, "fle.s", Type::FCMP, Encoding::R, RegType::INT, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = (unit->float_regs->registers[instr.r.rs1].f32 <= unit->float_regs->registers[instr.r.rs2].f32);
 	}),
-	InstructionInfo(0b0'0001, "flt.s", Type::FCMP, Encoding::R, RegFile::INT, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0001, "flt.s", Type::FCMP, Encoding::R, RegType::INT, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = (unit->float_regs->registers[instr.r.rs1].f32 <  unit->float_regs->registers[instr.r.rs2].f32);
 	}),
-	InstructionInfo(0b0'0010, "feq.s", Type::FCMP, Encoding::R, RegFile::INT, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0010, "feq.s", Type::FCMP, Encoding::R, RegType::INT, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = (unit->float_regs->registers[instr.r.rs1].f32 == unit->float_regs->registers[instr.r.rs2].f32);
 	}),
@@ -790,19 +797,19 @@ InstructionInfo const isa_OP_FCMP_FP[3] = //r.funct3
 
 InstructionInfo const isa_OP_0x60_FP[4] = //r.rs2
 {
-	InstructionInfo(0b0'0000, "fcvt.w.s", Type::CONVERT, Encoding::R, RegFile::INT, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0000, "fcvt.w.s", Type::CONVERT, Encoding::R, RegType::INT, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.r.rd].s32 = static_cast<int32_t>(unit->float_regs->registers[instr.r.rs1].f32);
 	}),
-	InstructionInfo(0b0'0001, "fcvt.wu.s", Type::CONVERT, Encoding::R, RegFile::INT, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0001, "fcvt.wu.s", Type::CONVERT, Encoding::R, RegType::INT, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.r.rd].u32 = static_cast<uint32_t>(unit->float_regs->registers[instr.r.rs1].f32);
 	}),
-	InstructionInfo(0b0'0010, "fcvt.l.s", Type::CONVERT, Encoding::R, RegFile::INT, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0010, "fcvt.l.s", Type::CONVERT, Encoding::R, RegType::INT, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.r.rd].s64 = static_cast<uint64_t>(unit->float_regs->registers[instr.r.rs1].f32);
 	}),
-	InstructionInfo(0b0'0011, "fcvt.lu.s", Type::CONVERT, Encoding::R, RegFile::INT, RegFile::FLOAT, IMPL_DECL 
+	InstructionInfo(0b0'0011, "fcvt.lu.s", Type::CONVERT, Encoding::R, RegType::INT, RegType::FLOAT, IMPL_DECL 
 	{
 		unit->int_regs->registers[instr.r.rd].u64 = static_cast<uint64_t>(unit->float_regs->registers[instr.r.rs1].f32);
 	}),
@@ -810,19 +817,19 @@ InstructionInfo const isa_OP_0x60_FP[4] = //r.rs2
 
 InstructionInfo const isa_OP_0x68_FP[4] = //r.rs2
 {
-	InstructionInfo(0b0'0000, "fcvt.s.w", Type::CONVERT, Encoding::R, RegFile::FLOAT, RegFile::INT, IMPL_DECL 
+	InstructionInfo(0b0'0000, "fcvt.s.w", Type::CONVERT, Encoding::R, RegType::FLOAT, RegType::INT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = static_cast<float>(unit->int_regs->registers[instr.r.rs1].s32);
 	}),
-	InstructionInfo(0b0'0001, "fcvt.s.wu", Type::CONVERT, Encoding::R, RegFile::FLOAT, RegFile::INT, IMPL_DECL 
+	InstructionInfo(0b0'0001, "fcvt.s.wu", Type::CONVERT, Encoding::R, RegType::FLOAT, RegType::INT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = static_cast<float>(unit->int_regs->registers[instr.r.rs1].u32);
 	}),
-	InstructionInfo(0b0'0010, "fcvt.s.l", Type::CONVERT, Encoding::R, RegFile::FLOAT, RegFile::INT, IMPL_DECL 
+	InstructionInfo(0b0'0010, "fcvt.s.l", Type::CONVERT, Encoding::R, RegType::FLOAT, RegType::INT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = static_cast<float>(unit->int_regs->registers[instr.r.rs1].s64);
 	}),
-	InstructionInfo(0b0'0011, "fcvt.s.lu", Type::CONVERT, Encoding::R, RegFile::FLOAT, RegFile::INT, IMPL_DECL 
+	InstructionInfo(0b0'0011, "fcvt.s.lu", Type::CONVERT, Encoding::R, RegType::FLOAT, RegType::INT, IMPL_DECL 
 	{
 		unit->float_regs->registers[instr.r.rd].f32 = static_cast<float>(unit->int_regs->registers[instr.r.rs1].u64);
 	}),

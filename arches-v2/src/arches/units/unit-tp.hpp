@@ -39,38 +39,14 @@ public:
 	};
 
 private:
-	struct _LSE
-	{
-		enum class State : uint8_t
-		{
-			FREE,
-			VALID,
-			ISSUED,
-			COMMITED,
-		};
-
-		paddr_t vaddr{0x0ull};
-		uint8_t size;
-		uint8_t offset;
-
-		State state{State::FREE};
-		MemoryRequest::Type type;
-		ISA::RISCV::RegAddr dst;
-		uint8_t unit_index;
-
-		uint8_t data[CACHE_BLOCK_SIZE];
-	};
-
 	ISA::RISCV::IntegerRegisterFile       _int_regs{};
 	ISA::RISCV::FloatingPointRegisterFile _float_regs{};
 
 	uint8_t _float_regs_pending[32];
 	uint8_t _int_regs_pending[32];
 
-	std::vector<_LSE> _lsq{12};
-	uint _oldest_lse{0};
-	uint _next_lse{0};
-	bool _stalled_for_lsq{false};
+	std::queue<MemoryRequest> _lsq;
+	bool _stalled_for_lsq;
 
 	uint _tp_index;
 	uint _tm_index;
@@ -103,7 +79,7 @@ private:
 	uint8_t _check_dependancies(const ISA::RISCV::Instruction instr, ISA::RISCV::InstructionInfo const& instr_info);
 	void _clear_register_pending(const ISA::RISCV::RegAddr& dst);
 	paddr_t _get_load_port_address(paddr_t paddr) { return paddr & _port_mask; };
-	void _drain_lsq();
+	void _try_drain_lsq();
 
 public:
 	class Log
