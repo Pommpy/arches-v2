@@ -3,7 +3,8 @@
 #include "arches/simulator/simulator.hpp"
 
 #include "arches/units/unit-dram.hpp"
-#include "arches/units/unit-cache.hpp"
+#include "arches/units/unit-l1-cache.hpp"
+#include "arches/units/unit-l2-cache.hpp"
 #include "arches/units/unit-buffer.hpp"
 #include "arches/units/unit-atomic-reg-file.hpp"
 #include "arches/units/unit-tile-scheduler.hpp"
@@ -26,15 +27,15 @@ namespace ISA { namespace RISCV {
 //see the opcode map for details
 const static InstructionInfo isa_custom0_000_imm[8] =
 {
-	InstructionInfo(0x0, "fchthrd", Type::FCHTHRD, Encoding::U, RegType::INT, IMPL_DECL
+	InstructionInfo(0x0, "fchthrd", InstrType::FCHTHRD, Encoding::U, RegType::INT, EXEC_DECL
 	{
-		unit->mem_req.type = Units::MemoryRequest::Type::FCHTHRD;
+		unit->mem_req.type = MemoryRequest::Type::FCHTHRD;
 		unit->mem_req.dst.reg_file = 0;
 		unit->mem_req.dst.reg = instr.i.rd;
 		unit->mem_req.dst.sign_ext = 0;
 		unit->mem_req.size = 4;
 	}),
-	InstructionInfo(0x1, "boxisect", Type::BOXISECT, Encoding::U, RegType::FLOAT, IMPL_DECL
+	InstructionInfo(0x1, "boxisect", InstrType::BOXISECT, Encoding::U, RegType::FLOAT, EXEC_DECL
 	{
 		Register32 * fr = unit->float_regs->registers;
 
@@ -58,7 +59,7 @@ const static InstructionInfo isa_custom0_000_imm[8] =
 
 		unit->float_regs->registers[instr.u.rd].f32 = intersect(aabb, ray, inv_d);
 	}),
-	InstructionInfo(0x2, "triisect", Type::TRIISECT, Encoding::U, RegType::FLOAT, IMPL_DECL
+	InstructionInfo(0x2, "triisect", InstrType::TRIISECT, Encoding::U, RegType::FLOAT, EXEC_DECL
 	{
 		Register32 * fr = unit->float_regs->registers;
 
@@ -97,7 +98,7 @@ const static InstructionInfo isa_custom0_000_imm[8] =
 const static InstructionInfo isa_custom0_funct3[8] =
 {
 	InstructionInfo(0x0, META_DECL{return isa_custom0_000_imm[instr.u.imm_31_12 >> 3]; }),
-	InstructionInfo(0x1, "lbray", Type::LBRAY, Encoding::I, RegType::FLOAT, IMPL_DECL
+	InstructionInfo(0x1, "lbray", InstrType::LBRAY, Encoding::I, RegType::FLOAT, EXEC_DECL
 	{	
 		//load bucket ray into registers f0 - f8
 		unit->mem_req.type = Units::MemoryRequest::Type::LBRAY;
@@ -109,7 +110,7 @@ const static InstructionInfo isa_custom0_funct3[8] =
 
 		unit->mem_req.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + i_imm(instr);
 	}),
-	InstructionInfo(0x2, "sbray", Type::SBRAY, Encoding::S, RegType::INT, IMPL_DECL
+	InstructionInfo(0x2, "sbray", InstrType::SBRAY, Encoding::S, RegType::INT, EXEC_DECL
 	{
 		//store bucket ray to hit record updater
 		Register32* fr = unit->float_regs->registers;
@@ -127,7 +128,7 @@ const static InstructionInfo isa_custom0_funct3[8] =
 		ray.d.y = fr[4].f32;
 		ray.d.z = fr[5].f32;
 	}),
-	InstructionInfo(0x3, "cshit", Type::CSHIT, Encoding::S, RegType::INT, IMPL_DECL
+	InstructionInfo(0x3, "cshit", InstrType::CSHIT, Encoding::S, RegType::INT, EXEC_DECL
 	{	
 		Register32* fr = unit->float_regs->registers;
 
@@ -188,7 +189,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	uint64_t num_tms = 1;
 
 	uint64_t num_tps = num_tps_per_tm * num_tms;
-	uint64_t num_sfus = static_cast<uint>(ISA::RISCV::Type::NUM_TYPES) * num_tms;
+	uint64_t num_sfus = static_cast<uint>(ISA::RISCV::InstrType::NUM_TYPES) * num_tms;
 
 	//hardware spec
 	uint64_t mem_size = 4ull * 1024ull * 1024ull * 1024ull; //4GB
@@ -225,7 +226,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	std::vector<Units::UnitSFU*> sfus;
 	std::vector<Units::DualStreaming::UnitRayStagingBuffer*> rsbs;
 	std::vector<Units::UnitThreadScheduler*> thread_schedulers;
-	std::vector<Units::UnitL1Cache*> l1s;
+	std::vector<Units::UnitNonBlockingCache*> l1s;
 	std::vector<std::vector<Units::UnitSFU*>> sfus_tables;
 
 	Units::UnitDRAM mm(2, mem_size, &simulator); mm.clear();
@@ -264,7 +265,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 	simulator.start_new_unit_group();
 
-	Units::UnitL1Cache::Configuration l2_config;
+	Units::UnitNonBlockingCache::Configuration l2_config;
 	l2_config.size = 512 * 1024;
 	l2_config.associativity = 1;
 	l2_config.num_banks = 32;
@@ -274,7 +275,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 	l2_config.mem_map.add_unit(0x0ull, &mm, 0, 1);
 
-	Units::UnitL1Cache l2(l2_config);
+	Units::UnitNonBlockingCache l2(l2_config);
 	simulator.register_unit(&l2);
 
 	Units::UnitAtomicRegfile atomic_regs(num_tms);
@@ -284,7 +285,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	{
 		simulator.start_new_unit_group();
 
-		Units::UnitL1Cache::Configuration l1_config;
+		Units::UnitNonBlockingCache::Configuration l1_config;
 		l1_config.size = 16 * 1024;
 		l1_config.associativity = 1;
 		l1_config.num_banks = 8;
@@ -296,7 +297,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 		l1_config.mem_map.add_unit(dsmm_scene_buffer_start, &scene_buffer, tm_index, 1);
 		l1_config.mem_map.add_unit(dsmm_heap_start, &l2, tm_index, 1);
 
-		Units::UnitL1Cache* l1 = _new Units::UnitL1Cache(l1_config);
+		Units::UnitNonBlockingCache* l1 = _new Units::UnitNonBlockingCache(l1_config);
 		l1s.push_back(l1);
 		simulator.register_unit(l1);
 
@@ -304,34 +305,34 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 		rsbs.push_back(rsb);
 		simulator.register_unit(rsb);
 		
-		sfus_tables.emplace_back(static_cast<uint>(ISA::RISCV::Type::NUM_TYPES), nullptr);
+		sfus_tables.emplace_back(static_cast<uint>(ISA::RISCV::InstrType::NUM_TYPES), nullptr);
 		Units::UnitSFU** sfu_table = sfus_tables.back().data();
 
 		sfus.push_back(_new Units::UnitSFU(16, 1, 2, num_tps_per_tm));
-		sfu_table[static_cast<uint>(ISA::RISCV::Type::FADD)] = sfus.back();
-		sfu_table[static_cast<uint>(ISA::RISCV::Type::FMUL)] = sfus.back();
-		sfu_table[static_cast<uint>(ISA::RISCV::Type::FFMAD)] = sfus.back();
+		sfu_table[static_cast<uint>(ISA::RISCV::InstrType::FADD)] = sfus.back();
+		sfu_table[static_cast<uint>(ISA::RISCV::InstrType::FMUL)] = sfus.back();
+		sfu_table[static_cast<uint>(ISA::RISCV::InstrType::FFMAD)] = sfus.back();
 		simulator.register_unit(sfus.back());
 
 		sfus.push_back(_new Units::UnitSFU(2, 1, 1, num_tps_per_tm));
-		sfu_table[static_cast<uint>(ISA::RISCV::Type::IMUL)] = sfus.back();
-		sfu_table[static_cast<uint>(ISA::RISCV::Type::IDIV)] = sfus.back();
+		sfu_table[static_cast<uint>(ISA::RISCV::InstrType::IMUL)] = sfus.back();
+		sfu_table[static_cast<uint>(ISA::RISCV::InstrType::IDIV)] = sfus.back();
 		simulator.register_unit(sfus.back());
 
 		sfus.push_back(_new Units::UnitSFU(1, 1, 20, num_tps_per_tm));
-		sfu_table[static_cast<uint>(ISA::RISCV::Type::FDIV)] = sfus.back();
+		sfu_table[static_cast<uint>(ISA::RISCV::InstrType::FDIV)] = sfus.back();
 		simulator.register_unit(sfus.back());
 
 		sfus.push_back(_new Units::UnitSFU(1, 1, 20, num_tps_per_tm));
-		sfu_table[static_cast<uint>(ISA::RISCV::Type::FSQRT)] = sfus.back();
+		sfu_table[static_cast<uint>(ISA::RISCV::InstrType::FSQRT)] = sfus.back();
 		simulator.register_unit(sfus.back());
 
 		sfus.push_back(_new Units::UnitSFU(1, 1, 8, num_tps_per_tm));
-		sfu_table[static_cast<uint>(ISA::RISCV::Type::BOXISECT)] = sfus.back();
+		sfu_table[static_cast<uint>(ISA::RISCV::InstrType::BOXISECT)] = sfus.back();
 		simulator.register_unit(sfus.back());
 
 		sfus.push_back(_new Units::UnitSFU(2, 18, 31, num_tps_per_tm));
-		sfu_table[static_cast<uint>(ISA::RISCV::Type::TRIISECT)] = sfus.back();
+		sfu_table[static_cast<uint>(ISA::RISCV::InstrType::TRIISECT)] = sfus.back();
 		simulator.register_unit(sfus.back());
 
 		thread_schedulers.push_back(_new  Units::UnitThreadScheduler(num_tps_per_tm, tm_index, &atomic_regs));
@@ -344,7 +345,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 			tp_config.tm_index = tm_index;
 			tp_config.pc = elf.elf_header->e_entry.u64;
 			tp_config.sp = stack_pointer;
-			tp_config.backing_memory = mm._data_u8;
+			tp_config.cheat_memory = mm._data_u8;
 			tp_config.sfu_table = sfu_table;
 			tp_config.port_size = 32;
 
@@ -380,7 +381,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	tp_log.print_log();
 
 	printf("\nL1\n");
-	Units::UnitL1Cache::Log l1_log;
+	Units::UnitNonBlockingCache::Log l1_log;
 	for(auto& l1 : l1s)
 		l1_log.accumulate(l1->log);
 	l1_log.print_log();

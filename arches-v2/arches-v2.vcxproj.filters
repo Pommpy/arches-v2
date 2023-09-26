@@ -1,227 +1,235 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="arches">
-      <UniqueIdentifier>{229ce882-0c3a-494f-b18d-23f369b02247}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="arches\isa">
+    <Filter Include="isa">
       <UniqueIdentifier>{62e99c9a-3bf1-4430-97c0-a698d70fccdd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="arches\units">
-      <UniqueIdentifier>{3f17a2ca-e950-4609-86b4-cb15b465eccc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="arches\units\usimm">
-      <UniqueIdentifier>{bf3de91a-f8ba-43a4-a734-72e9525bf579}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="arches\simulator">
-      <UniqueIdentifier>{ac3b3227-cd52-4b19-9bf1-63bf48631786}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="arches\units\dual-streaming">
-      <UniqueIdentifier>{f14bb3fe-a019-47b2-979a-474edbd44d61}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="benchmarks">
-      <UniqueIdentifier>{d2aa26f2-4afd-4570-85af-47a9f292bfba}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="benchmarks\trax">
-      <UniqueIdentifier>{c1d491ac-5fc1-4678-b5bf-9eabfeca53e6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="benchmarks\trax\src">
-      <UniqueIdentifier>{066a875b-895e-4ffe-af64-e8fa000f827a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="benchmarks\dual-streaming">
-      <UniqueIdentifier>{b6e04cee-a5cb-42c4-bdbc-1a34a8a06f9a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="benchmarks\dual-streaming\src">
-      <UniqueIdentifier>{53ae0324-555a-46f2-988b-a2c13270a9ed}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="benchmarks\describo">
-      <UniqueIdentifier>{13c19245-b4e6-4238-ba93-667a29abc3d8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="benchmarks\describo\src">
-      <UniqueIdentifier>{83c1544b-aa74-4f93-b0af-6d7e5da00b7f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="arches\util">
+    <Filter Include="util">
       <UniqueIdentifier>{136ef3ef-4008-4896-8341-c5df009e6691}</UniqueIdentifier>
     </Filter>
+    <Filter Include="units">
+      <UniqueIdentifier>{3f17a2ca-e950-4609-86b4-cb15b465eccc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="units\usimm">
+      <UniqueIdentifier>{bf3de91a-f8ba-43a4-a734-72e9525bf579}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="units\dual-streaming">
+      <UniqueIdentifier>{f14bb3fe-a019-47b2-979a-474edbd44d61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="simulator">
+      <UniqueIdentifier>{ac3b3227-cd52-4b19-9bf1-63bf48631786}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="units\usimm\config-files">
+      <UniqueIdentifier>{45085a9c-c447-4b69-a785-91585041968d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\arches\isa\errors.hpp">
-      <Filter>arches\isa</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\isa\execution-base.hpp">
-      <Filter>arches\isa</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\isa\registers.hpp">
-      <Filter>arches\isa</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\isa\riscv.hpp">
-      <Filter>arches\isa</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\simulator\simulator.hpp">
-      <Filter>arches\simulator</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\unit-base.hpp">
-      <Filter>arches\units</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\unit-main-memory-base.hpp">
-      <Filter>arches\units</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\unit-memory-base.hpp">
-      <Filter>arches\units</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\util\bit-manipulation.hpp">
-      <Filter>arches\util</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\util\elf.hpp">
-      <Filter>arches\util</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\util\endian.hpp">
-      <Filter>arches\util</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\util\file.hpp">
-      <Filter>arches\util</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\util\string.hpp">
-      <Filter>arches\util</Filter>
-    </ClInclude>
     <ClInclude Include="src\stdafx.hpp" />
-    <ClInclude Include="src\arches\units\unit-atomic-reg-file.hpp">
-      <Filter>arches\units</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\unit-dram.hpp">
-      <Filter>arches\units</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\util\stb_image.h">
-      <Filter>arches\util</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\util\stb_image_write.h">
-      <Filter>arches\util</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\usimm\configfile.h">
-      <Filter>arches\units\usimm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\usimm\memory_controller.h">
-      <Filter>arches\units\usimm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\usimm\params.h">
-      <Filter>arches\units\usimm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\usimm\processor.h">
-      <Filter>arches\units\usimm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\usimm\scheduler.h">
-      <Filter>arches\units\usimm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\usimm\usimm.h">
-      <Filter>arches\units\usimm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\usimm\utils.h">
-      <Filter>arches\units\usimm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\util\arbitration.hpp">
-      <Filter>arches\util</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\unit-l1-cache.hpp">
-      <Filter>arches\units</Filter>
-    </ClInclude>
     <ClInclude Include="src\trax.hpp" />
-    <ClInclude Include="src\riscv\trax\src\ray-tracing-include.hpp">
-      <Filter>benchmarks\trax\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\dual-streaming.hpp" />
-    <ClInclude Include="benchmarks\dual-streaming\src\ray-tracing-include.hpp">
-      <Filter>benchmarks\dual-streaming\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\unit-sfu.hpp">
-      <Filter>arches\units</Filter>
-    </ClInclude>
-    <ClInclude Include="benchmarks\dual-streaming\src\bvh.hpp">
-      <Filter>benchmarks\dual-streaming\src</Filter>
-    </ClInclude>
-    <ClInclude Include="benchmarks\dual-streaming\src\treelet-bvh.hpp">
-      <Filter>benchmarks\dual-streaming\src</Filter>
-    </ClInclude>
-    <ClInclude Include="benchmarks\dual-streaming\src\intersect.hpp">
-      <Filter>benchmarks\dual-streaming\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\dual-streaming\unit-ray-staging-buffer.hpp">
-      <Filter>arches\units\dual-streaming</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\unit-buffer.hpp">
-      <Filter>arches\units</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arches\units\dual-streaming\unit-stream-scheduler.hpp">
-      <Filter>arches\units\dual-streaming</Filter>
-    </ClInclude>
     <ClInclude Include="src\describo.hpp" />
-    <ClInclude Include="benchmarks\describo\src\ray-tracing-include.hpp">
-      <Filter>benchmarks\describo\src</Filter>
+    <ClInclude Include="src\isa\errors.hpp">
+      <Filter>isa</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\units\unit-tile-scheduler.hpp">
-      <Filter>arches\units</Filter>
+    <ClInclude Include="src\isa\execution-base.hpp">
+      <Filter>isa</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\units\unit-tp.hpp">
-      <Filter>arches\units</Filter>
+    <ClInclude Include="src\isa\registers.hpp">
+      <Filter>isa</Filter>
     </ClInclude>
-    <ClInclude Include="benchmarks\describo\src\mesh.hpp">
-      <Filter>benchmarks\describo\src</Filter>
+    <ClInclude Include="src\isa\riscv.hpp">
+      <Filter>isa</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\simulator\interconnects.hpp">
-      <Filter>arches\simulator</Filter>
+    <ClInclude Include="src\simulator\interconnects.hpp">
+      <Filter>simulator</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\util\memory-map.hpp">
-      <Filter>arches\util</Filter>
+    <ClInclude Include="src\simulator\simulator.hpp">
+      <Filter>simulator</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\util\transactions.hpp">
-      <Filter>arches\util</Filter>
+    <ClInclude Include="src\simulator\transactions.hpp">
+      <Filter>simulator</Filter>
     </ClInclude>
-    <ClInclude Include="src\arches\units\unit-cache-base.hpp">
-      <Filter>arches\units</Filter>
+    <ClInclude Include="src\units\unit-atomic-reg-file.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\unit-base.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\unit-buffer.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\unit-cache-base.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\unit-dram.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\unit-main-memory-base.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\unit-memory-base.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\unit-non-blocking-cache.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\unit-sfu.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\unit-tile-scheduler.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\unit-tp.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\usimm\configfile.h">
+      <Filter>units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\usimm\memory_controller.h">
+      <Filter>units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\usimm\params.h">
+      <Filter>units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\usimm\processor.h">
+      <Filter>units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\usimm\scheduler.h">
+      <Filter>units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\usimm\usimm.h">
+      <Filter>units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\usimm\utils.h">
+      <Filter>units\usimm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\dual-streaming\unit-ray-staging-buffer.hpp">
+      <Filter>units\dual-streaming</Filter>
+    </ClInclude>
+    <ClInclude Include="src\units\dual-streaming\unit-stream-scheduler.hpp">
+      <Filter>units\dual-streaming</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\arbitration.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\bit-manipulation.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\elf.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\endian.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\file.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\memory-map.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\stb_image.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\stb_image_write.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\string.hpp">
+      <Filter>util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\arches\isa\registers.cpp">
-      <Filter>arches\isa</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arches\isa\riscv.cpp">
-      <Filter>arches\isa</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arches\simulator\simulator.cpp">
-      <Filter>arches\simulator</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arches\util\elf.cpp">
-      <Filter>arches\util</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arches\util\file.cpp">
-      <Filter>arches\util</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arches\util\string.cpp">
-      <Filter>arches\util</Filter>
-    </ClCompile>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\arches\util\stbi.cpp">
-      <Filter>arches\util</Filter>
+    <ClCompile Include="src\isa\registers.cpp">
+      <Filter>isa</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\unit-dram.cpp">
-      <Filter>arches\units</Filter>
+    <ClCompile Include="src\isa\riscv.cpp">
+      <Filter>isa</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\usimm\memory_controller.cc">
-      <Filter>arches\units\usimm</Filter>
+    <ClCompile Include="src\simulator\simulator.cpp">
+      <Filter>simulator</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\usimm\scheduler.cc">
-      <Filter>arches\units\usimm</Filter>
+    <ClCompile Include="src\units\unit-cache-base.cpp">
+      <Filter>units</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\usimm\usimm.cc">
-      <Filter>arches\units\usimm</Filter>
+    <ClCompile Include="src\units\unit-dram.cpp">
+      <Filter>units</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\unit-l1-cache.cpp">
-      <Filter>arches\units</Filter>
+    <ClCompile Include="src\units\unit-non-blocking-cache.cpp">
+      <Filter>units</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\unit-tp.cpp">
-      <Filter>arches\units</Filter>
+    <ClCompile Include="src\units\unit-tp.cpp">
+      <Filter>units</Filter>
     </ClCompile>
-    <ClCompile Include="src\arches\units\unit-cache-base.cpp">
-      <Filter>arches\units</Filter>
+    <ClCompile Include="src\units\usimm\memory_controller.cc">
+      <Filter>units\usimm</Filter>
     </ClCompile>
+    <ClCompile Include="src\units\usimm\scheduler.cc">
+      <Filter>units\usimm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\units\usimm\usimm.cc">
+      <Filter>units\usimm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\elf.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\file.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\stbi.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\string.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\units\usimm\config-files\1channel.cfg">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\1Gb.vi">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\1Gb_x4.vi">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\1Gb_x8.vi">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\1Gb_x16.vi">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\1Gb_x16_amd2GHz.vi">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\2Gb_x4.vi">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\2Gb_x8.vi">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\4channel.cfg">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\4Gb_x4.vi">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\4Gb_x8.vi">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\gddr5.cfg">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\gddr5_2ch.cfg">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\gddr5_8ch.cfg">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\gddr5_amd_map1_128col.cfg">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
+    <None Include="src\units\usimm\config-files\gddr5_amd_map1_128col_8ch.cfg">
+      <Filter>units\usimm\config-files</Filter>
+    </None>
   </ItemGroup>
 </Project>

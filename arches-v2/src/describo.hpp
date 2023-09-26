@@ -21,7 +21,7 @@ namespace Arches {
 namespace ISA { namespace RISCV { namespace DTRaX {
 	const static InstructionInfo isa_custom0[8] =
 	{
-	InstructionInfo(0x1, "fchthrd", Type::FCHTHRD, Encoding::U, RegType::INT, IMPL_DECL
+	InstructionInfo(0x1, "fchthrd", InstrType::FCHTHRD, Encoding::U, RegType::INT, EXEC_DECL
 	{
 		unit->mem_req.type = Units::MemoryRequest::Type::FCHTHRD;
 		unit->mem_req.size = 4;
@@ -32,7 +32,7 @@ namespace ISA { namespace RISCV { namespace DTRaX {
 
 		unit->mem_req.vaddr = 0;
 	}),
-	InstructionInfo(0x2, "boxisect", Type::BOXISECT, Encoding::U, RegType::FLOAT, IMPL_DECL
+	InstructionInfo(0x2, "boxisect", InstrType::BOXISECT, Encoding::U, RegType::FLOAT, EXEC_DECL
 	{
 		Register32 * fr = unit->float_regs->registers;
 
@@ -60,7 +60,7 @@ namespace ISA { namespace RISCV { namespace DTRaX {
 
 		unit->float_regs->registers[instr.u.rd].f32 = intersect(aabb, ray, inv_d);
 	}),
-	InstructionInfo(0x3, "triisect", Type::TRIISECT, Encoding::U, RegType::INT, IMPL_DECL
+	InstructionInfo(0x3, "triisect", InstrType::TRIISECT, Encoding::U, RegType::INT, EXEC_DECL
 	{
 		Register32 * fr = unit->float_regs->registers;
 
@@ -283,7 +283,7 @@ static void run_sim_describo(int argc, char* argv[])
 
 	uint num_tps = num_tps_per_tm * num_tms_per_l2 * num_l2;
 	uint num_tms = num_tms_per_l2 * num_l2;
-	uint sfu_table_size = static_cast<uint>(ISA::RISCV::Type::NUM_TYPES);
+	uint sfu_table_size = static_cast<uint>(ISA::RISCV::InstrType::NUM_TYPES);
 
 	uint64_t mem_size = 4ull * 1024ull * 1024ull * 1024ull; //4GB
 
@@ -412,7 +412,7 @@ static void run_sim_describo(int argc, char* argv[])
 				tp_config.pc = elf.elf_header->e_entry.u64;
 				tp_config.sp = stack_pointer;
 				tp_config.stack_size = stack_size;
-				tp_config.backing_memory = mm._data_u8;
+				tp_config.cheat_memory = mm._data_u8;
 				tp_config.sfu_table = sfu_table;
 				tp_config.port_size = tp_port_size;
 				tp_config.mem_map.add_unit(mm_null_address, thread_schedulers.back(), tp_index, 1);
