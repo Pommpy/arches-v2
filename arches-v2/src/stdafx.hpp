@@ -143,21 +143,13 @@
 #include <intrin.h>
 #include <xmmintrin.h>
 
+typedef unsigned int uint;
 
 namespace Arches {
 
 typedef uint64_t paddr_t;
 typedef uint64_t vaddr_t;
 typedef uint64_t addr_t;
-
-typedef uint16_t buffer_id_t;
-typedef uint16_t port_id_t;
-
-struct buffer_address_t
-{
-	buffer_id_t buffer_id;
-	port_id_t port_id;
-};
 
 typedef uint64_t frame_number_t;
 typedef uint64_t page_number_t;
@@ -176,5 +168,3 @@ static_assert(sizeof(float)==4&&sizeof(double)==8,"Not Implemented!");
 #define ARCHES_LOGGING
 
 }
-
-typedef unsigned int uint;

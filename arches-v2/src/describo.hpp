@@ -21,7 +21,7 @@ namespace Arches {
 namespace ISA { namespace RISCV { namespace DTRaX {
 	const static InstructionInfo isa_custom0[8] =
 	{
-	InstructionInfo(0x1, "fchthrd", Type::FCHTHRD, Encoding::U, RegFile::INT, IMPL_DECL
+	InstructionInfo(0x1, "fchthrd", InstrType::FCHTHRD, Encoding::U, RegType::INT, EXEC_DECL
 	{
 		unit->mem_req.type = Units::MemoryRequest::Type::FCHTHRD;
 		unit->mem_req.size = 4;
@@ -32,7 +32,7 @@ namespace ISA { namespace RISCV { namespace DTRaX {
 
 		unit->mem_req.vaddr = 0;
 	}),
-	InstructionInfo(0x2, "boxisect", Type::BOXISECT, Encoding::U, RegFile::FLOAT, IMPL_DECL
+	InstructionInfo(0x2, "boxisect", InstrType::BOXISECT, Encoding::U, RegType::FLOAT, EXEC_DECL
 	{
 		Register32 * fr = unit->float_regs->registers;
 
@@ -60,7 +60,7 @@ namespace ISA { namespace RISCV { namespace DTRaX {
 
 		unit->float_regs->registers[instr.u.rd].f32 = intersect(aabb, ray, inv_d);
 	}),
-	InstructionInfo(0x3, "triisect", Type::TRIISECT, Encoding::U, RegFile::INT, IMPL_DECL
+	InstructionInfo(0x3, "triisect", InstrType::TRIISECT, Encoding::U, RegType::INT, EXEC_DECL
 	{
 		Register32 * fr = unit->float_regs->registers;
 
@@ -283,7 +283,7 @@ static void run_sim_describo(int argc, char* argv[])
 
 	uint num_tps = num_tps_per_tm * num_tms_per_l2 * num_l2;
 	uint num_tms = num_tms_per_l2 * num_l2;
-	uint sfu_table_size = static_cast<uint>(ISA::RISCV::Type::NUM_TYPES);
+	uint sfu_table_size = static_cast<uint>(ISA::RISCV::InstrType::NUM_TYPES);
 
 	uint64_t mem_size = 4ull * 1024ull * 1024ull * 1024ull; //4GB
 
@@ -314,8 +314,8 @@ static void run_sim_describo(int argc, char* argv[])
 	Simulator simulator;
 
 	std::vector<Units::UnitTP*> tps;
-	std::vector<Units::UnitCache*> l1s;
-	std::vector<Units::UnitCache*> l2s;
+	std::vector<Units::UnitL1Cache*> l1s;
+	std::vector<Units::UnitL1Cache*> l2s;
 	std::vector<Units::UnitSFU*> sfus;
 	std::vector<Units::UnitThreadScheduler*> thread_schedulers;
 
@@ -334,7 +334,7 @@ static void run_sim_describo(int argc, char* argv[])
 
 	for(uint l2_index = 0; l2_index < num_l2; ++l2_index)
 	{
-		Units::UnitCache::Configuration l2_config;
+		Units::UnitL1Cache::Configuration l2_config;
 		l2_config.size = 2 * 1024 * 1024;
 		l2_config.associativity = 4;
 		l2_config.data_array_access_cycles = 3;
@@ -343,7 +343,7 @@ static void run_sim_describo(int argc, char* argv[])
 		l2_config.num_lfb = 8;
 		l2_config.mem_map.add_unit(mm_null_address, &mm, l2_index * mc_ports, mc_ports);
 
-		l2s.push_back(new Units::UnitCache(l2_config));
+		l2s.push_back(new Units::UnitL1Cache(l2_config));
 
 		for(uint tm_i = 0; tm_i < num_tms_per_l2; ++tm_i)
 		{
@@ -352,7 +352,7 @@ static void run_sim_describo(int argc, char* argv[])
 
 			uint tm_index = l2_index * num_tms_per_l2 + tm_i;
 
-			Units::UnitCache::Configuration l1_config;
+			Units::UnitL1Cache::Configuration l1_config;
 			l1_config.size = 32 * 1024;
 			l1_config.associativity = 4;
 			l1_config.data_array_access_cycles = 1;
@@ -362,7 +362,7 @@ static void run_sim_describo(int argc, char* argv[])
 			l1_config.num_lfb = 4;
 			l1_config.mem_map.add_unit(mm_null_address, l2s.back(), tm_i, 1);
 
-			l1s.push_back(new Units::UnitCache(l1_config));
+			l1s.push_back(new Units::UnitL1Cache(l1_config));
 			simulator.register_unit(l1s.back());
 
 			Units::UnitSFU** sfu_table = &sfu_tables[sfu_table_size * tm_index];
@@ -412,7 +412,7 @@ static void run_sim_describo(int argc, char* argv[])
 				tp_config.pc = elf.elf_header->e_entry.u64;
 				tp_config.sp = stack_pointer;
 				tp_config.stack_size = stack_size;
-				tp_config.backing_memory = mm._data_u8;
+				tp_config.cheat_memory = mm._data_u8;
 				tp_config.sfu_table = sfu_table;
 				tp_config.port_size = tp_port_size;
 				tp_config.mem_map.add_unit(mm_null_address, thread_schedulers.back(), tp_index, 1);
@@ -435,11 +435,11 @@ static void run_sim_describo(int argc, char* argv[])
 	for(auto& tp : tps)
 		tp_log.accumulate(tp->log);
 	
-	Units::UnitCache::Log l1_log;
+	Units::UnitL1Cache::Log l1_log;
 	for(auto& l1 : l1s)
 		l1_log.accumulate(l1->log);
 	
-	Units::UnitCache::Log l2_log;
+	Units::UnitL1Cache::Log l2_log;
 	for(auto& l2 : l2s)
 		l2_log.accumulate(l2->log);
 
