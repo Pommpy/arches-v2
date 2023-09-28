@@ -4,6 +4,7 @@
 
 #include "units/unit-dram.hpp"
 #include "units/unit-non-blocking-cache.hpp"
+#include "units/unit-blocking-cache.hpp"
 #include "units/unit-atomic-reg-file.hpp"
 #include "units/unit-tile-scheduler.hpp"
 #include "units/unit-sfu.hpp"
@@ -117,7 +118,7 @@ static void run_sim_trax(int argc, char* argv[])
 	std::vector<Units::UnitTP*> tps;
 	std::vector<Units::UnitSFU*> sfus;
 	std::vector<Units::UnitNonBlockingCache*> l1s;
-	std::vector<Units::UnitNonBlockingCache*> l2s;
+	std::vector<Units::UnitBlockingCache*> l2s;
 	std::vector<Units::UnitThreadScheduler*> thread_schedulers;
 	std::vector<std::vector<Units::UnitBase*>> unit_tables; unit_tables.reserve(num_tms);
 	std::vector<std::vector<Units::UnitSFU*>> sfu_lists; sfu_lists.reserve(num_tms);
@@ -137,18 +138,17 @@ static void run_sim_trax(int argc, char* argv[])
 
 	for(uint l2_index = 0; l2_index < num_l2; ++l2_index)
 	{
-		Units::UnitNonBlockingCache::Configuration l2_config;
+		Units::UnitBlockingCache::Configuration l2_config;
 		l2_config.size = 512 * 1024;
 		l2_config.associativity = 1;
 		l2_config.data_array_latency = 3;
 		l2_config.num_ports = num_tms_per_l2 * 8;
 		l2_config.num_banks = 16;
 		l2_config.bank_select_mask = 0b1110'0000'0100'0000;
-		l2_config.num_lfb = 8;
 		l2_config.mem_higher = &mm;
 		l2_config.mem_higher_port_offset = 16 * l2_index;
 
-		l2s.push_back(new Units::UnitNonBlockingCache(l2_config));
+		l2s.push_back(new Units::UnitBlockingCache(l2_config));
 
 		for(uint tm_i = 0; tm_i < num_tms_per_l2; ++tm_i)
 		{
@@ -249,7 +249,7 @@ static void run_sim_trax(int argc, char* argv[])
 	l1_log.print_log();
 
 	printf("\nL2\n");
-	Units::UnitNonBlockingCache::Log l2_log;
+	Units::UnitBlockingCache::Log l2_log;
 	for(auto& l2 : l2s)
 		l2_log.accumulate(l2->log);
 	l2_log.print_log();

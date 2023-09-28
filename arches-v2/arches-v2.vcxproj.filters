@@ -136,6 +136,9 @@
     <ClInclude Include="src\util\string.hpp">
       <Filter>util</Filter>
     </ClInclude>
+    <ClInclude Include="src\units\unit-blocking-cache.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
@@ -180,6 +183,9 @@
     </ClCompile>
     <ClCompile Include="src\util\string.cpp">
       <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\units\unit-blocking-cache.cpp">
+      <Filter>units</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

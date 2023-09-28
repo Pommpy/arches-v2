@@ -38,10 +38,11 @@ public:
 	}
 	#endif
 
-	Ray generate_ray_through_pixel(uint i, uint j) const
+	Ray generate_ray_through_pixel(uint i, uint j, rtm::RNG* rng = nullptr) const
 	{
 		rtm::vec2 uv((float)i, (float)j);
-		uv += rtm::vec2(0.5f);
+		if(rng) uv += rng->randv2();
+		else    uv += rtm::vec2(0.5f);
 		uv *= _recip_res;
 		uv -= rtm::vec2(0.5f);
 

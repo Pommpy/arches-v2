@@ -13,6 +13,33 @@ public:
 	virtual ~UnitCacheBase();
 
 protected:
+	class CacheRequestCrossBar : public CasscadedCrossBar<MemoryRequest>
+	{
+	private:
+		uint64_t mask;
+
+	public:
+		CacheRequestCrossBar(uint ports, uint banks, uint64_t bank_select_mask) : mask(bank_select_mask), CasscadedCrossBar<MemoryRequest>(ports, banks, banks) {}
+
+		uint get_sink(const MemoryRequest& request) override
+		{
+			uint bank = pext(request.paddr, mask);
+			assert(bank < num_sinks());
+			return bank;
+		}
+	};
+
+	class CacheReturnCrossBar : public CasscadedCrossBar<MemoryReturn>
+	{
+	public:
+		CacheReturnCrossBar(uint ports, uint banks) : CasscadedCrossBar<MemoryReturn>(banks, ports, banks) {}
+
+		uint get_sink(const MemoryReturn& ret) override
+		{
+			return ret.port;
+		}
+	};
+
 	struct _BlockMetaData
 	{
 		uint64_t tag     : 59;

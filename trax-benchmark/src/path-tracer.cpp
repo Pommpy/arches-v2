@@ -26,9 +26,12 @@ inline static void path_tracer(const KernelArgs& args)
 		
 		for(uint i = 0; i < args.samples_per_pixel; ++i)
 		{
-			Ray ray = args.camera.generate_ray_through_pixel(x, y);
-			Hit hit; hit.t = ray.t_max;
-			rtm::vec3 normal;
+			Ray ray; Hit hit; rtm::vec3 normal;
+
+			if(args.samples_per_pixel > 1)  ray = args.camera.generate_ray_through_pixel(x, y, &rng);
+			else                            ray = args.camera.generate_ray_through_pixel(x, y);
+			hit.t = ray.t_max;
+		
 			rtm::vec3 attenuation(1.0f);
 			for(uint j = 0; j < args.max_depth; ++j)
 			{
@@ -91,7 +94,7 @@ int main(int argc, char* argv[])
 	args.framebuffer_size = args.framebuffer_width * args.framebuffer_height;
 	args.framebuffer = new uint32_t[args.framebuffer_size];
 
-	args.samples_per_pixel = 8;
+	args.samples_per_pixel = 64;
 	args.max_depth = 16;
 
 	args.light_dir = rtm::normalize(rtm::vec3(4.5f, 42.5f, 5.0f));

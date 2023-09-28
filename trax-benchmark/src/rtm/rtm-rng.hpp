@@ -11,7 +11,18 @@ namespace rtm
 class RNG
 {
 public:
-	static uint32_t hash(uint32_t u)
+	//Robert Jenkins' one a time hash funcion for size 1 https://en.wikipedia.org/wiki/Jenkins_hash_function
+	uint32_t hash(uint32_t u)
+	{
+		u += u << 10;
+		u ^= u >> 6;
+		u += u << 3;
+		u ^= u >> 11;
+		u += u << 15;
+		return u;
+	}
+
+	static uint32_t fast_hash(uint32_t u)
 	{
 		return 1664525 * u + 1013904223;
 	}
@@ -28,13 +39,13 @@ private:
 public:
 	RNG(uint32_t seed = 0)
 	{
-		_state = hash(seed);
+		_state = hash(seed + 1);
 	}
 
 	float randf()
 	{
 		uint32_t r = _state;
-		_state = hash(_state);
+		_state = fast_hash(_state);
 		return _build_float(r);
 	}
 
@@ -45,7 +56,7 @@ public:
 	uint32_t randi()
 	{
 		uint32_t r = _state;
-		_state = hash(_state);
+		_state = fast_hash(_state);
 		return r;
 	}
 };

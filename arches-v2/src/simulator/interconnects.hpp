@@ -28,6 +28,11 @@ public:
 		_last_stage_cpi = (_latency - 1) % _cpi;
 	}
 
+	bool empty()
+	{
+		return _queue.empty();
+	}
+
 	uint lantecy()
 	{
 		return _latency;
