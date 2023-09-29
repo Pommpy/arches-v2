@@ -24,32 +24,32 @@ UnitNonBlockingCache::~UnitNonBlockingCache()
 
 }
 
-uint UnitNonBlockingCache::_fetch_lfb(uint bank_index, _LFB& lfb)
+uint UnitNonBlockingCache::_fetch_lfb(uint bank_index, LFB& lfb)
 {
-	_Bank& bank = _banks[bank_index];
-	std::vector<_LFB>& lfbs = bank.lfbs;
+	Bank& bank = _banks[bank_index];
+	std::vector<LFB>& lfbs = bank.lfbs;
 
 	for(uint32_t i = 0; i < lfbs.size(); ++i)
-		if(lfbs[i].state != _LFB::State::INVALID && lfbs[i] == lfb) return i;
+		if(lfbs[i].state != LFB::State::INVALID && lfbs[i] == lfb) return i;
 
 	return ~0u;
 }
 
-uint UnitNonBlockingCache::_allocate_lfb(uint bank_index, _LFB& lfb)
+uint UnitNonBlockingCache::_allocate_lfb(uint bank_index, LFB& lfb)
 {
-	std::vector<_LFB>& lfbs = _banks[bank_index].lfbs;
+	std::vector<LFB>& lfbs = _banks[bank_index].lfbs;
 
 	uint replacement_index = ~0u;
 	uint replacement_lru = 0u;
 	for(uint i = 0; i < lfbs.size(); ++i)
 	{
-		if(lfbs[i].state == _LFB::State::INVALID)
+		if(lfbs[i].state == LFB::State::INVALID)
 		{
 			replacement_index = i;
 			break;
 		}
 
-		if(lfbs[i].state == _LFB::State::RETIRED && lfbs[i].lru >= replacement_lru)
+		if(lfbs[i].state == LFB::State::RETIRED && lfbs[i].lru >= replacement_lru)
 		{
 			replacement_lru = lfbs[i].lru;
 			replacement_index = i;
@@ -65,23 +65,23 @@ uint UnitNonBlockingCache::_allocate_lfb(uint bank_index, _LFB& lfb)
 	return replacement_index;
 }
 
-uint UnitNonBlockingCache::_fetch_or_allocate_lfb(uint bank_index, uint64_t block_addr, _LFB::Type type)
+uint UnitNonBlockingCache::_fetch_or_allocate_lfb(uint bank_index, uint64_t block_addr, LFB::Type type)
 {
-	std::vector<_LFB>& lfbs = _banks[bank_index].lfbs;
+	std::vector<LFB>& lfbs = _banks[bank_index].lfbs;
 
-	_LFB lfb;
+	LFB lfb;
 	lfb.block_addr = block_addr;
 	lfb.type = type;
-	lfb.state = _LFB::State::EMPTY;
+	lfb.state = LFB::State::EMPTY;
 	
 	uint lfb_index = _fetch_lfb(bank_index, lfb);
 	if(lfb_index != ~0) return lfb_index;
 	return _allocate_lfb(bank_index, lfb);
 }
 
-void UnitNonBlockingCache::_push_request(_LFB& lfb, const MemoryRequest& request)
+void UnitNonBlockingCache::_push_request(LFB& lfb, const MemoryRequest& request)
 {
-	_LFB::SubEntry sub_entry;
+	LFB::SubEntry sub_entry;
 	sub_entry.offset = _get_block_offset(request.paddr);
 	sub_entry.size = request.size;
 	sub_entry.port = request.port;
@@ -89,9 +89,9 @@ void UnitNonBlockingCache::_push_request(_LFB& lfb, const MemoryRequest& request
 	lfb.sub_entries.push(sub_entry);
 }
 
-MemoryRequest UnitNonBlockingCache::_pop_request(_LFB& lfb)
+MemoryRequest UnitNonBlockingCache::_pop_request(LFB& lfb)
 {
-	_LFB::SubEntry sub_entry = lfb.sub_entries.front();
+	LFB::SubEntry sub_entry = lfb.sub_entries.front();
 	lfb.sub_entries.pop();
 
 	MemoryRequest req;
@@ -105,7 +105,7 @@ MemoryRequest UnitNonBlockingCache::_pop_request(_LFB& lfb)
 
 void UnitNonBlockingCache::_clock_data_array(uint bank_index)
 {
-	_Bank& bank = _banks[bank_index];
+	Bank& bank = _banks[bank_index];
 
 	bank.data_array_pipline.clock();
 	if(!bank.data_array_pipline.is_read_valid()) return;
@@ -113,9 +113,9 @@ void UnitNonBlockingCache::_clock_data_array(uint bank_index)
 	uint lfb_index = bank.data_array_pipline.read();
 	if(lfb_index == ~0u) return;
 
-	_LFB& lfb = bank.lfbs[lfb_index];
-	assert(lfb.state == _LFB::State::DATA_ARRAY);
-	lfb.state = _LFB::State::FILLED;
+	LFB& lfb = bank.lfbs[lfb_index];
+	assert(lfb.state == LFB::State::DATA_ARRAY);
+	lfb.state = LFB::State::FILLED;
 	bank.lfb_return_queue.push(lfb_index);
 }
 
@@ -128,15 +128,15 @@ bool UnitNonBlockingCache::_proccess_return(uint bank_index)
 	assert(ret.paddr == _get_block_addr(ret.paddr));
 
 	//Mark the associated lse as filled and put it in the return queue
-	_Bank& bank = _banks[bank_index];
+	Bank& bank = _banks[bank_index];
 	for(uint i = 0; i < bank.lfbs.size(); ++i)
 	{
-		_LFB& lfb = bank.lfbs[i];
+		LFB& lfb = bank.lfbs[i];
 		if(lfb.block_addr == ret.paddr)
 		{
-			assert(lfb.state == _LFB::State::MISSED);
+			assert(lfb.state == LFB::State::MISSED);
 			std::memcpy(lfb.block_data.bytes, ret.data, CACHE_BLOCK_SIZE);
-			lfb.state = _LFB::State::FILLED;
+			lfb.state = LFB::State::FILLED;
 			bank.lfb_return_queue.push(i);
 			break;
 		}
@@ -157,7 +157,7 @@ bool UnitNonBlockingCache::_proccess_request(uint bank_index)
 {
 	if(!_request_cross_bar.is_read_valid(bank_index)) return false;
 
-	_Bank& bank = _banks[bank_index];
+	Bank& bank = _banks[bank_index];
 	const MemoryRequest& request = _request_cross_bar.peek(bank_index);
 	paddr_t block_addr = _get_block_addr(request.paddr);
 	uint block_offset = _get_block_offset(request.paddr);
@@ -166,10 +166,10 @@ bool UnitNonBlockingCache::_proccess_request(uint bank_index)
 	if(request.type == MemoryRequest::Type::LOAD)
 	{
 		//Try to fetch an lfb for the line or allocate a new lfb for the line
-		uint lfb_index = _fetch_or_allocate_lfb(bank_index, block_addr, _LFB::Type::READ);
+		uint lfb_index = _fetch_or_allocate_lfb(bank_index, block_addr, LFB::Type::READ);
 
 		//In parallel access the tag array to check for the line
-		_BlockData* block_data = _get_block(block_addr);
+		BlockData* block_data = _get_block(block_addr);
 		log.log_tag_array_access();
 
 		//If the data array access is zero cycle then that means we did it in parallel with th tag lookup
@@ -180,10 +180,10 @@ bool UnitNonBlockingCache::_proccess_request(uint bank_index)
 
 		if(lfb_index != ~0)
 		{
-			_LFB& lfb = bank.lfbs[lfb_index];
+			LFB& lfb = bank.lfbs[lfb_index];
 			_push_request(lfb, request);
 
-			if(lfb.state == _LFB::State::EMPTY)
+			if(lfb.state == LFB::State::EMPTY)
 			{
 				if(block_data)
 				{
@@ -192,12 +192,12 @@ bool UnitNonBlockingCache::_proccess_request(uint bank_index)
 					//Copy line from data array to LFB
 					if(bank.data_array_pipline.lantecy() == 0)
 					{
-						lfb.state = _LFB::State::FILLED;
+						lfb.state = LFB::State::FILLED;
 						bank.lfb_return_queue.push(lfb_index);
 					}
 					else
 					{
-						lfb.state = _LFB::State::DATA_ARRAY;
+						lfb.state = LFB::State::DATA_ARRAY;
 						bank.data_array_pipline.write(lfb_index);
 						log.log_data_array_read();
 					}
@@ -207,24 +207,27 @@ bool UnitNonBlockingCache::_proccess_request(uint bank_index)
 				else
 				{
 					//Missed the cache queue up a request to mem higher
-					lfb.state = _LFB::State::MISSED;
+					lfb.state = LFB::State::MISSED;
 					bank.lfb_request_queue.push(lfb_index);
 					log.log_miss();
 				}
 			}
-			else if(lfb.state == _LFB::State::MISSED)
+			else if(lfb.state == LFB::State::MISSED)
 			{
+				log.log_miss();
 				log.log_half_miss();
 			}
-			else if(lfb.state == _LFB::State::FILLED)
+			else if(lfb.state == LFB::State::FILLED)
 			{
+				log.log_hit();
 				log.log_lfb_hit();
 			}
-			else if(lfb.state == _LFB::State::RETIRED)
+			else if(lfb.state == LFB::State::RETIRED)
 			{
 				//Wake up retired LFB and add it to the return queue
-				lfb.state = _LFB::State::FILLED;
+				lfb.state = LFB::State::FILLED;
 				bank.lfb_return_queue.push(lfb_index);
+				log.log_hit();
 				log.log_lfb_hit();
 			}
 
@@ -235,18 +238,18 @@ bool UnitNonBlockingCache::_proccess_request(uint bank_index)
 	else if(request.type == MemoryRequest::Type::STORE)
 	{
 		//try to allocate an lfb
-		uint lfb_index = _fetch_or_allocate_lfb(bank_index, block_addr, _LFB::Type::WRITE_COMBINING);
+		uint lfb_index = _fetch_or_allocate_lfb(bank_index, block_addr, LFB::Type::WRITE_COMBINING);
 		if(lfb_index != ~0)
 		{
-			_LFB& lfb = bank.lfbs[lfb_index];
+			LFB& lfb = bank.lfbs[lfb_index];
 			lfb.write_mask |= request.write_mask << block_offset;
 			for(uint i = 0; i < request.size; ++i)
 				if((request.write_mask >> i) & 0x1)
 					lfb.block_data.bytes[block_offset + i] = request.data[i];
 			
-			if(lfb.state == _LFB::State::EMPTY)
+			if(lfb.state == LFB::State::EMPTY)
 			{
-				lfb.state = _LFB::State::FILLED; //since we just filled it
+				lfb.state = LFB::State::FILLED; //since we just filled it
 				bank.lfb_request_queue.push(lfb_index);
 			}
 
@@ -254,22 +257,20 @@ bool UnitNonBlockingCache::_proccess_request(uint bank_index)
 		}
 	}
 
-	if(_request_cross_bar.is_read_valid(bank_index)) log.log_bank_conflict(); //log bank conflicts
-
 	return true;
 }
 
 void UnitNonBlockingCache::_try_request_lfb(uint bank_index)
 {
-	_Bank& bank = _banks[bank_index];
+	Bank& bank = _banks[bank_index];
 	uint mem_higher_port_index = _mem_higher_port_offset + bank_index;
 
 	if(bank.lfb_request_queue.empty() || !_mem_higher->request_port_write_valid(mem_higher_port_index)) return;
 	
-	_LFB& lfb = bank.lfbs[bank.lfb_request_queue.front()];
-	if(lfb.type == _LFB::Type::READ)
+	LFB& lfb = bank.lfbs[bank.lfb_request_queue.front()];
+	if(lfb.type == LFB::Type::READ)
 	{
-		assert(lfb.state == _LFB::State::MISSED);
+		assert(lfb.state == LFB::State::MISSED);
 
 		MemoryRequest outgoing_request;
 		outgoing_request.type = MemoryRequest::Type::LOAD;
@@ -280,9 +281,9 @@ void UnitNonBlockingCache::_try_request_lfb(uint bank_index)
 
 		bank.lfb_request_queue.pop();
 	}
-	else if(lfb.type == _LFB::Type::WRITE_COMBINING)
+	else if(lfb.type == LFB::Type::WRITE_COMBINING)
 	{
-		assert(lfb.state == _LFB::State::FILLED);
+		assert(lfb.state == LFB::State::FILLED);
 
 		MemoryRequest outgoing_request;
 		outgoing_request.type = MemoryRequest::Type::STORE;
@@ -293,19 +294,19 @@ void UnitNonBlockingCache::_try_request_lfb(uint bank_index)
 		std::memcpy(outgoing_request.data, lfb.block_data.bytes, CACHE_BLOCK_SIZE);
 		_mem_higher->write_request(outgoing_request, mem_higher_port_index);
 
-		lfb.state = _LFB::State::INVALID;
+		lfb.state = LFB::State::INVALID;
 		bank.lfb_request_queue.pop();
 	}
 }
 
 void UnitNonBlockingCache::_try_return_lfb(uint bank_index)
 {
-	_Bank& bank = _banks[bank_index];
+	Bank& bank = _banks[bank_index];
 
 	//last return isn't complete do nothing
 	if(bank.lfb_return_queue.empty() || !_return_cross_bar.is_write_valid(bank_index)) return;
 
-	_LFB& lfb = bank.lfbs[bank.lfb_return_queue.front()];
+	LFB& lfb = bank.lfbs[bank.lfb_return_queue.front()];
 
 	//select the next subentry and copy return to interconnect
 	MemoryReturn ret = _pop_request(lfb);
@@ -314,12 +315,10 @@ void UnitNonBlockingCache::_try_return_lfb(uint bank_index)
 
 	if(lfb.sub_entries.empty())
 	{
-		lfb.state = _LFB::State::RETIRED;
+		lfb.state = LFB::State::RETIRED;
 		bank.lfb_return_queue.pop();
 	}
 }
-
-//0x000000000001074d
 
 void UnitNonBlockingCache::clock_rise()
 {

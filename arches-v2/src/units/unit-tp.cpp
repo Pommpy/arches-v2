@@ -159,7 +159,7 @@ FREE_INSTR:
 	//Check for data hazard
 	if(uint8_t type = _check_dependancies(instr, instr_info))
 	{
-		log.log_data_stall(type);
+		log.log_data_stall(type, exec_item.pc);
 		return;
 	}
 
@@ -183,7 +183,7 @@ FREE_INSTR:
 		UnitSFU* sfu = (UnitSFU*)unit_table[(uint)instr_info.instr_type];
 		if(sfu && !sfu->request_port_write_valid(_tp_index))
 		{
-			log.log_resource_stall(instr_info);
+			log.log_resource_stall(instr_info, exec_item.pc);
 			return;
 		}
 
@@ -219,7 +219,7 @@ FREE_INSTR:
 		UnitMemoryBase* mem = (UnitMemoryBase*)unit_table[(uint)instr_info.instr_type];
 		if(!mem->request_port_write_valid(_tp_index))
 		{
-			log.log_resource_stall(instr_info);
+			log.log_resource_stall(instr_info, exec_item.pc);
 			return;
 		}
 

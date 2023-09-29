@@ -47,7 +47,7 @@ protected:
 		uint64_t valid   : 1;
 	};
 
-	struct alignas(CACHE_BLOCK_SIZE) _BlockData
+	struct alignas(CACHE_BLOCK_SIZE) BlockData
 	{
 		uint8_t bytes[CACHE_BLOCK_SIZE];
 	};
@@ -57,10 +57,10 @@ protected:
 
 	uint _associativity;
 	std::vector<_BlockMetaData> _tag_array;
-	std::vector<_BlockData> _data_array;
+	std::vector<BlockData> _data_array;
 
-	_BlockData* _get_block(paddr_t paddr);
-	_BlockData* _insert_block(paddr_t paddr, const uint8_t* data);
+	BlockData* _get_block(paddr_t paddr);
+	BlockData* _insert_block(paddr_t paddr, const uint8_t* data);
 
 	paddr_t _get_block_offset(paddr_t paddr) { return  (paddr >> 0) & _block_offset_mask; }
 	paddr_t _get_block_addr(paddr_t paddr) { return paddr & ~_block_offset_mask; }

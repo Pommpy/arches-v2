@@ -29,7 +29,7 @@ UnitCacheBase::~UnitCacheBase()
 }
 
 //update lru and returns data pointer to cache line
-UnitCacheBase::_BlockData* UnitCacheBase::_get_block(paddr_t paddr)
+UnitCacheBase::BlockData* UnitCacheBase::_get_block(paddr_t paddr)
 {
 	uint start = _get_set_index(paddr) * _associativity;
 	uint end = start + _associativity;
@@ -59,7 +59,7 @@ UnitCacheBase::_BlockData* UnitCacheBase::_get_block(paddr_t paddr)
 }
 
 //inserts cacheline associated with paddr replacing least recently used. Assumes cachline isn't already in cache if it is this has undefined behaviour
-UnitCacheBase::_BlockData* UnitCacheBase::_insert_block(paddr_t paddr, const uint8_t* data)
+UnitCacheBase::BlockData* UnitCacheBase::_insert_block(paddr_t paddr, const uint8_t* data)
 {
 	uint start = _get_set_index(paddr) * _associativity;
 	uint end = start + _associativity;

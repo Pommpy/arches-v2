@@ -39,7 +39,7 @@ public:
 	const MemoryReturn read_return(uint port_index) override;
 
 private:
-	struct _LFB //Line Fill Buffer
+	struct LFB //Line Fill Buffer
 	{
 		struct SubEntry
 		{
@@ -68,7 +68,7 @@ private:
 			RETIRED,
 		};
 
-		_BlockData block_data;
+		BlockData block_data;
 		addr_t block_addr{~0ull};
 
 		uint64_t write_mask{0x0};
@@ -78,22 +78,22 @@ private:
 		Type type{Type::READ};
 		State state{State::INVALID};
 
-		_LFB() = default;
+		LFB() = default;
 
-		bool operator==(const _LFB& other) const
+		bool operator==(const LFB& other) const
 		{
 			return block_addr == other.block_addr && type == other.type;
 		}
 	};
 
-	struct _Bank
+	struct Bank
 	{
-		std::vector<_LFB> lfbs;
+		std::vector<LFB> lfbs;
 		std::queue<uint> lfb_request_queue;
 		std::queue<uint> lfb_return_queue;
 		Pipline<uint> data_array_pipline;
 		uint64_t outgoing_write_mask;
-		_Bank(uint num_lfb, uint data_array_latency) : lfbs(num_lfb), data_array_pipline(data_array_latency) {}
+		Bank(uint num_lfb, uint data_array_latency) : lfbs(num_lfb), data_array_pipline(data_array_latency) {}
 	};
 
 	Configuration _configuration; //nice for debugging
@@ -103,7 +103,7 @@ private:
 
 	uint _data_array_access_cycles, _tag_array_access_cycles;
 
-	std::vector<_Bank> _banks;
+	std::vector<Bank> _banks;
 
 	CacheRequestCrossBar _request_cross_bar;
 	CacheReturnCrossBar _return_cross_bar;
@@ -111,12 +111,12 @@ private:
 	UnitMemoryBase* _mem_higher;
 	uint _mem_higher_port_offset;
 
-	void _push_request(_LFB& lfb, const MemoryRequest& request);
-	MemoryRequest _pop_request(_LFB& lfb);
+	void _push_request(LFB& lfb, const MemoryRequest& request);
+	MemoryRequest _pop_request(LFB& lfb);
 
-	uint _fetch_lfb(uint bank_index, _LFB& lfb);
-	uint _allocate_lfb(uint bank_index, _LFB& lfb);
-	uint _fetch_or_allocate_lfb(uint bank_index, uint64_t block_addr, _LFB::Type type);
+	uint _fetch_lfb(uint bank_index, LFB& lfb);
+	uint _allocate_lfb(uint bank_index, LFB& lfb);
+	uint _fetch_or_allocate_lfb(uint bank_index, uint64_t block_addr, LFB::Type type);
 
 	void _clock_data_array(uint bank_index);
 
@@ -135,10 +135,9 @@ public:
 		uint64_t _total;
 		uint64_t _hits;
 		uint64_t _misses;
-		uint64_t _lfb_hits;
 		uint64_t _half_misses;
 		uint64_t _uncached_writes;
-		uint64_t _bank_conflicts;
+		uint64_t _lfb_hits;
 		uint64_t _lfb_stalls;
 		uint64_t _tag_array_access;
 		uint64_t _data_array_reads;
@@ -154,7 +153,6 @@ public:
 			_misses = 0;
 			_half_misses = 0;
 			_uncached_writes = 0;
-			_bank_conflicts = 0;
 			_lfb_stalls = 0;
 			_tag_array_access = 0;
 			_data_array_reads = 0;
@@ -168,7 +166,6 @@ public:
 			_hits += other._hits;
 			_misses += other._misses;
 			_half_misses += other._half_misses;;
-			_bank_conflicts += other._bank_conflicts;
 			_lfb_stalls += other._lfb_stalls;
 			_tag_array_access += other._tag_array_access;
 			_data_array_reads += other._data_array_reads;
@@ -184,14 +181,13 @@ public:
 
 		void log_uncached_write(uint n = 1) { _uncached_writes += n; }
 
-		void log_bank_conflict() { _bank_conflicts++; }
 		void log_lfb_stall() { _lfb_stalls++; }
 
 		void log_tag_array_access() { _tag_array_access++; }
 		void log_data_array_read() { _data_array_reads++; }
 		void log_data_array_write() { _data_array_writes++; }
 
-		uint64_t get_total() { return _hits + _misses + _lfb_hits + _half_misses + _uncached_writes; }
+		uint64_t get_total() { return _hits + _misses; }
 		uint64_t get_total_data_array_accesses() { return _data_array_reads + _data_array_writes; }
 
 		void print_log(FILE* stream = stdout, uint units = 1)
@@ -204,9 +200,8 @@ public:
 			fprintf(stream, "Total: %lld\n", total / units);
 			fprintf(stream, "Hits: %lld(%.2f%%)\n", _hits / units, _hits / ft);
 			fprintf(stream, "Misses: %lld(%.2f%%)\n", _misses / units, _misses / ft);
-			fprintf(stream, "LFB Hits: %lld(%.2f%%)\n", _lfb_hits / units, _lfb_hits / ft);
 			fprintf(stream, "Half Misses: %lld(%.2f%%)\n", _half_misses / units, _half_misses / ft);
-			fprintf(stream, "Bank Conflicts: %lld\n", _bank_conflicts / units);
+			fprintf(stream, "LFB Hits: %lld(%.2f%%)\n", _lfb_hits / units, _lfb_hits / ft);
 			fprintf(stream, "LFB Stalls: %lld\n", _lfb_stalls / units);
 			fprintf(stream, "Tag Array Total: %lld\n", _tag_array_access);
 			fprintf(stream, "Data Array Total: %lld\n", da_total);

@@ -347,7 +347,7 @@ static void run_sim_describo(int argc, char* argv[])
 
 		for(uint tm_i = 0; tm_i < num_tms_per_l2; ++tm_i)
 		{
-			simulator.start_new_unit_group();
+			simulator.new_unit_group();
 			if(tm_i == 0) simulator.register_unit(l2s.back());
 
 			uint tm_index = l2_index * num_tms_per_l2 + tm_i;

@@ -111,36 +111,33 @@ public:
 			}
 		}
 
-		void log_cycle()
+		void profile_instruction(vaddr_t pc)
 		{
-			_profile_counters[_instr_index]++;
+			assert(pc >= _elf_start_addr);
+
+			uint instr_index = (pc - _elf_start_addr) / 4;
+			if(instr_index >= _profile_counters.size()) 
+				_profile_counters.resize(instr_index + 1, 0ull);
+
+			_profile_counters[instr_index]++;
 		}
 
 		void log_instruction_issue(const ISA::RISCV::InstructionInfo& info, vaddr_t pc)
 		{
 			_instruction_counters[(uint)info.instr_type]++;
-
-			if(pc >= _elf_start_addr)
-			{
-				_instr_index = (pc - _elf_start_addr) / 4;
-				if(_instr_index >= _profile_counters.size()) _profile_counters.resize(_instr_index + 1, 0ull);
-			}
-
-			log_cycle();
+			profile_instruction(pc);
 		}
 
-		void log_resource_stall(const ISA::RISCV::InstructionInfo& info)
+		void log_resource_stall(const ISA::RISCV::InstructionInfo& info, vaddr_t pc)
 		{
 			_resource_stall_counters[(uint)info.instr_type]++;
-
-			log_cycle();
+			profile_instruction(pc);
 		}
 
-		void log_data_stall(uint8_t type)
+		void log_data_stall(uint8_t type, vaddr_t pc)
 		{
 			_data_stall_counters[type]++;
-
-			log_cycle();
+			profile_instruction(pc);
 		}
 
 		void print_log(FILE* stream = stdout, uint num_units = 1)

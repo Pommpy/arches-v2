@@ -232,7 +232,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	Units::UnitDRAM mm(2, mem_size, &simulator); mm.clear();
 	simulator.register_unit(&mm);
 
-	simulator.start_new_unit_group();
+	simulator.new_unit_group();
 
 	ELF elf("benchmarks/dual-streaming/bin/riscv/path-tracer");
 	mm.write_elf(elf);
@@ -263,7 +263,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	Units::UnitBuffer scene_buffer(scene_buffer_config);
 	simulator.register_unit(&scene_buffer);
 
-	simulator.start_new_unit_group();
+	simulator.new_unit_group();
 
 	Units::UnitNonBlockingCache::Configuration l2_config;
 	l2_config.size = 512 * 1024;
@@ -283,7 +283,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 	for(uint tm_index = 0; tm_index < num_tms; ++tm_index)
 	{
-		simulator.start_new_unit_group();
+		simulator.new_unit_group();
 
 		Units::UnitNonBlockingCache::Configuration l1_config;
 		l1_config.size = 16 * 1024;

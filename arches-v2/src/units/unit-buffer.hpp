@@ -23,7 +23,7 @@ public:
 	};
 
 private:
-	struct _Bank
+	struct Bank
 	{
 		uint cycles_remaining{0u};
 
@@ -41,7 +41,7 @@ private:
 	uint _penalty, _port_width;
 
 	uint8_t* data_u8;
-	std::vector<_Bank> _banks;
+	std::vector<Bank> _banks;
 
 	CrossBar<MemoryRequest> _request_cross_bar;
 	CrossBar<MemoryReturn> _return_cross_bar;
@@ -71,7 +71,7 @@ public:
 		//select next request
 		for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
 		{
-			_Bank& bank = _banks[bank_index];
+			Bank& bank = _banks[bank_index];
 			if(bank.request_mask) continue;
 
 			if(!_request_cross_bar.is_read_valid(bank_index)) continue;
@@ -85,7 +85,7 @@ public:
 	{
 		for(uint bank_index = 0; bank_index < _banks.size(); ++bank_index)
 		{
-			_Bank& bank = _banks[bank_index];
+			Bank& bank = _banks[bank_index];
 			if(bank.cycles_remaining == 0 || --bank.cycles_remaining != 0) continue;
 
 			paddr_t buffer_addr = _get_buffer_addr(bank.request.paddr);

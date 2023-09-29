@@ -60,15 +60,15 @@ static RET* write_vector(Units::UnitMainMemoryBase* main_memory, size_t alignmen
 static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, paddr_t& heap_address)
 {
 	KernelArgs args;
-	args.framebuffer_width = 1024;
-	args.framebuffer_height = 1024;
+	args.framebuffer_width = 256;
+	args.framebuffer_height = 256;
 	args.framebuffer_size = args.framebuffer_width * args.framebuffer_height;
 
 	heap_address = align_to(ROW_BUFFER_SIZE, heap_address);
 	args.framebuffer = reinterpret_cast<uint32_t*>(heap_address); heap_address += args.framebuffer_size * sizeof(uint32_t);
 
 	args.samples_per_pixel = 1;
-	args.max_depth = 2;
+	args.max_depth = 1;
 
 	args.light_dir = rtm::normalize(rtm::vec3(4.5f, 42.5f, 5.0f));
 	args.camera = Camera(args.framebuffer_width, args.framebuffer_height, 12.0f, rtm::vec3(-900.6f, 150.8f, 120.74f), rtm::vec3(79.7f, 14.0f, -17.4f));
@@ -152,7 +152,7 @@ static void run_sim_trax(int argc, char* argv[])
 
 		for(uint tm_i = 0; tm_i < num_tms_per_l2; ++tm_i)
 		{
-			simulator.start_new_unit_group();
+			simulator.new_unit_group();
 			if(tm_i == 0) simulator.register_unit(l2s.back());
 
 			uint tm_index = l2_index * num_tms_per_l2 + tm_i;
@@ -212,7 +212,7 @@ static void run_sim_trax(int argc, char* argv[])
 				tp_config.tm_index = tm_index;
 				tp_config.pc = elf.elf_header->e_entry.u64;
 				tp_config.sp = stack_pointer;
-				tp_config.gp = 0x0000000000012b4c;
+				tp_config.gp = 0x0000000000012c34;
 				tp_config.stack_size = stack_size;
 				tp_config.cheat_memory = mm._data_u8;
 				tp_config.unit_table = &unit_tables.back();
@@ -255,6 +255,7 @@ static void run_sim_trax(int argc, char* argv[])
 	l2_log.print_log();
 
 	mm.print_usimm_stats(CACHE_BLOCK_SIZE, 4, simulator.current_cycle);
+	tp_log.print_profile(mm._data_u8);
 
 	for(auto& tp : tps) delete tp;
 	for(auto& sfu : sfus) delete sfu;

@@ -31,7 +31,7 @@ public:
 	Simulator() { _unit_groups.emplace_back(0u, 0u); }
 
 	void register_unit(Units::UnitBase* unit);
-	void start_new_unit_group();
+	void new_unit_group();
 
 	void _clock_rise();
 	void _clock_fall();
@@ -81,7 +81,7 @@ namespace Arches
 		Simulator(uint num_threads);
 
 		void register_unit(Units::UnitBase* unit);
-		void start_new_unit_group();
+		void new_unit_group();
 
 		void _clock_rise();
 		void _clock_fall();

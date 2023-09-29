@@ -37,24 +37,24 @@ public:
 	const MemoryReturn read_return(uint port_index) override;
 
 private:
-	struct _Bank
+	struct Bank
 	{
 		enum class State : uint8_t
 		{
-			INVALID,
+			IDLE,
 			MISSED,
 			ISSUED,
 			FILLED,
 		}
-		state{State::INVALID};
+		state{State::IDLE};
 		MemoryRequest current_request{};
 		Pipline<MemoryReturn> data_array_pipline;
-		_Bank(uint data_array_latency) : data_array_pipline(data_array_latency) {}
+		Bank(uint data_array_latency) : data_array_pipline(data_array_latency) {}
 	};
 
 	Configuration _configuration; //nice for debugging
 
-	std::vector<_Bank> _banks;
+	std::vector<Bank> _banks;
 	CacheRequestCrossBar _request_cross_bar;
 	CacheReturnCrossBar _return_cross_bar;
 

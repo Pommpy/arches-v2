@@ -23,10 +23,10 @@ UnitBlockingCache::~UnitBlockingCache()
 
 void UnitBlockingCache::_clock_rise(uint bank_index)
 {
-	_Bank& bank = _banks[bank_index];
+	Bank& bank = _banks[bank_index];
 	bank.data_array_pipline.clock();
 
-	if(bank.state == _Bank::State::INVALID)
+	if(bank.state == Bank::State::IDLE)
 	{
 		if(!_request_cross_bar.is_read_valid(bank_index)) return;
 		bank.current_request = _request_cross_bar.read(bank_index);
@@ -35,7 +35,7 @@ void UnitBlockingCache::_clock_rise(uint bank_index)
 		{
 			paddr_t block_addr = _get_block_addr(bank.current_request.paddr);
 			uint block_offset = _get_block_offset(bank.current_request.paddr);
-			_BlockData* block_data = _get_block(block_addr);
+			BlockData* block_data = _get_block(block_addr);
 
 			log.log_tag_array_access();
 
@@ -44,23 +44,23 @@ void UnitBlockingCache::_clock_rise(uint bank_index)
 				MemoryReturn ret = bank.current_request;
 				std::memcpy(ret.data, &block_data->bytes[block_offset], ret.size);
 				bank.data_array_pipline.write(ret);
-				bank.state = _Bank::State::INVALID;
+				bank.state = Bank::State::IDLE;
 				log.log_hit();
 			}
 			else
 			{
-				bank.state = _Bank::State::MISSED;
+				bank.state = Bank::State::MISSED;
 				log.log_miss();
 			}
 		}
 		else if(bank.current_request.type == MemoryRequest::Type::STORE)
 		{
 			//stores go around
-			bank.state = _Bank::State::MISSED;
+			bank.state = Bank::State::MISSED;
 			log.log_uncached_write();
 		}
 	}
-	else if(bank.state == _Bank::State::ISSUED)
+	else if(bank.state == Bank::State::ISSUED)
 	{
 		uint mem_higher_port_index = _mem_higher_port_offset + bank_index;
 		if(!_mem_higher->return_port_read_valid(mem_higher_port_index)) return;
@@ -75,14 +75,14 @@ void UnitBlockingCache::_clock_rise(uint bank_index)
 		uint block_offset = _get_block_offset(bank.current_request.paddr);
 		std::memcpy(bank.current_request.data, &ret.data[block_offset], bank.current_request.size);
 
-		bank.state = _Bank::State::FILLED;	
+		bank.state = Bank::State::FILLED;	
 	}
 }
 
 void UnitBlockingCache::_clock_fall(uint bank_index)
 {
-	_Bank& bank = _banks[bank_index];
-	if(bank.state == _Bank::State::MISSED)
+	Bank& bank = _banks[bank_index];
+	if(bank.state == Bank::State::MISSED)
 	{
 		uint mem_higher_port_index = _mem_higher_port_offset + bank_index;
 		if(_mem_higher->request_port_write_valid(mem_higher_port_index))
@@ -94,7 +94,7 @@ void UnitBlockingCache::_clock_fall(uint bank_index)
 				request.size = CACHE_BLOCK_SIZE;
 				request.port = mem_higher_port_index;
 				_mem_higher->write_request(request, request.port);
-				bank.state = _Bank::State::ISSUED;
+				bank.state = Bank::State::ISSUED;
 			}
 			else if(bank.current_request.type == MemoryRequest::Type::STORE)
 			{
@@ -104,11 +104,11 @@ void UnitBlockingCache::_clock_fall(uint bank_index)
 				//req.size = CACHE_BLOCK_SIZE;
 				request.port = mem_higher_port_index;
 				_mem_higher->write_request(request, request.port);
-				bank.state = _Bank::State::INVALID;
+				bank.state = Bank::State::IDLE;
 			}
 		}
 	}
-	else if(bank.state == _Bank::State::FILLED)
+	else if(bank.state == Bank::State::FILLED)
 	{
 		if(bank.data_array_pipline.empty() && _return_cross_bar.is_write_valid(bank_index))
 		{
@@ -116,7 +116,7 @@ void UnitBlockingCache::_clock_fall(uint bank_index)
 			MemoryReturn ret = bank.current_request;
 			std::memcpy(ret.data, bank.current_request.data, ret.size);
 			_return_cross_bar.write(ret, bank_index);
-			bank.state = _Bank::State::INVALID;
+			bank.state = Bank::State::IDLE;
 		}
 	}
 
