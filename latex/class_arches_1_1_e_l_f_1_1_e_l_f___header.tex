@@ -1,0 +1,214 @@
+\doxysection{Arches\+::ELF\+::ELF\+\_\+\+Header Class Reference}
+\hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header}{}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header}\index{Arches::ELF::ELF\_Header@{Arches::ELF::ELF\_Header}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t}{E\+\_\+\+IDENT}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a8b61af6b7b69795836880c8944d84b1b}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a8b61af6b7b69795836880c8944d84b1b} 
+enum class {\bfseries E\+\_\+\+TYPE} \+: uint16\+\_\+t \{ \newline
+{\bfseries ET\+\_\+\+NONE} = 0x0000
+, {\bfseries ET\+\_\+\+REL} = 0x0001
+, {\bfseries ET\+\_\+\+EXEC} = 0x0002
+, {\bfseries ET\+\_\+\+DYN} = 0x0003
+, \newline
+{\bfseries ET\+\_\+\+CORE} = 0x0004
+, {\bfseries ET\+\_\+\+LOOS} = 0x\+FE00
+, {\bfseries ET\+\_\+\+HIOS} = 0x\+FEFF
+, {\bfseries ET\+\_\+\+LOPROC} = 0x\+FF00
+, \newline
+{\bfseries ET\+\_\+\+HIPROC} = 0x\+FFFF
+ \}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a71d2540088def28cd12b8c28cfc32724}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a71d2540088def28cd12b8c28cfc32724} 
+enum class {\bfseries E\+\_\+\+MACHINE} \+: uint16\+\_\+t \{ \newline
+{\bfseries EM\+\_\+\+NONE} = 0
+, {\bfseries EM\+\_\+\+M32} = 1
+, {\bfseries EM\+\_\+\+SPARC} = 2
+, {\bfseries EM\+\_\+386} = 3
+, \newline
+{\bfseries EM\+\_\+68K} = 4
+, {\bfseries EM\+\_\+88K} = 5
+, {\bfseries EM\+\_\+860} = 7
+, {\bfseries EM\+\_\+\+MIPS} = 8
+, \newline
+{\bfseries EM\+\_\+\+S370} = 9
+, {\bfseries EM\+\_\+\+MIPS\+\_\+\+RS3\+\_\+\+LE} = 10
+, {\bfseries EM\+\_\+\+PARISC} = 15
+, {\bfseries EM\+\_\+\+VPP500} = 17
+, \newline
+{\bfseries EM\+\_\+\+SPARC32\+PLUS} = 18
+, {\bfseries EM\+\_\+960} = 19
+, {\bfseries EM\+\_\+\+PPC} = 20
+, {\bfseries EM\+\_\+\+PPC64} = 21
+, \newline
+{\bfseries EM\+\_\+\+S390} = 22
+, {\bfseries EM\+\_\+\+V800} = 36
+, {\bfseries EM\+\_\+\+FR20} = 37
+, {\bfseries EM\+\_\+\+RH32} = 38
+, \newline
+{\bfseries EM\+\_\+\+RCE} = 39
+, {\bfseries EM\+\_\+\+ARM} = 40
+, {\bfseries EM\+\_\+\+ALPHA} = 41
+, {\bfseries EM\+\_\+\+SH} = 42
+, \newline
+{\bfseries EM\+\_\+\+SPARCV9} = 43
+, {\bfseries EM\+\_\+\+TRICORE} = 44
+, {\bfseries EM\+\_\+\+ARC} = 45
+, {\bfseries EM\+\_\+\+H8\+\_\+300} = 46
+, \newline
+{\bfseries EM\+\_\+\+H8\+\_\+300H} = 47
+, {\bfseries EM\+\_\+\+H8S} = 48
+, {\bfseries EM\+\_\+\+H8\+\_\+500} = 49
+, {\bfseries EM\+\_\+\+IA\+\_\+64} = 50
+, \newline
+{\bfseries EM\+\_\+\+MIPS\+\_\+X} = 51
+, {\bfseries EM\+\_\+\+COLDFIRE} = 52
+, {\bfseries EM\+\_\+68\+HC12} = 53
+, {\bfseries EM\+\_\+\+MMA} = 54
+, \newline
+{\bfseries EM\+\_\+\+PCP} = 55
+, {\bfseries EM\+\_\+\+NCPU} = 56
+, {\bfseries EM\+\_\+\+NDR1} = 57
+, {\bfseries EM\+\_\+\+STARCORE} = 58
+, \newline
+{\bfseries EM\+\_\+\+ME16} = 59
+, {\bfseries EM\+\_\+\+ST100} = 60
+, {\bfseries EM\+\_\+\+TINYJ} = 61
+, {\bfseries EM\+\_\+\+X86\+\_\+64} = 62
+, \newline
+{\bfseries EM\+\_\+\+PDSP} = 63
+, {\bfseries EM\+\_\+\+PDP10} = 64
+, {\bfseries EM\+\_\+\+PDP11} = 65
+, {\bfseries EM\+\_\+\+FX66} = 66
+, \newline
+{\bfseries EM\+\_\+\+ST9\+PLUS} = 67
+, {\bfseries EM\+\_\+\+ST7} = 68
+, {\bfseries EM\+\_\+68\+HC16} = 69
+, {\bfseries EM\+\_\+68\+HC11} = 70
+, \newline
+{\bfseries EM\+\_\+68\+HC08} = 71
+, {\bfseries EM\+\_\+68\+HC05} = 72
+, {\bfseries EM\+\_\+\+SVX} = 73
+, {\bfseries EM\+\_\+\+ST19} = 74
+, \newline
+{\bfseries EM\+\_\+\+VAX} = 75
+, {\bfseries EM\+\_\+\+CRIS} = 76
+, {\bfseries EM\+\_\+\+JAVELIN} = 77
+, {\bfseries EM\+\_\+\+FIREPATH} = 78
+, \newline
+{\bfseries EM\+\_\+\+ZSP} = 79
+, {\bfseries EM\+\_\+\+MMIX} = 80
+, {\bfseries EM\+\_\+\+HUANY} = 81
+, {\bfseries EM\+\_\+\+PRISM} = 82
+, \newline
+{\bfseries EM\+\_\+\+AVR} = 83
+, {\bfseries EM\+\_\+\+FR30} = 84
+, {\bfseries EM\+\_\+\+D10V} = 85
+, {\bfseries EM\+\_\+\+D30V} = 86
+, \newline
+{\bfseries EM\+\_\+\+V850} = 87
+, {\bfseries EM\+\_\+\+M32R} = 88
+, {\bfseries EM\+\_\+\+MN10300} = 89
+, {\bfseries EM\+\_\+\+MN10200} = 90
+, \newline
+{\bfseries EM\+\_\+\+PJ} = 91
+, {\bfseries EM\+\_\+\+OPENRISC} = 92
+, {\bfseries EM\+\_\+\+ARC\+\_\+\+A5} = 93
+, {\bfseries EM\+\_\+\+XTENSA} = 94
+, \newline
+{\bfseries EM\+\_\+\+VIDEOCORE} = 95
+, {\bfseries EM\+\_\+\+TMM\+\_\+\+GPP} = 96
+, {\bfseries EM\+\_\+\+NS32K} = 97
+, {\bfseries EM\+\_\+\+TPC} = 98
+, \newline
+{\bfseries EM\+\_\+\+SNP1K} = 99
+, {\bfseries EM\+\_\+\+ST200} = 100
+ \}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a061b9a8453abd678d7012dcf36d77b90}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a061b9a8453abd678d7012dcf36d77b90} 
+enum class {\bfseries E\+\_\+\+VERSION} \+: uint32\+\_\+t \{ {\bfseries EV\+\_\+\+NONE} = 0u
+, {\bfseries EV\+\_\+\+CURRENT} = 1u
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a440a514ec5229878d59487f1ea004849}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a440a514ec5229878d59487f1ea004849} 
+{\bfseries ELF\+\_\+\+Header} (\mbox{\hyperlink{class_arches_1_1_util_1_1_file}{Util\+::\+File}} \texorpdfstring{$\ast$}{*}file)
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a5ee9b0ef8ff5d0f47190947bc8439062}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a5ee9b0ef8ff5d0f47190947bc8439062} 
+{\footnotesize template$<$typename RET $>$ }\\RET {\bfseries fix\+\_\+endianness} (RET x) const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a6d08d6865bc0abe3670cf8335574eaa4}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a6d08d6865bc0abe3670cf8335574eaa4} 
+class \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t}{Arches\+::\+ELF\+::\+ELF\+\_\+\+Header\+::\+E\+\_\+\+IDENT}} {\bfseries e\+\_\+ident}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a7a7ed7db77edc3440cacbd272c053366}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a7a7ed7db77edc3440cacbd272c053366} 
+enum Arches\+::\+ELF\+::\+ELF\+\_\+\+Header\+::\+E\+\_\+\+TYPE {\bfseries e\+\_\+type}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a2652fada37a57b00cf224c01c2ffd667}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a2652fada37a57b00cf224c01c2ffd667} 
+enum Arches\+::\+ELF\+::\+ELF\+\_\+\+Header\+::\+E\+\_\+\+MACHINE {\bfseries e\+\_\+machine}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a29b301475c3f8488ed3d635ee8e17d11}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a29b301475c3f8488ed3d635ee8e17d11} 
+enum Arches\+::\+ELF\+::\+ELF\+\_\+\+Header\+::\+E\+\_\+\+VERSION {\bfseries e\+\_\+version}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_ae9bd04b95b8ffad2795d17b135d8e626}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_ae9bd04b95b8ffad2795d17b135d8e626} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries u32}\\
+\>uint64\_t {\bfseries u64}\\
+\} {\bfseries e\_entry}\\
+
+\end{tabbing}\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a1f748bd987ac9447dbc2a4e93feec6cf}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a1f748bd987ac9447dbc2a4e93feec6cf} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries u32}\\
+\>uint64\_t {\bfseries u64}\\
+\} {\bfseries e\_phoff}\\
+
+\end{tabbing}\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a24d9a26526078b60122772b15eca86d7}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a24d9a26526078b60122772b15eca86d7} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries u32}\\
+\>uint64\_t {\bfseries u64}\\
+\} {\bfseries e\_shoff}\\
+
+\end{tabbing}\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_ad160e5d53a5f83978a9118bd7f63bdc0}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_ad160e5d53a5f83978a9118bd7f63bdc0} 
+uint32\+\_\+t {\bfseries e\+\_\+flags}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_aeaf45b3cfd7a12d5b03c860003721175}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_aeaf45b3cfd7a12d5b03c860003721175} 
+uint16\+\_\+t {\bfseries e\+\_\+ehsize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_abdd8ce94125ee1a321a4fa0a0263a6a1}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_abdd8ce94125ee1a321a4fa0a0263a6a1} 
+uint16\+\_\+t {\bfseries e\+\_\+phentsize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_adf17a9ea0d7dc3baefc0d0f6bf3cbd7a}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_adf17a9ea0d7dc3baefc0d0f6bf3cbd7a} 
+uint16\+\_\+t {\bfseries e\+\_\+phnum}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a00647adcd0c0dd3a7cbddf8c544dca6e}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a00647adcd0c0dd3a7cbddf8c544dca6e} 
+uint16\+\_\+t {\bfseries e\+\_\+shentsize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_a1f347086974e12049a43b8e6772dab99}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_a1f347086974e12049a43b8e6772dab99} 
+uint16\+\_\+t {\bfseries e\+\_\+shnum}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_af7e89457c1fa83addde2ffd9505e3c73}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_af7e89457c1fa83addde2ffd9505e3c73} 
+uint16\+\_\+t {\bfseries e\+\_\+shstrndx}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/util/elf.\+hpp\item 
+arches-\/v2/src/arches/util/elf.\+cpp\end{DoxyCompactItemize}

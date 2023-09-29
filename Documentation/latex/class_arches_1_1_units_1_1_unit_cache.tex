@@ -1,0 +1,89 @@
+\doxysection{Arches\+::Units\+::Unit\+Cache Class Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_cache}{}\label{class_arches_1_1_units_1_1_unit_cache}\index{Arches::Units::UnitCache@{Arches::Units::UnitCache}}
+
+
+Class defines cache memory configuration and its execution routines.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/cache.\+hpp$>$}
+
+Inheritance diagram for Arches\+::Units\+::Unit\+Cache\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_arches_1_1_units_1_1_unit_cache}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_cache_1_1_configuration}{Configuration}}
+\begin{DoxyCompactList}\small\item\em struct describes cache configuration \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache_1_1_log}{Log}}
+\begin{DoxyCompactList}\small\item\em Logger class that logs debug info to track execution. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_ac6fe41f992a7b79be461411d2e65ba1f}\label{class_arches_1_1_units_1_1_unit_cache_ac6fe41f992a7b79be461411d2e65ba1f} 
+{\bfseries Unit\+Cache} (\mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_cache_1_1_configuration}{Configuration}} config)
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache_a936b5deafbdcfa43fc21d82d077e75a8}{clock\+\_\+rise}} () override
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache_ac104ff18ad583e2a027746864718b481}{clock\+\_\+fall}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Unit\+Memory\+Base} (uint clients, uint servers)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_aab8bdac5b5e5bbd3f70f5aa66d0935a8}\label{class_arches_1_1_units_1_1_unit_cache_aab8bdac5b5e5bbd3f70f5aa66d0935a8} 
+class \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache_1_1_log}{Arches\+::\+Units\+::\+Unit\+Cache\+::\+Log}} {\bfseries log}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_interconnection_network}{Interconnection\+Network}}$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}}, \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{Memory\+Return}} $>$ {\bfseries interconnect}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class defines cache memory configuration and its execution routines. 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_ac104ff18ad583e2a027746864718b481}\label{class_arches_1_1_units_1_1_unit_cache_ac104ff18ad583e2a027746864718b481} 
+\index{Arches::Units::UnitCache@{Arches::Units::UnitCache}!clock\_fall@{clock\_fall}}
+\index{clock\_fall@{clock\_fall}!Arches::Units::UnitCache@{Arches::Units::UnitCache}}
+\doxysubsubsection{\texorpdfstring{clock\_fall()}{clock\_fall()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+Cache\+::clock\+\_\+fall (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_a936b5deafbdcfa43fc21d82d077e75a8}\label{class_arches_1_1_units_1_1_unit_cache_a936b5deafbdcfa43fc21d82d077e75a8} 
+\index{Arches::Units::UnitCache@{Arches::Units::UnitCache}!clock\_rise@{clock\_rise}}
+\index{clock\_rise@{clock\_rise}!Arches::Units::UnitCache@{Arches::Units::UnitCache}}
+\doxysubsubsection{\texorpdfstring{clock\_rise()}{clock\_rise()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+Cache\+::clock\+\_\+rise (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/cache.\+hpp\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/cache.\+cpp\end{DoxyCompactItemize}

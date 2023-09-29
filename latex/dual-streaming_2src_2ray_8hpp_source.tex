@@ -1,0 +1,29 @@
+\doxysection{ray.\+hpp}
+\hypertarget{dual-streaming_2src_2ray_8hpp_source}{}\label{dual-streaming_2src_2ray_8hpp_source}\index{arches-\/v2/benchmarks/dual-\/streaming/src/ray.hpp@{arches-\/v2/benchmarks/dual-\/streaming/src/ray.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}rtm.hpp"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_ray}{Ray}}}
+\DoxyCodeLine{00007\ \{}
+\DoxyCodeLine{00008\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ o;}
+\DoxyCodeLine{00009\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ d;}
+\DoxyCodeLine{00010\ \};}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_bucket_ray}{BucketRay}}}
+\DoxyCodeLine{00013\ \{}
+\DoxyCodeLine{00014\ \ \ \ \ \mbox{\hyperlink{struct_ray}{Ray}}\ \ ray;}
+\DoxyCodeLine{00015\ \ \ \ \ uint\ id;}
+\DoxyCodeLine{00016\ \};}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_hit}{Hit}}}
+\DoxyCodeLine{00019\ \{}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ t\ \{T\_MAX\};}
+\DoxyCodeLine{00021\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}\ bc;}
+\DoxyCodeLine{00022\ \ \ \ \ uint\ \ \ \ \ \ prim\_id;}
+\DoxyCodeLine{00023\ \};}
+
+\end{DoxyCode}

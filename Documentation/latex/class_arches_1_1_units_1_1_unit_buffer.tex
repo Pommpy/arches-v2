@@ -1,0 +1,81 @@
+\doxysection{Arches\+::Units\+::Unit\+Buffer Class Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_buffer}{}\label{class_arches_1_1_units_1_1_unit_buffer}\index{Arches::Units::UnitBuffer@{Arches::Units::UnitBuffer}}
+
+
+Class defines memory buffer with configuration and its execution routines.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/buffer.\+hpp$>$}
+
+Inheritance diagram for Arches\+::Units\+::Unit\+Buffer\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_arches_1_1_units_1_1_unit_buffer}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration}{Configuration}}
+\begin{DoxyCompactList}\small\item\em struct describes memory configuration \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_buffer_ad045be4585f814cf367f5d7d30513f4a}\label{class_arches_1_1_units_1_1_unit_buffer_ad045be4585f814cf367f5d7d30513f4a} 
+{\bfseries Unit\+Buffer} (\mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration}{Configuration}} config)
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_buffer_a076c12bb2871c2ee6c325ccce5a7e75c}{clock\+\_\+rise}} () override
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_buffer_a28ece77081483ea35d0035285cf8751c}{clock\+\_\+fall}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Unit\+Memory\+Base} (uint clients, uint servers)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_interconnection_network}{Interconnection\+Network}}$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}}, \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{Memory\+Return}} $>$ {\bfseries interconnect}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class defines memory buffer with configuration and its execution routines. 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_arches_1_1_units_1_1_unit_buffer_a28ece77081483ea35d0035285cf8751c}\label{class_arches_1_1_units_1_1_unit_buffer_a28ece77081483ea35d0035285cf8751c} 
+\index{Arches::Units::UnitBuffer@{Arches::Units::UnitBuffer}!clock\_fall@{clock\_fall}}
+\index{clock\_fall@{clock\_fall}!Arches::Units::UnitBuffer@{Arches::Units::UnitBuffer}}
+\doxysubsubsection{\texorpdfstring{clock\_fall()}{clock\_fall()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+Buffer\+::clock\+\_\+fall (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+\Hypertarget{class_arches_1_1_units_1_1_unit_buffer_a076c12bb2871c2ee6c325ccce5a7e75c}\label{class_arches_1_1_units_1_1_unit_buffer_a076c12bb2871c2ee6c325ccce5a7e75c} 
+\index{Arches::Units::UnitBuffer@{Arches::Units::UnitBuffer}!clock\_rise@{clock\_rise}}
+\index{clock\_rise@{clock\_rise}!Arches::Units::UnitBuffer@{Arches::Units::UnitBuffer}}
+\doxysubsubsection{\texorpdfstring{clock\_rise()}{clock\_rise()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+Buffer\+::clock\+\_\+rise (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/buffer.\+hpp\end{DoxyCompactItemize}

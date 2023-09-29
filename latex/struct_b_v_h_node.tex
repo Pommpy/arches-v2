@@ -1,0 +1,27 @@
+\doxysection{BVHNode Struct Reference}
+\hypertarget{struct_b_v_h_node}{}\label{struct_b_v_h_node}\index{BVHNode@{BVHNode}}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{struct_b_v_h_node_ab8ccbdebbea62d51da193f3e96f0b862}\label{struct_b_v_h_node_ab8ccbdebbea62d51da193f3e96f0b862} 
+\mbox{\hyperlink{class_a_a_b_b}{AABB}} {\bfseries aabb}
+\item 
+\Hypertarget{struct_b_v_h_node_a967d2840abac6e71437ad45e76853d06}\label{struct_b_v_h_node_a967d2840abac6e71437ad45e76853d06} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries data}\\
+\Hypertarget{union_b_v_h_node_1_1_0d27_ad91853e96fbeb8d5163672b56c00ac76}\label{union_b_v_h_node_1_1_0d27_ad91853e96fbeb8d5163672b56c00ac76} 
+\>struct \{\\
+\>\>uint32\_t {\bfseries is\_leaf}: 1\\
+\>\>uint32\_t {\bfseries lst\_chld\_ofst}: 3\\
+\>\>uint32\_t {\bfseries fst\_chld\_ind}: 28\\
+\>\} \\
+\}; \\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/benchmarks/dual-\/streaming/src/bvh.\+hpp\end{DoxyCompactItemize}

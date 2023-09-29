@@ -1,0 +1,186 @@
+\doxysection{vec2.\+hpp}
+\hypertarget{dual-streaming_2src_2vec2_8hpp_source}{}\label{dual-streaming_2src_2vec2_8hpp_source}\index{arches-\/v2/benchmarks/dual-\/streaming/src/vec2.hpp@{arches-\/v2/benchmarks/dual-\/streaming/src/vec2.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{keyword}{namespace\ }rtm\ \{}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{class\ }vec2}
+\DoxyCodeLine{00007\ \{}
+\DoxyCodeLine{00008\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00009\ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00010\ \ \ \ \ \{}
+\DoxyCodeLine{00011\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ e[2]\{0.0f,\ 0.0f\};}
+\DoxyCodeLine{00012\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00013\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00014\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ x;}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ y;}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ u;}
+\DoxyCodeLine{00020\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ v;}
+\DoxyCodeLine{00021\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00022\ \ \ \ \ \};}
+\DoxyCodeLine{00023\ \ \ \ \ vec2()\ \{\}}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keyword}{explicit}\ vec2(\textcolor{keywordtype}{float}\ e0,\ \textcolor{keywordtype}{float}\ e1)\ \{\ e[0]\ =\ e0;\ e[1]\ =\ e1;\ \}}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{explicit}\ vec2(\textcolor{keywordtype}{float}\ e0)\ \{\ e[0]\ =\ e0;\ e[1]\ =\ e0;\ \}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ vec2\&\ operator+()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keyword}{inline}\ vec2\ operator-\/()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ vec2(-\/e[0],\ -\/e[1]);\ \}}
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ operator[](\textcolor{keywordtype}{int}\ i)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ e[i];\ \}}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\&\ operator[](\textcolor{keywordtype}{int}\ i)\ \{\ \textcolor{keywordflow}{return}\ e[i];\ \}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keyword}{inline}\ vec2\&\ operator=(\textcolor{keyword}{const}\ vec2\ \&v2);}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keyword}{inline}\ vec2\&\ operator+=(\textcolor{keyword}{const}\ vec2\ \&v2);}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keyword}{inline}\ vec2\&\ operator-\/=(\textcolor{keyword}{const}\ vec2\ \&v2);}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{inline}\ vec2\&\ operator*=(\textcolor{keyword}{const}\ vec2\ \&v2);}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{inline}\ vec2\&\ operator/=(\textcolor{keyword}{const}\ vec2\ \&v2);}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{inline}\ vec2\&\ operator*=(\textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ t);}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keyword}{inline}\ vec2\&\ operator/=(\textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ t);}
+\DoxyCodeLine{00039\ \};}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ squared\_length(\textcolor{keyword}{const}\ vec2\ \&v)}
+\DoxyCodeLine{00042\ \{}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keywordflow}{return}\ (v[0]\ *\ v[0]\ +\ v[1]\ *\ v[1]);}
+\DoxyCodeLine{00044\ \}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ inv\_length(\textcolor{keyword}{const}\ vec2\ \&v)}
+\DoxyCodeLine{00047\ \{}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordflow}{return}\ fast\_inv\_sqrtf(squared\_length(v));}
+\DoxyCodeLine{00049\ \}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ length(\textcolor{keyword}{const}\ vec2\ \&v)}
+\DoxyCodeLine{00052\ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordflow}{return}\ fast\_sqrtf(squared\_length(v));}
+\DoxyCodeLine{00054\ \}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{keyword}{inline}\ vec2\ operator+(\textcolor{keyword}{const}\ vec2\ \&v1,\ \textcolor{keyword}{const}\ vec2\ \&v2)}
+\DoxyCodeLine{00057\ \{}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordflow}{return}\ vec2(v1.e[0]\ +\ v2.e[0],\ v1.e[1]\ +\ v2.e[1]);}
+\DoxyCodeLine{00059\ \}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{keyword}{inline}\ vec2\ operator-\/(\textcolor{keyword}{const}\ vec2\ \&v1,\ \textcolor{keyword}{const}\ vec2\ \&v2)}
+\DoxyCodeLine{00062\ \{}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keywordflow}{return}\ vec2(v1.e[0]\ -\/\ v2.e[0],\ v1.e[1]\ -\/\ v2.e[1]);}
+\DoxyCodeLine{00064\ \}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{keyword}{inline}\ vec2\ operator*(\textcolor{keyword}{const}\ vec2\ \&v1,\ \textcolor{keyword}{const}\ vec2\ \&v2)}
+\DoxyCodeLine{00067\ \{}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordflow}{return}\ vec2(v1.e[0]\ *\ v2.e[0],\ v1.e[1]\ *\ v2.e[1]);}
+\DoxyCodeLine{00069\ \}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{keyword}{inline}\ vec2\ operator/(\textcolor{keyword}{const}\ vec2\ \&v1,\ \textcolor{keyword}{const}\ vec2\ \&v2)}
+\DoxyCodeLine{00072\ \{}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordflow}{return}\ vec2(v1.e[0]\ /\ v2.e[0],\ v1.e[1]\ /\ v2.e[1]);}
+\DoxyCodeLine{00074\ \}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{keyword}{inline}\ vec2\ operator*(\textcolor{keyword}{const}\ vec2\&\ v,\ \textcolor{keywordtype}{float}\ t)}
+\DoxyCodeLine{00077\ \{}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordflow}{return}\ vec2(v.e[0]\ *\ t,\ v.e[1]\ *\ t);}
+\DoxyCodeLine{00079\ \}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{keyword}{inline}\ vec2\ operator*(\textcolor{keywordtype}{float}\ t,\ \textcolor{keyword}{const}\ vec2\&\ v)}
+\DoxyCodeLine{00082\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordflow}{return}\ vec2(v.e[0]\ *\ t,\ v.e[1]\ *\ t);}
+\DoxyCodeLine{00084\ \}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{keyword}{inline}\ vec2\ operator/(\textcolor{keyword}{const}\ vec2\&\ v,\ \textcolor{keywordtype}{float}\ t)}
+\DoxyCodeLine{00087\ \{}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordflow}{return}\ vec2(v.e[0]\ /\ t,\ v.e[1]\ /\ t);}
+\DoxyCodeLine{00089\ \}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ dot(\textcolor{keyword}{const}\ vec2\&\ v1,\ \textcolor{keyword}{const}\ vec2\ \&v2)}
+\DoxyCodeLine{00092\ \{}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordflow}{return}\ v1.e[0]\ *\ v2.e[0]\ +\ v1.e[1]\ *\ v2.e[1];}
+\DoxyCodeLine{00094\ \}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ cross(\textcolor{keyword}{const}\ vec2\&\ a,\ \textcolor{keyword}{const}\ vec2\&\ b)}
+\DoxyCodeLine{00097\ \{}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordflow}{return}\ a.x\ *\ b.y\ -\/\ b.x\ *\ a.y;}
+\DoxyCodeLine{00099\ \}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{keyword}{inline}\ vec2\ normalize(\textcolor{keyword}{const}\ vec2\ \&v)}
+\DoxyCodeLine{00102\ \{}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keywordflow}{return}\ v\ /\ length(v);}
+\DoxyCodeLine{00104\ \}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00107\ \textcolor{comment}{inline\ vec2\ pow(const\ vec2\ \&\ v1,\ const\ vec2\ \&v2)}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\{}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ \ \ return\ vec2(std::pow(v1[0],\ v2[0]),\ std::pow(v1[1],\ v2[1]));}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\}}}
+\DoxyCodeLine{00111\ \textcolor{comment}{}}
+\DoxyCodeLine{00112\ \textcolor{comment}{inline\ vec2\ pow(const\ vec2\ \&\ v1,\ const\ float\ t)}}
+\DoxyCodeLine{00113\ \textcolor{comment}{\{}}
+\DoxyCodeLine{00114\ \textcolor{comment}{\ \ \ \ return\ vec2(std::pow(v1[0],\ t),\ std::pow(v1[1],\ t));}}
+\DoxyCodeLine{00115\ \textcolor{comment}{\}}}
+\DoxyCodeLine{00116\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \textcolor{keyword}{inline}\ vec2\ clamp(\textcolor{keyword}{const}\ vec2\ \&\ v,\ \textcolor{keyword}{const}\ vec2\ \&min,\ \textcolor{keyword}{const}\ vec2\ \&max)}
+\DoxyCodeLine{00119\ \{}
+\DoxyCodeLine{00120\ \ \ \ \ vec2\ vc;}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \ \ vc[0]\ =\ std::max(v[0],\ min[0]);}
+\DoxyCodeLine{00123\ \ \ \ \ vc[1]\ =\ std::max(v[1],\ min[1]);}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \ \ vc[0]\ =\ std::min(v[0],\ max[0]);}
+\DoxyCodeLine{00126\ \ \ \ \ vc[1]\ =\ std::min(v[1],\ max[1]);}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keywordflow}{return}\ vc;}
+\DoxyCodeLine{00129\ \}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{keyword}{inline}\ vec2\&\ vec2::operator+=(\textcolor{keyword}{const}\ vec2\ \&v)}
+\DoxyCodeLine{00132\ \{}
+\DoxyCodeLine{00133\ \ \ \ \ e[0]\ +=\ v.e[0];}
+\DoxyCodeLine{00134\ \ \ \ \ e[1]\ +=\ v.e[1];}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00136\ \}}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{keyword}{inline}\ vec2\&\ vec2::operator-\/=(\textcolor{keyword}{const}\ vec2\ \&v)}
+\DoxyCodeLine{00139\ \{}
+\DoxyCodeLine{00140\ \ \ \ \ e[0]\ -\/=\ v.e[0];}
+\DoxyCodeLine{00141\ \ \ \ \ e[1]\ -\/=\ v.e[1];}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00143\ \}}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \textcolor{keyword}{inline}\ vec2\&\ vec2::operator*=(\textcolor{keyword}{const}\ vec2\ \&v)}
+\DoxyCodeLine{00146\ \{}
+\DoxyCodeLine{00147\ \ \ \ \ e[0]\ *=\ v.e[0];}
+\DoxyCodeLine{00148\ \ \ \ \ e[1]\ *=\ v.e[1];}
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00150\ \}}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \textcolor{keyword}{inline}\ vec2\&\ vec2::operator/=(\textcolor{keyword}{const}\ vec2\ \&v)}
+\DoxyCodeLine{00153\ \{}
+\DoxyCodeLine{00154\ \ \ \ \ e[0]\ /=\ v.e[0];}
+\DoxyCodeLine{00155\ \ \ \ \ e[1]\ /=\ v.e[1];}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00157\ \}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \textcolor{keyword}{inline}\ vec2\&\ vec2::operator*=(\textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ t)}
+\DoxyCodeLine{00160\ \{}
+\DoxyCodeLine{00161\ \ \ \ \ e[0]\ *=\ t;}
+\DoxyCodeLine{00162\ \ \ \ \ e[1]\ *=\ t;}
+\DoxyCodeLine{00163\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00164\ \}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \textcolor{keyword}{inline}\ vec2\&\ vec2::operator/=(\textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ t)}
+\DoxyCodeLine{00167\ \{}
+\DoxyCodeLine{00168\ \ \ \ \ e[0]\ /=\ t;}
+\DoxyCodeLine{00169\ \ \ \ \ e[1]\ /=\ t;}
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00171\ \}}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \textcolor{keyword}{inline}\ vec2\&\ vec2::operator=(\textcolor{keyword}{const}\ vec2\ \&v2)}
+\DoxyCodeLine{00174\ \{}
+\DoxyCodeLine{00175\ \ \ \ \ e[0]\ =\ v2.x;}
+\DoxyCodeLine{00176\ \ \ \ \ e[1]\ =\ v2.y;}
+\DoxyCodeLine{00177\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00178\ \}}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \}}
+
+\end{DoxyCode}

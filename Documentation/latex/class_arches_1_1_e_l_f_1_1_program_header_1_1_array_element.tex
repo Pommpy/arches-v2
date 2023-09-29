@@ -1,0 +1,111 @@
+\doxysection{Arches\+::ELF\+::Program\+Header\+::Array\+Element Class Reference}
+\hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element}{}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element}\index{Arches::ELF::ProgramHeader::ArrayElement@{Arches::ELF::ProgramHeader::ArrayElement}}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a6b5a0d6196d75eea46a909ba959f18e6}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a6b5a0d6196d75eea46a909ba959f18e6} 
+enum class {\bfseries P\+\_\+\+TYPE} \+: uint32\+\_\+t \{ \newline
+{\bfseries PT\+\_\+\+NULL} = 0x00000000u
+, {\bfseries PT\+\_\+\+LOAD} = 0x00000001u
+, {\bfseries PT\+\_\+\+DYNAMIC} = 0x00000002u
+, {\bfseries PT\+\_\+\+INTERP} = 0x00000003u
+, \newline
+{\bfseries PT\+\_\+\+NOTE} = 0x00000004u
+, {\bfseries PT\+\_\+\+SHLIB} = 0x00000005u
+, {\bfseries PT\+\_\+\+PHDR} = 0x00000006u
+, {\bfseries PT\+\_\+\+TLS} = 0x00000007u
+, \newline
+{\bfseries PT\+\_\+\+LOOS} = 0x60000000u
+, {\bfseries PT\+\_\+\+HIOS} = 0x6\+FFFFFFFu
+, {\bfseries PT\+\_\+\+LOPROC} = 0x70000000u
+, {\bfseries PT\+\_\+\+HIPROC} = 0x7\+FFFFFFFu
+ \}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_addeddb9c19de0331d00bc8f43e3af29c}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_addeddb9c19de0331d00bc8f43e3af29c} 
+enum class {\bfseries P\+\_\+\+FLAGS} \+: uint32\+\_\+t \{ \newline
+{\bfseries PF\+\_\+X} = 0x00000001u
+, {\bfseries PF\+\_\+W} = 0x00000002u
+, {\bfseries PF\+\_\+R} = 0x00000004u
+, {\bfseries PF\+\_\+\+MASKOS} = 0x0\+FF00000u
+, \newline
+{\bfseries PF\+\_\+\+MASKPROC} = 0x\+F0000000u
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_af338f94f72c3e87851afdc36d237be59}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_af338f94f72c3e87851afdc36d237be59} 
+{\bfseries Array\+Element} (\mbox{\hyperlink{class_arches_1_1_util_1_1_file}{Util\+::\+File}} \texorpdfstring{$\ast$}{*}file, \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header}{ELF\+\_\+\+Header}} const \texorpdfstring{$\ast$}{*}elf\+\_\+header)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a42c3a0a6797df6ce7c58ad74ea507527}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a42c3a0a6797df6ce7c58ad74ea507527} 
+enum Arches\+::\+ELF\+::\+Program\+Header\+::\+Array\+Element\+::\+P\+\_\+\+TYPE {\bfseries p\+\_\+type}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a532a16ed27455edaeb02e8c0e351dcb0}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a532a16ed27455edaeb02e8c0e351dcb0} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries u32}\\
+\>uint64\_t {\bfseries u64}\\
+\} {\bfseries p\_offset}\\
+
+\end{tabbing}\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_abbc319381602384321a58f77bd90a1b2}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_abbc319381602384321a58f77bd90a1b2} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries u32}\\
+\>uint64\_t {\bfseries u64}\\
+\} {\bfseries p\_vaddr}\\
+
+\end{tabbing}\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_adfaea67fe53d222d16cbdd54317b7f09}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_adfaea67fe53d222d16cbdd54317b7f09} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries u32}\\
+\>uint64\_t {\bfseries u64}\\
+\} {\bfseries p\_paddr}\\
+
+\end{tabbing}\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a479861b577e927c8714d658cc59d20a6}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a479861b577e927c8714d658cc59d20a6} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries u32}\\
+\>uint64\_t {\bfseries u64}\\
+\} {\bfseries p\_filesz}\\
+
+\end{tabbing}\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_af71ba023385d0bb1e76e7c92495e0abf}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_af71ba023385d0bb1e76e7c92495e0abf} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries u32}\\
+\>uint64\_t {\bfseries u64}\\
+\} {\bfseries p\_memsz}\\
+
+\end{tabbing}\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a839175a148493ef1c1909188778d3e34}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a839175a148493ef1c1909188778d3e34} 
+enum Arches\+::\+ELF\+::\+Program\+Header\+::\+Array\+Element\+::\+P\+\_\+\+FLAGS {\bfseries p\+\_\+flags}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a30c900818475462c89a2ce8efbaac0bf}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a30c900818475462c89a2ce8efbaac0bf} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries u32}\\
+\>uint64\_t {\bfseries u64}\\
+\} {\bfseries p\_align}\\
+
+\end{tabbing}\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a0cb7fe01b33b17a8466af67d1ca01613}\label{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element_a0cb7fe01b33b17a8466af67d1ca01613} 
+\mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_loadable_segment}{Loadable\+Segment}} \texorpdfstring{$\ast$}{*} {\bfseries segment}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/util/elf.\+hpp\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/util/elf.\+cpp\end{DoxyCompactItemize}

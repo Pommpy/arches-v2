@@ -1,0 +1,74 @@
+\doxysection{Arches\+::Units\+::Memory\+Request Struct Reference}
+\hypertarget{struct_arches_1_1_units_1_1_memory_request}{}\label{struct_arches_1_1_units_1_1_memory_request}\index{Arches::Units::MemoryRequest@{Arches::Units::MemoryRequest}}
+
+
+Class declares various memory request operation types for custom hardware.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/memory-\/base.\+hpp$>$}
+
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_request_a43ff236f4b1b17ecb205aa766bdcc033}\label{struct_arches_1_1_units_1_1_memory_request_a43ff236f4b1b17ecb205aa766bdcc033} 
+enum class {\bfseries Type} \+: uint8\+\_\+t \{ \newline
+{\bfseries NA}
+, {\bfseries LOAD}
+, {\bfseries STORE}
+, {\bfseries AMO\+\_\+\+ADD}
+, \newline
+{\bfseries AMO\+\_\+\+XOR}
+, {\bfseries AMO\+\_\+\+OR}
+, {\bfseries AMO\+\_\+\+AND}
+, {\bfseries AMO\+\_\+\+MIN}
+, \newline
+{\bfseries AMO\+\_\+\+MAX}
+, {\bfseries AMO\+\_\+\+MINU}
+, {\bfseries AMO\+\_\+\+MAXU}
+, {\bfseries FCHTHRD}
+, \newline
+{\bfseries LBRAY}
+, {\bfseries SBRAY}
+, {\bfseries CSHIT}
+, {\bfseries LOAD\+\_\+\+RAY\+\_\+\+BUCKET}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_request_ab5acc1609a255c7b42e4c2e8e1afa103}\label{struct_arches_1_1_units_1_1_memory_request_ab5acc1609a255c7b42e4c2e8e1afa103} 
+bool {\bfseries operator==} (const \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}} \&other) const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_request_a17ddc73317ba0cc4447e6f970dfb9e66}\label{struct_arches_1_1_units_1_1_memory_request_a17ddc73317ba0cc4447e6f970dfb9e66} 
+Type {\bfseries type}
+\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_request_a567a3afa8aad22ec2569bd919e3a2f5f}\label{struct_arches_1_1_units_1_1_memory_request_a567a3afa8aad22ec2569bd919e3a2f5f} 
+uint8\+\_\+t {\bfseries size}
+\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_request_a5cc6878dcb9afb171de7d6b3670a7495}\label{struct_arches_1_1_units_1_1_memory_request_a5cc6878dcb9afb171de7d6b3670a7495} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>paddr\_t {\bfseries paddr}\\
+\>vaddr\_t {\bfseries vaddr}\\
+\}; \\
+
+\end{tabbing}\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_request_a8abd2b9d17f6dfa584b387fa5e834c14}\label{struct_arches_1_1_units_1_1_memory_request_a8abd2b9d17f6dfa584b387fa5e834c14} 
+void \texorpdfstring{$\ast$}{*} {\bfseries data} \{nullptr\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class declares various memory request operation types for custom hardware. 
+
+Currently the memory requests are similar to that of RISCV with some additional types to support our customized ray-\/tracing HW 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/memory-\/base.\+hpp\end{DoxyCompactItemize}

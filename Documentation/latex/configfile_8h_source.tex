@@ -1,0 +1,370 @@
+\doxysection{configfile.\+h}
+\hypertarget{configfile_8h_source}{}\label{configfile_8h_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/usimm/configfile.h@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/usimm/configfile.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ \_\_CONFIG\_FILE\_IN\_H\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ \_\_CONFIG\_FILE\_IN\_H\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}params.h"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <utility>}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ We\ must\ use\ ENUM\ over\ \#define\ otherwise\ we\ run\ into\ error\ with\ clang++\ and\ boost:\ redefining\ CR}}
+\DoxyCodeLine{00009\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00010\ \{}
+\DoxyCodeLine{00011\ \ \ \ \ EOL\ \ \ =\ 10,}
+\DoxyCodeLine{00012\ \ \ \ \ CR\ \ \ \ =\ 13,}
+\DoxyCodeLine{00013\ \ \ \ \ SPACE\ =\ 32,}
+\DoxyCodeLine{00014\ \ \ \ \ TAB\ \ \ =\ 9}
+\DoxyCodeLine{00015\ \};}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{comment}{//\#define\ \ \ EOL\ \ \ \ \ 10}}
+\DoxyCodeLine{00018\ \textcolor{comment}{//\#define\ \ \ CR\ \ 13}}
+\DoxyCodeLine{00019\ \textcolor{comment}{//\#define\ \ \ SPACE\ \ \ 32}}
+\DoxyCodeLine{00020\ \textcolor{comment}{//\#define\ \ \ \ \ \ \ TAB\ 9}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00023\ \{}
+\DoxyCodeLine{00024\ \ \ \ \ processor\_clk\_multiplier\_token,}
+\DoxyCodeLine{00025\ \ \ \ \ robsize\_token,}
+\DoxyCodeLine{00026\ \ \ \ \ max\_retire\_token,}
+\DoxyCodeLine{00027\ \ \ \ \ max\_fetch\_token,}
+\DoxyCodeLine{00028\ \ \ \ \ pipelinedepth\_token,}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ num\_channels\_token,}
+\DoxyCodeLine{00031\ \ \ \ \ num\_ranks\_token,}
+\DoxyCodeLine{00032\ \ \ \ \ num\_banks\_token,}
+\DoxyCodeLine{00033\ \ \ \ \ num\_rows\_token,}
+\DoxyCodeLine{00034\ \ \ \ \ num\_columns\_token,}
+\DoxyCodeLine{00035\ \ \ \ \ cache\_line\_size\_token,}
+\DoxyCodeLine{00036\ \ \ \ \ address\_bits\_token,}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ dram\_clk\_frequency\_token,}
+\DoxyCodeLine{00039\ \ \ \ \ t\_rcd\_token,}
+\DoxyCodeLine{00040\ \ \ \ \ t\_rp\_token,}
+\DoxyCodeLine{00041\ \ \ \ \ t\_cas\_token,}
+\DoxyCodeLine{00042\ \ \ \ \ t\_rc\_token,}
+\DoxyCodeLine{00043\ \ \ \ \ t\_ras\_token,}
+\DoxyCodeLine{00044\ \ \ \ \ t\_rrd\_token,}
+\DoxyCodeLine{00045\ \ \ \ \ t\_faw\_token,}
+\DoxyCodeLine{00046\ \ \ \ \ t\_wr\_token,}
+\DoxyCodeLine{00047\ \ \ \ \ t\_wtr\_token,}
+\DoxyCodeLine{00048\ \ \ \ \ t\_rtp\_token,}
+\DoxyCodeLine{00049\ \ \ \ \ t\_ccd\_token,}
+\DoxyCodeLine{00050\ \ \ \ \ t\_rfc\_token,}
+\DoxyCodeLine{00051\ \ \ \ \ t\_refi\_token,}
+\DoxyCodeLine{00052\ \ \ \ \ t\_cwd\_token,}
+\DoxyCodeLine{00053\ \ \ \ \ t\_rtrs\_token,}
+\DoxyCodeLine{00054\ \ \ \ \ t\_pd\_min\_token,}
+\DoxyCodeLine{00055\ \ \ \ \ t\_xp\_token,}
+\DoxyCodeLine{00056\ \ \ \ \ t\_xp\_dll\_token,}
+\DoxyCodeLine{00057\ \ \ \ \ t\_data\_trans\_token,}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ vdd\_token,}
+\DoxyCodeLine{00060\ \ \ \ \ idd0\_token,}
+\DoxyCodeLine{00061\ \ \ \ \ idd2p0\_token,}
+\DoxyCodeLine{00062\ \ \ \ \ idd2p1\_token,}
+\DoxyCodeLine{00063\ \ \ \ \ idd2n\_token,}
+\DoxyCodeLine{00064\ \ \ \ \ idd3p\_token,}
+\DoxyCodeLine{00065\ \ \ \ \ idd3n\_token,}
+\DoxyCodeLine{00066\ \ \ \ \ idd4r\_token,}
+\DoxyCodeLine{00067\ \ \ \ \ idd4w\_token,}
+\DoxyCodeLine{00068\ \ \ \ \ idd5\_token,}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ wq\_capacity\_token,}
+\DoxyCodeLine{00071\ \ \ \ \ address\_mapping\_token,}
+\DoxyCodeLine{00072\ \ \ \ \ wq\_lookup\_latency\_token,}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ comment\_token,}
+\DoxyCodeLine{00075\ \ \ \ \ unknown\_token}
+\DoxyCodeLine{00076\ \}\ token\_t;}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{comment}{//\ Helper\ to\ parse\ which\ token\ was\ read\ in}}
+\DoxyCodeLine{00080\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00081\ \{}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *keyword;}
+\DoxyCodeLine{00083\ \ \ \ \ token\_t\ \ \ \ \ token;}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ isInteger;}
+\DoxyCodeLine{00085\ \}\ \mbox{\hyperlink{structtoken_translator}{tokenTranslator}};}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structtoken_translator}{tokenTranslator}}\ tokenTranslatorTable[]\ =}
+\DoxyCodeLine{00088\ \{}
+\DoxyCodeLine{00089\ \ \ \ \ \{\textcolor{stringliteral}{"{}//"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ comment\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00090\ \ \ \ \ \{\textcolor{stringliteral}{"{}PROCESSOR\_CLK\_MULTIPLIER"{}},\ \ \ \ processor\_clk\_multiplier\_token,\ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00091\ \ \ \ \ \{\textcolor{stringliteral}{"{}ROBSIZE"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ robsize\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00092\ \ \ \ \ \{\textcolor{stringliteral}{"{}MAX\_RETIRE"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max\_retire\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00093\ \ \ \ \ \{\textcolor{stringliteral}{"{}MAX\_FETCH"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max\_fetch\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00094\ \ \ \ \ \{\textcolor{stringliteral}{"{}PIPELINEDEPTH"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pipelinedepth\_token,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \{\textcolor{stringliteral}{"{}NUM\_CHANNELS"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_channels\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00097\ \ \ \ \ \{\textcolor{stringliteral}{"{}NUM\_RANKS"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_ranks\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00098\ \ \ \ \ \{\textcolor{stringliteral}{"{}NUM\_BANKS"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_banks\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00099\ \ \ \ \ \{\textcolor{stringliteral}{"{}NUM\_ROWS"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_rows\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00100\ \ \ \ \ \{\textcolor{stringliteral}{"{}NUM\_COLUMNS"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_columns\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00101\ \ \ \ \ \{\textcolor{stringliteral}{"{}CACHE\_LINE\_SIZE"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ cache\_line\_size\_token,\ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00102\ \ \ \ \ \{\textcolor{stringliteral}{"{}ADDRESS\_BITS"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ address\_bits\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \{\textcolor{stringliteral}{"{}DRAM\_CLK\_FREQUENCY"{}},\ \ \ \ \ \ \ \ \ \ dram\_clk\_frequency\_token,\ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00105\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_RC"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_rc\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00106\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_RP"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_rp\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00107\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_CAS"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_cas\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00108\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_RCD"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_rcd\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00109\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_RAS"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_ras\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00110\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_RRD"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_rrd\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00111\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_FAW"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_faw\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00112\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_WR"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_wr\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00113\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_WTR"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_wtr\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00114\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_RTP"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_rtp\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00115\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_CCD"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_ccd\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00116\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_RFC"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_rfc\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00117\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_REFI"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_refi\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00118\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_CWD"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_cwd\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00119\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_RTRS"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_rtrs\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00120\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_PD\_MIN"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_pd\_min\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00121\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_XP"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_xp\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00122\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_XP\_DLL"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_xp\_dll\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00123\ \ \ \ \ \{\textcolor{stringliteral}{"{}T\_DATA\_TRANS"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_data\_trans\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \ \ \{\textcolor{stringliteral}{"{}VDD"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ vdd\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false}\},}
+\DoxyCodeLine{00126\ \ \ \ \ \{\textcolor{stringliteral}{"{}IDD0"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ idd0\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false}\},}
+\DoxyCodeLine{00127\ \ \ \ \ \{\textcolor{stringliteral}{"{}IDD2P0"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ idd2p0\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false}\},}
+\DoxyCodeLine{00128\ \ \ \ \ \{\textcolor{stringliteral}{"{}IDD2P1"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ idd2p1\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false}\},}
+\DoxyCodeLine{00129\ \ \ \ \ \{\textcolor{stringliteral}{"{}IDD2N"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ idd2n\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false}\},}
+\DoxyCodeLine{00130\ \ \ \ \ \{\textcolor{stringliteral}{"{}IDD3P"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ idd3p\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false}\},}
+\DoxyCodeLine{00131\ \ \ \ \ \{\textcolor{stringliteral}{"{}IDD3N"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ idd3n\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false}\},}
+\DoxyCodeLine{00132\ \ \ \ \ \{\textcolor{stringliteral}{"{}IDD4R"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ idd4r\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false}\},}
+\DoxyCodeLine{00133\ \ \ \ \ \{\textcolor{stringliteral}{"{}IDD4W"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ idd4w\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false}\},}
+\DoxyCodeLine{00134\ \ \ \ \ \{\textcolor{stringliteral}{"{}IDD5"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ idd5\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false}\},}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \{\textcolor{stringliteral}{"{}WQ\_CAPACITY"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ wq\_capacity\_token,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00137\ \ \ \ \ \{\textcolor{stringliteral}{"{}ADDRESS\_MAPPING"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ address\_mapping\_token,\ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true}\},}
+\DoxyCodeLine{00138\ \ \ \ \ \{\textcolor{stringliteral}{"{}WQ\_LOOKUP\_LATENCY"{}},\ \ \ \ \ \ \ \ \ \ \ wq\_lookup\_latency\_token,\ \ \ \ \ \ \ \ \textcolor{keyword}{true}\}}
+\DoxyCodeLine{00139\ \};}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ token\_t\ tokenize(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ input,\ \textcolor{keywordtype}{bool}\ \&isInteger)\ \{}
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ numTokens\ =\ \textcolor{keyword}{sizeof}(tokenTranslatorTable)\ /\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structtoken_translator}{tokenTranslator}});}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ lengthInput\ =\ strlen(input);}
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keywordtype}{size\_t}\ i\ =\ 0;\ i\ <\ numTokens;\ ++i)\ \{}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Special\ case\ for\ comments\ which\ are\ not\ separated\ by\ a\ space,\ aka\ //BLOB}}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ lengthToCompare\ =\ (tokenTranslatorTable[i].token\ !=\ comment\_token\ ?\ lengthInput\ :\ strlen(tokenTranslatorTable[i].keyword));}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(strncmp(input,\ tokenTranslatorTable[i].keyword,\ lengthToCompare)\ ==\ 0)\ \{}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ isInteger\ =\ tokenTranslatorTable[i].isInteger;}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ tokenTranslatorTable[i].token;}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00154\ \ \ \ \ \}}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{comment}{//\ Unknown\ token}}
+\DoxyCodeLine{00157\ \ \ \ \ printf(\textcolor{stringliteral}{"{}PANIC\ :\ Unknown\ token\ \%s\(\backslash\)n"{}},input);}
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{keywordflow}{return}\ unknown\_token;}
+\DoxyCodeLine{00159\ \}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{keywordtype}{void}\ read\_config\_file(FILE\ *\ fin)}
+\DoxyCodeLine{00163\ \{}
+\DoxyCodeLine{00164\ \ \ \ \ \textcolor{keywordtype}{char}\ \ c;}
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{keywordtype}{char}\ \ input\_string[256];}
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ input\_int;}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keywordtype}{float}\ input\_float;}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordflow}{while}\ ((c\ =\ fgetc(fin))\ !=\ EOF)}
+\DoxyCodeLine{00170\ \ \ \ \ \{}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((c\ !=\ EOL)\ \ \ \&\&}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ (c\ !=\ CR)\ \ \ \ \&\&}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ (c\ !=\ SPACE)\ \&\&}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ (c\ !=\ TAB))}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (fscanf(fin,\ \textcolor{stringliteral}{"{}\%s"{}},\ \&input\_string[1])\ ==\ 0)}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \ \ \ \ input\_string[0]\ =\ c;}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (fscanf(fin,\ \textcolor{stringliteral}{"{}\%s"{}},\ \&input\_string[0])\ ==\ 0)}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ loadAsInt;}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ token\_t\ input\_field\ =\ tokenize(\&input\_string[0],\ loadAsInt);}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ badness}}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (input\_field\ ==\ unknown\_token)}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}PANIC:\ bad\ token\ (\%s)\ in\ cfg\ file\(\backslash\)n"{}},\ input\_string);}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Ignore\ comment}}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (input\_field\ ==\ comment\_token)}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (((c\ =\ fgetc(fin))\ !=\ EOL)\ \&\&\ (c\ !=\ EOF))}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*comment,\ to\ be\ ignored\ */}}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Attempt\ to\ read\ the\ data\ into\ correct\ type}}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (loadAsInt)}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (fscanf(fin,\ \textcolor{stringliteral}{"{}\%d"{}},\ \&input\_int)\ ==\ 0)}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}PANIC\ :\ token\ \%s\ must\ have\ integer\ parameter\ value\(\backslash\)n"{}},\ input\_string);}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (fscanf(fin,\ \textcolor{stringliteral}{"{}\%f"{}},\ \&input\_float)\ ==\ 0)}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}PANIC\ :\ token\ \%s\ must\ have\ float\ parameter\ value\(\backslash\)n"{}},\ input\_string);}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Apply\ value\ correctly}}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (input\_field)}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ comment\_token:}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ unknown\_token:}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ already\ handled\ above}}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ processor\_clk\_multiplier\_token:\ \ \ \ PROCESSOR\_CLK\_MULTIPLIER\ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ robsize\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ROBSIZE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ max\_retire\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MAX\_RETIRE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ max\_fetch\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MAX\_FETCH\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ pipelinedepth\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PIPELINEDEPTH\ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ num\_channels\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NUM\_CHANNELS\ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ num\_ranks\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NUM\_RANKS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ num\_banks\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NUM\_BANKS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ num\_rows\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NUM\_ROWS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ num\_columns\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NUM\_COLUMNS\ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ cache\_line\_size\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ CACHE\_LINE\_SIZE\ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ address\_bits\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ADDRESS\_BITS\ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ dram\_clk\_frequency\_token:\ \ \ \ \ \ \ \ \ \ DRAM\_CLK\_FREQUENCY\ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_rcd\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_RCD\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_rp\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_RP\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_cas\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_CAS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_rc\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_RC\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_ras\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_RAS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_rrd\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_RRD\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_faw\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_FAW\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_wr\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_WR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_wtr\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_WTR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_rtp\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_RTP\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_ccd\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_CCD\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_rfc\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_RFC\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_refi\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_REFI\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_cwd\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_CWD\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_rtrs\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_RTRS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_pd\_min\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_PD\_MIN\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_xp\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_XP\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_xp\_dll\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_XP\_DLL\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ t\_data\_trans\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T\_DATA\_TRANS\ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int\ *\ PROCESSOR\_CLK\_MULTIPLIER;\ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ vdd\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ VDD\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_float;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ idd0\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IDD0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_float;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ idd2p0\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IDD2P0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_float;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ idd2p1\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IDD2P1\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_float;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ idd2n\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IDD2N\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_float;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ idd3p\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IDD3P\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_float;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ idd3n\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IDD3N\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_float;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ idd4r\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IDD4R\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_float;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ idd4w\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IDD4W\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_float;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ idd5\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IDD5\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_float;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ wq\_capacity\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WQ\_CAPACITY\ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ address\_mapping\_token:\ \ \ \ \ \ \ \ \ \ \ \ \ ADDRESS\_MAPPING\ \ \ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ wq\_lookup\_latency\_token:\ \ \ \ \ \ \ \ \ \ \ WQ\_LOOKUP\_LATENCY\ \ \ \ \ \ \ \ =\ input\_int;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00280\ }
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ badness}}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}PANIC:\ bad\ token\ (\%s)\ in\ cfg\ file\(\backslash\)n"{}},\ input\_string);}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00286\ \ \ \ \ \}}
+\DoxyCodeLine{00287\ \}}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ }
+\DoxyCodeLine{00290\ \textcolor{keywordtype}{void}\ print\_params()}
+\DoxyCodeLine{00291\ \{}
+\DoxyCodeLine{00292\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00293\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00294\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/\ SIMULATOR\ PARAMETERS\ -\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00295\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00296\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00297\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/\ PROCESSOR\ -\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00298\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00299\ \ \ \ \ printf(\textcolor{stringliteral}{"{}PROCESSOR\_CLK\_MULTIPLIER:\ \ \ \%d\(\backslash\)n"{}},\ \ PROCESSOR\_CLK\_MULTIPLIER);}
+\DoxyCodeLine{00300\ \ \ \ \ printf(\textcolor{stringliteral}{"{}ROBSIZE:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ ROBSIZE);}
+\DoxyCodeLine{00301\ \ \ \ \ printf(\textcolor{stringliteral}{"{}MAX\_FETCH:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ MAX\_FETCH);}
+\DoxyCodeLine{00302\ \ \ \ \ printf(\textcolor{stringliteral}{"{}MAX\_RETIRE:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ MAX\_RETIRE);}
+\DoxyCodeLine{00303\ \ \ \ \ printf(\textcolor{stringliteral}{"{}PIPELINEDEPTH:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ PIPELINEDEPTH);}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00306\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/\ DRAM\ Config\ -\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00307\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00308\ \ \ \ \ printf(\textcolor{stringliteral}{"{}NUM\_CHANNELS:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ NUM\_CHANNELS);}
+\DoxyCodeLine{00309\ \ \ \ \ printf(\textcolor{stringliteral}{"{}NUM\_RANKS:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ NUM\_RANKS);}
+\DoxyCodeLine{00310\ \ \ \ \ printf(\textcolor{stringliteral}{"{}NUM\_BANKS:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ NUM\_BANKS);}
+\DoxyCodeLine{00311\ \ \ \ \ printf(\textcolor{stringliteral}{"{}NUM\_ROWS:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ NUM\_ROWS);}
+\DoxyCodeLine{00312\ \ \ \ \ printf(\textcolor{stringliteral}{"{}NUM\_COLUMNS:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ NUM\_COLUMNS);}
+\DoxyCodeLine{00313\ \ \ \ \ printf(\textcolor{stringliteral}{"{}CACHE\_LINE\_SIZE:\ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ CACHE\_LINE\_SIZE);}
+\DoxyCodeLine{00314\ \ \ \ \ printf(\textcolor{stringliteral}{"{}ADDRESS\_BITS:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ ADDRESS\_BITS);}
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00317\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/\ DRAM\ Timing\ -\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00318\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00319\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_RCD:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_RCD);}
+\DoxyCodeLine{00320\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_RP:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_RP);}
+\DoxyCodeLine{00321\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_CAS:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_CAS);}
+\DoxyCodeLine{00322\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_RC:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_RC);}
+\DoxyCodeLine{00323\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_RAS:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_RAS);}
+\DoxyCodeLine{00324\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_RRD:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_RRD);}
+\DoxyCodeLine{00325\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_FAW:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_FAW);}
+\DoxyCodeLine{00326\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_WR:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_WR);}
+\DoxyCodeLine{00327\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_WTR:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_WTR);}
+\DoxyCodeLine{00328\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_RTP:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_RTP);}
+\DoxyCodeLine{00329\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_CCD:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_CCD);}
+\DoxyCodeLine{00330\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_RFC:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_RFC);}
+\DoxyCodeLine{00331\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_REFI:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_REFI);}
+\DoxyCodeLine{00332\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_CWD:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_CWD);}
+\DoxyCodeLine{00333\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_RTRS:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_RTRS);}
+\DoxyCodeLine{00334\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_PD\_MIN:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_PD\_MIN);}
+\DoxyCodeLine{00335\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_XP:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_XP);}
+\DoxyCodeLine{00336\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_XP\_DLL:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_XP\_DLL);}
+\DoxyCodeLine{00337\ \ \ \ \ printf(\textcolor{stringliteral}{"{}T\_DATA\_TRANS:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ T\_DATA\_TRANS);}
+\DoxyCodeLine{00338\ }
+\DoxyCodeLine{00339\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00340\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/\ DRAM\ Idd\ Specifications\ -\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00341\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \ \ \ \ printf(\textcolor{stringliteral}{"{}VDD:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%05.2f\(\backslash\)n"{}},\ VDD);}
+\DoxyCodeLine{00344\ \ \ \ \ printf(\textcolor{stringliteral}{"{}IDD0:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%05.2f\(\backslash\)n"{}},\ IDD0);}
+\DoxyCodeLine{00345\ \ \ \ \ printf(\textcolor{stringliteral}{"{}IDD2P0:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%05.2f\(\backslash\)n"{}},\ IDD2P0);}
+\DoxyCodeLine{00346\ \ \ \ \ printf(\textcolor{stringliteral}{"{}IDD2P1:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%05.2f\(\backslash\)n"{}},\ IDD2P1);}
+\DoxyCodeLine{00347\ \ \ \ \ printf(\textcolor{stringliteral}{"{}IDD2N:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%05.2f\(\backslash\)n"{}},\ IDD2N);}
+\DoxyCodeLine{00348\ \ \ \ \ printf(\textcolor{stringliteral}{"{}IDD3P:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%05.2f\(\backslash\)n"{}},\ IDD3P);}
+\DoxyCodeLine{00349\ \ \ \ \ printf(\textcolor{stringliteral}{"{}IDD3N:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%05.2f\(\backslash\)n"{}},\ IDD3N);}
+\DoxyCodeLine{00350\ \ \ \ \ printf(\textcolor{stringliteral}{"{}IDD4R:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%05.2f\(\backslash\)n"{}},\ IDD4R);}
+\DoxyCodeLine{00351\ \ \ \ \ printf(\textcolor{stringliteral}{"{}IDD4W:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%05.2f\(\backslash\)n"{}},\ IDD4W);}
+\DoxyCodeLine{00352\ \ \ \ \ printf(\textcolor{stringliteral}{"{}IDD5:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%05.2f\(\backslash\)n"{}},\ IDD5);}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00355\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/\ DRAM\ Controller\ -\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00356\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00357\ \ \ \ \ printf(\textcolor{stringliteral}{"{}WQ\_CAPACITY:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ WQ\_CAPACITY);}
+\DoxyCodeLine{00358\ \ \ \ \ printf(\textcolor{stringliteral}{"{}ADDRESS\_MAPPING:\ \ \ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ ADDRESS\_MAPPING);}
+\DoxyCodeLine{00359\ \ \ \ \ printf(\textcolor{stringliteral}{"{}WQ\_LOOKUP\_LATENCY:\ \ \ \ \ \ \ \ \ \ \%6d\(\backslash\)n"{}},\ WQ\_LOOKUP\_LATENCY);}
+\DoxyCodeLine{00360\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{00361\ \}}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ }
+\DoxyCodeLine{00364\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \_\_CONFIG\_FILE\_IN\_H\_\_}}
+
+\end{DoxyCode}

@@ -1,0 +1,66 @@
+\doxysection{Arches\+::ISA\+::RISCV\+::Instruction\+Info Class Reference}
+\hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}\index{Arches::ISA::RISCV::InstructionInfo@{Arches::ISA::RISCV::InstructionInfo}}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a460ab2db74a21c900feff81c6248ea34}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a460ab2db74a21c900feff81c6248ea34} 
+typedef \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{Instruction\+Info}} const \&(\texorpdfstring{$\ast$}{*} {\bfseries Function\+Get\+Sub\+Op}) (\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}} const \&)
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_ae6d06a99448ce4087eab389f5a1653ff}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_ae6d06a99448ce4087eab389f5a1653ff} 
+typedef void(\texorpdfstring{$\ast$}{*} {\bfseries Function\+Processor}) (\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}} const \&, \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{Instruction\+Info}} const \&, \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{Execution\+Base}} \texorpdfstring{$\ast$}{*})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a60fb85892484c2727a667bdb7c3c548d}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a60fb85892484c2727a667bdb7c3c548d} 
+{\bfseries Instruction\+Info} (uint32\+\_\+t opcode, Function\+Processor impl\+\_\+fn)
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a1a945b0f25f7708c5eabd4afe4ca5d26}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a1a945b0f25f7708c5eabd4afe4ca5d26} 
+{\bfseries Instruction\+Info} (uint32\+\_\+t opcode, char const \texorpdfstring{$\ast$}{*}mnemonic, Function\+Processor impl\+\_\+fn)
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a9857f6ab9e4ef417ba25068c6f8e5d3d}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a9857f6ab9e4ef417ba25068c6f8e5d3d} 
+{\bfseries Instruction\+Info} (uint32\+\_\+t opcode, char const \texorpdfstring{$\ast$}{*}mnemonic, Type type, Encoding encoding, Reg\+File reg\+\_\+file, Function\+Processor impl\+\_\+fn)
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a6718e3211e5e624e9be932763fa67821}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a6718e3211e5e624e9be932763fa67821} 
+{\bfseries Instruction\+Info} (uint32\+\_\+t opcode, char const \texorpdfstring{$\ast$}{*}mnemonic, Type type, Encoding encoding, Reg\+File dst\+\_\+reg\+\_\+file, Reg\+File src\+\_\+reg\+\_\+file, Function\+Processor impl\+\_\+fn)
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_ab42213a2199fee15fdbde0d9bffc6a70}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_ab42213a2199fee15fdbde0d9bffc6a70} 
+{\bfseries Instruction\+Info} (uint32\+\_\+t func\+\_\+code, Function\+Get\+Sub\+Op resolve\+\_\+fn)
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_ad2e7c2886889463c58f0ebf7fa91a566}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_ad2e7c2886889463c58f0ebf7fa91a566} 
+const \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{Instruction\+Info}} {\bfseries get\+\_\+direct\+\_\+instr\+\_\+info} (\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}} const \&instr) const
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a578f9900b727dc039c62467729cb11dd}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a578f9900b727dc039c62467729cb11dd} 
+void {\bfseries print\+\_\+instr} (\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}} const \&instr, FILE \texorpdfstring{$\ast$}{*}stream=stdout) const
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a3e6c4df8eefcd6f269a1a9a5f6b05e01}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a3e6c4df8eefcd6f269a1a9a5f6b05e01} 
+void {\bfseries execute} (\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{Execution\+Base}} \texorpdfstring{$\ast$}{*}unit, \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}} const \&instr) const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a4110b42efccdc73ede8073c3e19bee48}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_a4110b42efccdc73ede8073c3e19bee48} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\Hypertarget{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_1_1_0d120_a6c74c581b045e0d1d7f985744e886dc0}\label{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info_1_1_0d120_a6c74c581b045e0d1d7f985744e886dc0} 
+\>struct \{\\
+\>\>char const  \texorpdfstring{$\ast$}{*} {\bfseries mnemonic}\\
+\>\>uint32\_t {\bfseries op\_code}\\
+\>\>Type {\bfseries type}\\
+\>\>Encoding {\bfseries encoding}\\
+\>\>RegFile {\bfseries dst\_reg\_file}\\
+\>\>RegFile {\bfseries src\_reg\_file}\\
+\>\} \\
+\>struct \{\\
+\>\>FunctionGetSubOp {\bfseries \_resolve\_fn}\\
+\>\>uint32\_t {\bfseries \_func\_code}\\
+\>\} {\bfseries \_meta}\\
+\}; \\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/isa/riscv.\+hpp\end{DoxyCompactItemize}

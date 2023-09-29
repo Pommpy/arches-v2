@@ -1,0 +1,523 @@
+\doxysection{describo.\+hpp}
+\hypertarget{describo_8hpp_source}{}\label{describo_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/describo.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/describo.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}arches/simulator/simulator.hpp"{}}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/dram.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/cache.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/atomic-\/reg-\/file.hpp"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/tile-\/scheduler.hpp"{}}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/sfu.hpp"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/tp.hpp"{}}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}arches/util/elf.hpp"{}}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}../benchmarks/describo/src/ray-\/tracing-\/include.hpp"{}}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}arches/isa/riscv.hpp"{}}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }Arches\ \{}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{namespace\ }ISA\ \{\ \textcolor{keyword}{namespace\ }RISCV\ \{\ \textcolor{keyword}{namespace\ }DTRaX\ \{}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{static}\ InstructionInfo\ isa\_custom0[8]\ =}
+\DoxyCodeLine{00023\ \ \ \ \ \{}
+\DoxyCodeLine{00024\ \ \ \ \ InstructionInfo(0x1,\ \textcolor{stringliteral}{"{}fchthrd"{}},\ Type::FCHTHRD,\ Encoding::U,\ RegFile::INT,\ IMPL\_DECL}
+\DoxyCodeLine{00025\ \ \ \ \ \{}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.type\ =\ Units::MemoryRequest::Type::FCHTHRD;}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.size\ =\ 4;}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.dst.reg\ =\ instr.i.rd;}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.dst.reg\_file\ =\ 0;}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.dst.sign\_ext\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.vaddr\ =\ 0;}
+\DoxyCodeLine{00034\ \ \ \ \ \}),}
+\DoxyCodeLine{00035\ \ \ \ \ InstructionInfo(0x2,\ \textcolor{stringliteral}{"{}boxisect"{}},\ Type::BOXISECT,\ Encoding::U,\ RegFile::FLOAT,\ IMPL\_DECL}
+\DoxyCodeLine{00036\ \ \ \ \ \{}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ Register32\ *\ fr\ =\ unit-\/>float\_regs-\/>registers;}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ inv\_d;}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_ray}{Ray}}\ ray;}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ ray.o.x\ =\ fr[3].f32;}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ ray.o.y\ =\ fr[4].f32;}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ ray.o.z\ =\ fr[5].f32;}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ ray.t\_min\ =\ fr[6].f32;}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ inv\_d.x\ =\ fr[7].f32;}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ inv\_d.y\ =\ fr[8].f32;}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ inv\_d.z\ =\ fr[9].f32;}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ ray.t\_max\ =\ fr[10].f32;}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ ray.d\ =\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(1.0f)\ /\ inv\_d;}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb;}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ aabb.min.x\ =\ fr[11].f32;}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ aabb.min.y\ =\ fr[12].f32;}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ aabb.min.z\ =\ fr[13].f32;}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ aabb.max.x\ =\ fr[14].f32;}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ aabb.max.y\ =\ fr[15].f32;}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ aabb.max.z\ =\ fr[16].f32;}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ unit-\/>float\_regs-\/>registers[instr.u.rd].f32\ =\ intersect(aabb,\ ray,\ inv\_d);}
+\DoxyCodeLine{00062\ \ \ \ \ \}),}
+\DoxyCodeLine{00063\ \ \ \ \ InstructionInfo(0x3,\ \textcolor{stringliteral}{"{}triisect"{}},\ Type::TRIISECT,\ Encoding::U,\ RegFile::INT,\ IMPL\_DECL}
+\DoxyCodeLine{00064\ \ \ \ \ \{}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ Register32\ *\ fr\ =\ unit-\/>float\_regs-\/>registers;}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_hit}{Hit}}\ hit;}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ hit.t\ =\ fr[0].f32;}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_ray}{Ray}}\ ray;}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ ray.o.x\ =\ fr[3].f32;}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ ray.o.y\ =\ fr[4].f32;}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ ray.o.z\ =\ fr[5].f32;}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ ray.t\_min\ =\ fr[6].f32;}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ ray.d.x\ =\ fr[7].f32;}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ ray.d.y\ =\ fr[8].f32;}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ ray.d.z\ =\ fr[9].f32;}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ ray.t\_max\ =\ fr[10].f32;}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}\ tri;}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ tri.vrts[0].x\ =\ fr[11].f32;}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ tri.vrts[0].y\ =\ fr[12].f32;}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ tri.vrts[0].z\ =\ fr[13].f32;}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ tri.vrts[1].x\ =\ fr[14].f32;}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ tri.vrts[1].y\ =\ fr[15].f32;}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ tri.vrts[1].z\ =\ fr[16].f32;}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ tri.vrts[2].x\ =\ fr[17].f32;}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ tri.vrts[2].y\ =\ fr[18].f32;}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ tri.vrts[2].z\ =\ fr[19].f32;}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ unit-\/>int\_regs-\/>registers[instr.u.rd].u32\ =\ intersect(tri,\ ray,\ hit);}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ fr[0].f32\ =\ hit.t;}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ fr[1].f32\ =\ hit.bc[0];}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ fr[2].f32\ =\ hit.bc[1];}
+\DoxyCodeLine{00096\ \ \ \ \ \}),}
+\DoxyCodeLine{00097\ \ \ \ \ \};}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{static}\ InstructionInfo\ custom0(CUSTOM\_OPCODE0,\ META\_DECL\{\textcolor{keywordflow}{return}\ isa\_custom0[instr.u.imm\_31\_12\ >>\ 3];\ \});}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \}\}\}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ RET>}
+\DoxyCodeLine{00104\ \textcolor{keyword}{static}\ RET*\ write\_array(Units::UnitMainMemoryBase*\ main\_memory,\ \textcolor{keywordtype}{size\_t}\ alignment,\ RET*\ data,\ \textcolor{keywordtype}{size\_t}\ size,\ paddr\_t\&\ heap\_address)}
+\DoxyCodeLine{00105\ \{}
+\DoxyCodeLine{00106\ \ \ \ \ paddr\_t\ array\_address\ =\ align\_to(alignment,\ heap\_address);}
+\DoxyCodeLine{00107\ \ \ \ \ heap\_address\ =\ array\_address\ +\ size\ *\ \textcolor{keyword}{sizeof}(RET);}
+\DoxyCodeLine{00108\ \ \ \ \ main\_memory-\/>direct\_write(data,\ size\ *\ \textcolor{keyword}{sizeof}(RET),\ array\_address);}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{reinterpret\_cast<}RET*\textcolor{keyword}{>}(array\_address);}
+\DoxyCodeLine{00110\ \}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ RET>}
+\DoxyCodeLine{00113\ \textcolor{keyword}{static}\ RET*\ write\_vector(Units::UnitMainMemoryBase*\ main\_memory,\ \textcolor{keywordtype}{size\_t}\ alignment,\ std::vector<RET>\ v,\ paddr\_t\&\ heap\_address)}
+\DoxyCodeLine{00114\ \{}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordflow}{return}\ write\_array(main\_memory,\ alignment,\ v.data(),\ v.size(),\ heap\_address);}
+\DoxyCodeLine{00116\ \}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#define\ ARRAY\_ALIGNMENT\ 64}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{keyword}{static}\ \mbox{\hyperlink{struct_global_data}{GlobalData}}\ initilize\_buffers(uint\ config,\ std::string\ mesh\_path,\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ camera\_pos,\ uint\ camera\_index,\ Units::UnitMainMemoryBase*\ main\_memory,\ paddr\_t\&\ heap\_address)}
+\DoxyCodeLine{00121\ \{}
+\DoxyCodeLine{00122\ \ \ \ \ \mbox{\hyperlink{struct_global_data}{GlobalData}}\ global\_data;}
+\DoxyCodeLine{00123\ \ \ \ \ global\_data.framebuffer\_width\ =\ 1024;}
+\DoxyCodeLine{00124\ \ \ \ \ global\_data.framebuffer\_height\ =\ 1024;}
+\DoxyCodeLine{00125\ \ \ \ \ global\_data.framebuffer\_size\ =\ global\_data.framebuffer\_width\ *\ global\_data.framebuffer\_height;}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ heap\_address\ =\ align\_to(8\ *\ 1024,\ heap\_address);}
+\DoxyCodeLine{00128\ \ \ \ \ global\_data.framebuffer\ =\ \textcolor{keyword}{reinterpret\_cast<}uint32\_t*\textcolor{keyword}{>}(heap\_address);\ heap\_address\ +=\ global\_data.framebuffer\_size\ *\ \textcolor{keyword}{sizeof}(uint32\_t);}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{comment}{//camera\_pos\ *=\ (1\ <<\ camera\_index);}}
+\DoxyCodeLine{00131\ \ \ \ \ \mbox{\hyperlink{class_camera}{Camera}}\ camera(global\_data.framebuffer\_width,\ global\_data.framebuffer\_height,\ 35.0f,\ camera\_pos);}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{comment}{//Camera\ camera(global\_data.framebuffer\_width,\ global\_data.framebuffer\_height,\ 35.0f,\ rtm::vec3(0.0f,\ 0.0f,\ 6.0f));}}
+\DoxyCodeLine{00133\ \ \ \ \ global\_data.camera\ =\ camera;}
+\DoxyCodeLine{00134\ \ \ \ \ global\_data.bounces\ =\ camera\_index;}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \mbox{\hyperlink{class_mesh}{Mesh}}\ mesh(mesh\_path\ +\ \textcolor{stringliteral}{"{}.obj"{}});}
+\DoxyCodeLine{00137\ \ \ \ \ \mbox{\hyperlink{class_tesselation_tree1}{TesselationTree1}}\ tt1(mesh\_path\ +\ \textcolor{stringliteral}{"{}.tt1"{}});}
+\DoxyCodeLine{00138\ \ \ \ \ \mbox{\hyperlink{class_tesselation_tree4}{TesselationTree4}}\ tt4(mesh\_path\ +\ \textcolor{stringliteral}{"{}.tt4"{}});}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \ \ global\_data.config\ =\ config;}
+\DoxyCodeLine{00141\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Configuration:\ \%d\(\backslash\)n"{}},\ config);}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keywordflow}{if}(config\ ==\ 0)\ \textcolor{comment}{//BVHC}}
+\DoxyCodeLine{00144\ \ \ \ \ \{}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_b_v_h}{BVH}}\ blas;}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ std::vector<BuildObject>\ build\_objects;}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ mesh.size();\ ++i)}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ build\_objects.push\_back(mesh.get\_build\_object(i));}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ blas.build(build\_objects);}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ mesh.reorder(build\_objects);}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ std::vector<BVH::CompressedNode4>\ cblas;}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ blas.compress\_and\_pack(cblas);}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Vertices:\ \%lld\(\backslash\)n"{}},\ mesh.vertices.size());}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Faces:\ \%lld\(\backslash\)n"{}},\ mesh.vertex\_indices.size());}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Nodes:\ \%lld\(\backslash\)n"{}},\ cblas.size());}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Total\ Size:\ \%.2f\ MB\(\backslash\)n"{}},}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ (mesh.vertices.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}})\ +}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \ \ \ \ mesh.vertex\_indices.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{classrtm_1_1uvec3}{rtm::uvec3}})\ +}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \ \ \ \ cblas.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_b_v_h_1_1_compressed_node4}{BVH::CompressedNode4}}))\ /}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ (1.0f\ *\ 1024\ *\ 1024)}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ global\_data.cblas\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ cblas,\ heap\_address);}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ global\_data.mesh.vertex\_indices\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ mesh.vertex\_indices,\ heap\_address);}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ global\_data.mesh.vertices\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ mesh.vertices,\ heap\_address);}
+\DoxyCodeLine{00168\ \ \ \ \ \}}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordflow}{if}(config\ ==\ 1)\ \textcolor{comment}{//TTC}}
+\DoxyCodeLine{00170\ \ \ \ \ \{}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_b_v_h}{BVH}}\ blas;}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ std::vector<BuildObject>\ build\_objects;}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ tt4.size();\ ++i)}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ build\_objects.push\_back(tt4.get\_build\_object(i));}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ blas.build(build\_objects);}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ tt4.reorder(build\_objects);}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ std::vector<BVH::CompressedNode4>\ cblas\_nodes;}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ blas.compress\_and\_pack(cblas\_nodes);}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Headers:\ \%lld\(\backslash\)n"{}},\ tt4.headers.size());}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Triangles:\ \%lld\(\backslash\)n"{}},\ tt4.triangles.size());}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Nodes:\ \%lld\(\backslash\)n"{}},\ tt4.nodes.size()\ *\ 4\ +\ cblas\_nodes.size()\ *\ 4);}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Total\ Size:\ \%.2f\ MB\(\backslash\)n"{}},}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \ \ \ \ (tt4.headers.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_tesselation_tree4_1_1_header}{TesselationTree4::Header}})\ +}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ tt4.nodes.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_tesselation_tree4_1_1_compressed_node4}{TesselationTree4::CompressedNode4}})\ +}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ tt4.triangles.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_compact_tri}{CompactTri}})\ +}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ \ \ cblas\_nodes.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_b_v_h_1_1_compressed_node4}{BVH::CompressedNode4}}))\ /}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ \ \ (1.0f\ *\ 1024\ *\ 1024)}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ global\_data.cblas\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ cblas\_nodes,\ heap\_address);}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ global\_data.tt4.headers\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ tt4.headers,\ heap\_address);}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ global\_data.tt4.nodes\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ tt4.nodes,\ heap\_address);}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ global\_data.tt4.triangles\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ tt4.triangles,\ heap\_address);}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ global\_data.tt4.vertex\_indices\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ tt4.vertex\_indices,\ heap\_address);}
+\DoxyCodeLine{00197\ \ \ \ \ \}}
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(config\ ==\ 2)\ \textcolor{comment}{//BVH}}
+\DoxyCodeLine{00199\ \ \ \ \ \{}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_b_v_h}{BVH}}\ blas;}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ std::vector<BuildObject>\ build\_objects;}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ mesh.size();\ ++i)}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \ \ \ \ build\_objects.push\_back(mesh.get\_build\_object(i));}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ blas.build(build\_objects);}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ mesh.reorder(build\_objects);}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Vertices:\ \%lld\(\backslash\)n"{}},\ mesh.vertices.size());}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Faces:\ \%lld\(\backslash\)n"{}},\ mesh.vertex\_indices.size());}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Nodes:\ \%lld\(\backslash\)n"{}},\ blas.nodes.size());}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Total\ Size:\ \%.2f\ MB\(\backslash\)n"{}},}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ (mesh.vertices.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}})\ +}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ mesh.vertex\_indices.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{classrtm_1_1uvec3}{rtm::uvec3}})\ +}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ \ \ blas.nodes.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_b_v_h_1_1_node}{BVH::Node}}))\ /\ }
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ (1.0f\ *\ 1024\ *\ 1024)}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ global\_data.blas\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ blas.nodes,\ heap\_address);}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ global\_data.mesh.vertex\_indices\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ mesh.vertex\_indices,\ heap\_address);}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ global\_data.mesh.vertices\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ mesh.vertices,\ heap\_address);}
+\DoxyCodeLine{00220\ \ \ \ \ \}}
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(config\ ==\ 3)\ \textcolor{comment}{//TT}}
+\DoxyCodeLine{00222\ \ \ \ \ \{}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_b_v_h}{BVH}}\ blas;}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ std::vector<BuildObject>\ build\_objects;}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ tt1.size();\ ++i)}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ build\_objects.push\_back(tt1.get\_build\_object(i));}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ blas.build(build\_objects);}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ tt1.reorder(build\_objects);}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Headers:\ \%lld\(\backslash\)n"{}},\ tt1.headers.size());}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Vertices:\ \%lld\(\backslash\)n"{}},\ tt1.vertices.size());}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Triangles:\ \%lld\(\backslash\)n"{}},\ tt1.triangles.size());}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Nodes:\ \%lld\(\backslash\)n"{}},\ tt1.nodes.size()\ +\ blas.nodes.size());}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Total\ Size:\ \%.2f\ MB\(\backslash\)n"{}},}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ (tt1.vertices.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}})\ +}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ tt1.headers.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_tesselation_tree1_1_1_header}{TesselationTree1::Header}})\ +}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ tt1.nodes.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_tesselation_tree1_1_1_node}{TesselationTree1::Node}})\ +}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ \ tt1.triangles.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_compact_tri}{CompactTri}})\ +}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ \ blas.nodes.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_b_v_h_1_1_node}{BVH::Node}}))\ /}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ \ \ \ \ (1.0f\ *\ 1024\ *\ 1024)}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ global\_data.blas\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ blas.nodes,\ heap\_address);}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ global\_data.tt1.headers\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ tt1.headers,\ heap\_address);}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ global\_data.tt1.nodes\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ tt1.nodes,\ heap\_address);}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ global\_data.tt1.vertices\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ tt1.vertices,\ heap\_address);}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ global\_data.tt1.triangles\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ tt1.triangles,\ heap\_address);}
+\DoxyCodeLine{00248\ \ \ \ \ \}}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \ \ \ \ \textcolor{comment}{//we\ must\ preform\ mesh.reorder\ before\ copying\ the\ arrays}}
+\DoxyCodeLine{00251\ \ \ \ \ global\_data.ni\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ mesh.normal\_indices,\ heap\_address);}
+\DoxyCodeLine{00252\ \ \ \ \ global\_data.normals\ =\ write\_vector(main\_memory,\ ARRAY\_ALIGNMENT,\ mesh.normals,\ heap\_address);}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \ \ \ \ main\_memory-\/>direct\_write(\&global\_data,\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_global_data}{GlobalData}}),\ GLOBAL\_DATA\_ADDRESS);}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keywordflow}{return}\ global\_data;}
+\DoxyCodeLine{00257\ \}}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ run\_sim\_describo(\textcolor{keywordtype}{int}\ argc,\ \textcolor{keywordtype}{char}*\ argv[])}
+\DoxyCodeLine{00261\ \{}
+\DoxyCodeLine{00262\ \ \ \ \ \textcolor{comment}{//simulate\ perameters}}
+\DoxyCodeLine{00263\ \ \ \ \ uint\ argi\ =\ 1;}
+\DoxyCodeLine{00264\ \ \ \ \ std::string\ binary\_path\ =\ argv[argi++];}
+\DoxyCodeLine{00265\ \ \ \ \ uint\ config\ =\ std::atoi(argv[argi++]);}
+\DoxyCodeLine{00266\ \ \ \ \ std::string\ mesh\_path\ =\ argv[argi++];}
+\DoxyCodeLine{00267\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ camera\_vector;}
+\DoxyCodeLine{00268\ \ \ \ \ camera\_vector.x\ =\ std::atof(argv[argi++]);}
+\DoxyCodeLine{00269\ \ \ \ \ camera\_vector.y\ =\ std::atof(argv[argi++]);}
+\DoxyCodeLine{00270\ \ \ \ \ camera\_vector.z\ =\ std::atof(argv[argi++]);}
+\DoxyCodeLine{00271\ \ \ \ \ uint\ camera\_index\ =\ std::atoi(argv[argi++]);}
+\DoxyCodeLine{00272\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ camera\_pos\ =\ camera\_vector;}
+\DoxyCodeLine{00273\ \ \ \ \ std::string\ profile\_path\ =\ argv[argi++];}
+\DoxyCodeLine{00274\ \ \ \ \ std::string\ framebuffer\_path\ =\ argv[argi++];}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ \ \ \ \ \textcolor{comment}{//hardware\ spec}}
+\DoxyCodeLine{00277\ \ \ \ \ uint\ mc\_ports\ =\ 8;}
+\DoxyCodeLine{00278\ \ \ \ \ uint\ tp\_port\_size\ =\ 16;}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \ \ \ \ uint\ num\_tps\_per\_tm\ =\ 64;}
+\DoxyCodeLine{00281\ \ \ \ \ uint\ num\_tms\_per\_l2\ =\ 64;}
+\DoxyCodeLine{00282\ \ \ \ \ uint\ num\_l2\ =\ 1;}
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \ \ \ \ uint\ num\_tps\ =\ num\_tps\_per\_tm\ *\ num\_tms\_per\_l2\ *\ num\_l2;}
+\DoxyCodeLine{00285\ \ \ \ \ uint\ num\_tms\ =\ num\_tms\_per\_l2\ *\ num\_l2;}
+\DoxyCodeLine{00286\ \ \ \ \ uint\ sfu\_table\_size\ =\ \textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::NUM\_TYPES);}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \ \ \ \ uint64\_t\ mem\_size\ =\ 4ull\ *\ 1024ull\ *\ 1024ull\ *\ 1024ull;\ \textcolor{comment}{//4GB}}
+\DoxyCodeLine{00289\ }
+\DoxyCodeLine{00290\ \ \ \ \ \textcolor{comment}{//cached\ global\ data}}
+\DoxyCodeLine{00291\ \ \ \ \ uint64\_t\ stack\_size\ =\ 4\ *\ 1024;\ \textcolor{comment}{//2KB}}
+\DoxyCodeLine{00292\ \ \ \ \ uint64\_t\ global\_data\_size\ =\ 64\ *\ 1024;\ \textcolor{comment}{//64KB\ for\ global\ data}}
+\DoxyCodeLine{00293\ \ \ \ \ uint64\_t\ binary\_size\ =\ 64\ *\ 1024;\ \textcolor{comment}{//64KB\ for\ executable\ data}}
+\DoxyCodeLine{00294\ }
+\DoxyCodeLine{00295\ \ \ \ \ \textcolor{comment}{//glboal\ data}}
+\DoxyCodeLine{00296\ \ \ \ \ vaddr\_t\ mm\_null\_address\ =\ 0x0ull;}
+\DoxyCodeLine{00297\ \ \ \ \ vaddr\_t\ mm\_global\_data\_start\ =\ GLOBAL\_DATA\_ADDRESS;}
+\DoxyCodeLine{00298\ \ \ \ \ vaddr\_t\ mm\_binary\_start\ =\ mm\_global\_data\_start\ +\ global\_data\_size;}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \ \ \ \ vaddr\_t\ mm\_heap\_start\ =\ mm\_binary\_start\ +\ binary\_size;}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \ \ \ \ vaddr\_t\ mm\_stack\_start\ =\ mem\_size\ -\/\ stack\_size;}
+\DoxyCodeLine{00303\ \ \ \ \ vaddr\_t\ stack\_pointer\ =\ mem\_size;}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ \ \ \ \ \textcolor{keywordtype}{float}\ l2\_dynamic\_read\_energy\ =\ 0.0940184e-\/9;}
+\DoxyCodeLine{00306\ \ \ \ \ \textcolor{keywordtype}{float}\ l2\_bank\_leakge\_power\ =\ 29.0936e-\/3;}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \ \ \ \ \textcolor{keywordtype}{float}\ l1\_dynamic\_read\_energy\ =\ 0.0267189e-\/9;}
+\DoxyCodeLine{00309\ \ \ \ \ \textcolor{keywordtype}{float}\ l1\_bank\_leakge\_power\ =\ 3.18625e-\/3;}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{comment}{//Custom\ instr.\ See\ defenitions\ above}}
+\DoxyCodeLine{00312\ \ \ \ \ ISA::RISCV::isa[ISA::RISCV::CUSTOM\_OPCODE0]\ =\ ISA::RISCV::DTRaX::custom0;}
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ \ \ \ \ Simulator\ simulator;}
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \ \ \ \ std::vector<Units::UnitTP*>\ tps;}
+\DoxyCodeLine{00317\ \ \ \ \ std::vector<Units::UnitCache*>\ l1s;}
+\DoxyCodeLine{00318\ \ \ \ \ std::vector<Units::UnitCache*>\ l2s;}
+\DoxyCodeLine{00319\ \ \ \ \ std::vector<Units::UnitSFU*>\ sfus;}
+\DoxyCodeLine{00320\ \ \ \ \ std::vector<Units::UnitThreadScheduler*>\ thread\_schedulers;}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \ \ \ \ std::vector<Units::UnitSFU*>\ sfu\_tables(sfu\_table\_size*\ num\_tms);}
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ \ \ \ \ Units::UnitDRAM\ mm(num\_l2\ *\ mc\_ports,\ mem\_size,\ \&simulator);\ \textcolor{comment}{//\ mm.clear();}}
+\DoxyCodeLine{00325\ \ \ \ \ simulator.register\_unit(\&mm);}
+\DoxyCodeLine{00326\ }
+\DoxyCodeLine{00327\ \ \ \ \ ELF\ elf(binary\_path);}
+\DoxyCodeLine{00328\ \ \ \ \ vaddr\_t\ global\_pointer;}
+\DoxyCodeLine{00329\ \ \ \ \ paddr\_t\ heap\_address\ =\ mm.write\_elf(elf);}
+\DoxyCodeLine{00330\ \ \ \ \ \mbox{\hyperlink{struct_global_data}{GlobalData}}\ global\_data\ =\ initilize\_buffers(config,\ mesh\_path,\ camera\_pos,\ camera\_index,\ \&mm,\ heap\_address);}
+\DoxyCodeLine{00331\ }
+\DoxyCodeLine{00332\ \ \ \ \ Units::UnitAtomicRegfile\ atomic\_regs(num\_tms);}
+\DoxyCodeLine{00333\ \ \ \ \ simulator.register\_unit(\&atomic\_regs);}
+\DoxyCodeLine{00334\ }
+\DoxyCodeLine{00335\ \ \ \ \ \textcolor{keywordflow}{for}(uint\ l2\_index\ =\ 0;\ l2\_index\ <\ num\_l2;\ ++l2\_index)}
+\DoxyCodeLine{00336\ \ \ \ \ \{}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ Units::UnitCache::Configuration\ l2\_config;}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ l2\_config.size\ =\ 2\ *\ 1024\ *\ 1024;}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \ \ l2\_config.associativity\ =\ 4;}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ \ l2\_config.data\_array\_access\_cycles\ =\ 3;}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ \ l2\_config.num\_ports\ =\ num\_tms\_per\_l2;}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ l2\_config.num\_banks\ =\ 32;}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ l2\_config.num\_lfb\ =\ 8;}
+\DoxyCodeLine{00344\ \ \ \ \ \ \ \ \ l2\_config.mem\_map.add\_unit(mm\_null\_address,\ \&mm,\ l2\_index\ *\ mc\_ports,\ mc\_ports);}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \ \ l2s.push\_back(\textcolor{keyword}{new}\ Units::UnitCache(l2\_config));}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ tm\_i\ =\ 0;\ tm\_i\ <\ num\_tms\_per\_l2;\ ++tm\_i)}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00350\ \ \ \ \ \ \ \ \ \ \ \ \ simulator.start\_new\_unit\_group();}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(tm\_i\ ==\ 0)\ simulator.register\_unit(l2s.back());}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ tm\_index\ =\ l2\_index\ *\ num\_tms\_per\_l2\ +\ tm\_i;}
+\DoxyCodeLine{00354\ }
+\DoxyCodeLine{00355\ \ \ \ \ \ \ \ \ \ \ \ \ Units::UnitCache::Configuration\ l1\_config;}
+\DoxyCodeLine{00356\ \ \ \ \ \ \ \ \ \ \ \ \ l1\_config.size\ =\ 32\ *\ 1024;}
+\DoxyCodeLine{00357\ \ \ \ \ \ \ \ \ \ \ \ \ l1\_config.associativity\ =\ 4;}
+\DoxyCodeLine{00358\ \ \ \ \ \ \ \ \ \ \ \ \ l1\_config.data\_array\_access\_cycles\ =\ 1;}
+\DoxyCodeLine{00359\ \ \ \ \ \ \ \ \ \ \ \ \ l1\_config.num\_ports\ =\ num\_tps\_per\_tm;}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ \ \ \ \ \ \ l1\_config.port\_size\ =\ tp\_port\_size;}
+\DoxyCodeLine{00361\ \ \ \ \ \ \ \ \ \ \ \ \ l1\_config.num\_banks\ =\ 8;}
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \ \ \ \ \ \ l1\_config.num\_lfb\ =\ 4;}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ \ \ \ \ l1\_config.mem\_map.add\_unit(mm\_null\_address,\ l2s.back(),\ tm\_i,\ 1);}
+\DoxyCodeLine{00364\ }
+\DoxyCodeLine{00365\ \ \ \ \ \ \ \ \ \ \ \ \ l1s.push\_back(\textcolor{keyword}{new}\ Units::UnitCache(l1\_config));}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \ \ \ \ \ \ simulator.register\_unit(l1s.back());}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ \ \ \ \ Units::UnitSFU**\ sfu\_table\ =\ \&sfu\_tables[sfu\_table\_size\ *\ tm\_index];}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//float\ piplines}}
+\DoxyCodeLine{00371\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfus.push\_back(\_new\ Units::UnitSFU(16,\ 1,\ 2,\ num\_tps\_per\_tm));}}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//simulator.register\_unit(sfus.back());}}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfu\_table[(uint)ISA::RISCV::Type::FADD]\ =\ sfus.back();}}
+\DoxyCodeLine{00374\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfu\_table[(uint)ISA::RISCV::Type::FMUL]\ =\ sfus.back();}}
+\DoxyCodeLine{00375\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfu\_table[(uint)ISA::RISCV::Type::FFMAD]\ =\ sfus.back();}}
+\DoxyCodeLine{00376\ }
+\DoxyCodeLine{00377\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//int\ piplines}}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfus.push\_back(\_new\ Units::UnitSFU(2,\ 1,\ 1,\ num\_tps\_per\_tm));}}
+\DoxyCodeLine{00379\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//simulator.register\_unit(sfus.back());}}
+\DoxyCodeLine{00380\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfu\_table[(uint)ISA::RISCV::Type::IDIV]\ =\ sfus.back();}}
+\DoxyCodeLine{00381\ }
+\DoxyCodeLine{00382\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfus}}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfus.push\_back(\_new\ Units::UnitSFU(1,\ 1,\ 6,\ num\_tps\_per\_tm));}}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//simulator.register\_unit(sfus.back());}}
+\DoxyCodeLine{00385\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfu\_table[(uint)ISA::RISCV::Type::FDIV]\ =\ sfus.back();}}
+\DoxyCodeLine{00386\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00387\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfus.push\_back(\_new\ Units::UnitSFU(1,\ 1,\ 6,\ num\_tps\_per\_tm));}}
+\DoxyCodeLine{00388\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//simulator.register\_unit(sfus.back());}}
+\DoxyCodeLine{00389\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfu\_table[(uint)ISA::RISCV::Type::FSQRT]\ =\ sfus.back();}}
+\DoxyCodeLine{00390\ }
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfus.push\_back(\_new\ Units::UnitSFU(1,\ 1,\ 2,\ num\_tps\_per\_tm));}}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//simulator.register\_unit(sfus.back());}}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfu\_table[(uint)ISA::RISCV::Type::FRCP]\ =\ sfus.back();}}
+\DoxyCodeLine{00394\ }
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//intersectors}}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfus.push\_back(\_new\ Units::UnitSFU(1,\ 1,\ 4,\ num\_tps\_per\_tm));}}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//simulator.register\_unit(sfus.back());}}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfu\_table[(uint)ISA::RISCV::Type::BOXISECT]\ =\ sfus.back();}}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ sfus.push\_back(\_new\ Units::UnitSFU(2,\ 18,\ 31,\ num\_tps\_per\_tm));}}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//simulator.register\_unit(sfus.back());}}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//sfu\_table[(uint)ISA::RISCV::Type::TRIISECT]\ =\ sfus.back();}}
+\DoxyCodeLine{00403\ }
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ \ \ \ \ thread\_schedulers.push\_back(\_new\ \ Units::UnitThreadScheduler(num\_tps\_per\_tm,\ tm\_index,\ \&atomic\_regs));}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ \ \ \ \ \ \ simulator.register\_unit(thread\_schedulers.back());}
+\DoxyCodeLine{00406\ }
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ tp\_index\ =\ 0;\ tp\_index\ <\ num\_tps\_per\_tm;\ ++tp\_index)}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Units::UnitTP::Configuration\ tp\_config;}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.tp\_index\ =\ tp\_index;}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.tm\_index\ =\ tm\_index;}
+\DoxyCodeLine{00412\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.pc\ =\ elf.elf\_header-\/>e\_entry.u64;}
+\DoxyCodeLine{00413\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.sp\ =\ stack\_pointer;}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.stack\_size\ =\ stack\_size;}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.backing\_memory\ =\ mm.\_data\_u8;}
+\DoxyCodeLine{00416\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.sfu\_table\ =\ sfu\_table;}
+\DoxyCodeLine{00417\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.port\_size\ =\ tp\_port\_size;}
+\DoxyCodeLine{00418\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.mem\_map.add\_unit(mm\_null\_address,\ thread\_schedulers.back(),\ tp\_index,\ 1);}
+\DoxyCodeLine{00419\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.mem\_map.add\_unit(mm\_global\_data\_start,\ l1s.back(),\ tp\_index,\ 1);}
+\DoxyCodeLine{00420\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.mem\_map.add\_unit(mm\_stack\_start,\ \textcolor{keyword}{nullptr},\ 0,\ 0);}
+\DoxyCodeLine{00421\ }
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tps.push\_back(\textcolor{keyword}{new}\ Units::UnitTP(tp\_config));}
+\DoxyCodeLine{00423\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ simulator.register\_unit(tps.back());}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ simulator.units\_executing++;}
+\DoxyCodeLine{00425\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00426\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00427\ \ \ \ \ \}}
+\DoxyCodeLine{00428\ }
+\DoxyCodeLine{00429\ \ \ \ \ \textcolor{keyword}{auto}\ start\ =\ std::chrono::high\_resolution\_clock::now();}
+\DoxyCodeLine{00430\ \ \ \ \ simulator.execute();}
+\DoxyCodeLine{00431\ \ \ \ \ \textcolor{keyword}{auto}\ stop\ =\ std::chrono::high\_resolution\_clock::now();}
+\DoxyCodeLine{00432\ \ \ \ \ \textcolor{keyword}{auto}\ duration\ =\ std::chrono::duration\_cast<std::chrono::milliseconds>(stop\ -\/\ start);}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ \ \ \ \ Units::UnitTP::Log\ tp\_log(0x10000);}
+\DoxyCodeLine{00435\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ tp\ :\ tps)}
+\DoxyCodeLine{00436\ \ \ \ \ \ \ \ \ tp\_log.accumulate(tp-\/>log);}
+\DoxyCodeLine{00437\ \ \ \ \ }
+\DoxyCodeLine{00438\ \ \ \ \ Units::UnitCache::Log\ l1\_log;}
+\DoxyCodeLine{00439\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ l1\ :\ l1s)}
+\DoxyCodeLine{00440\ \ \ \ \ \ \ \ \ l1\_log.accumulate(l1-\/>log);}
+\DoxyCodeLine{00441\ \ \ \ \ }
+\DoxyCodeLine{00442\ \ \ \ \ Units::UnitCache::Log\ l2\_log;}
+\DoxyCodeLine{00443\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ l2\ :\ l2s)}
+\DoxyCodeLine{00444\ \ \ \ \ \ \ \ \ l2\_log.accumulate(l2-\/>log);}
+\DoxyCodeLine{00445\ }
+\DoxyCodeLine{00446\ \ \ \ \ mm.print\_usimm\_stats(CACHE\_BLOCK\_SIZE,\ 4,\ simulator.current\_cycle);}
+\DoxyCodeLine{00447\ }
+\DoxyCodeLine{00448\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nL2\(\backslash\)n"{}});}
+\DoxyCodeLine{00449\ \ \ \ \ l2\_log.print\_log();}
+\DoxyCodeLine{00450\ }
+\DoxyCodeLine{00451\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nL1\(\backslash\)n"{}});}
+\DoxyCodeLine{00452\ \ \ \ \ l1\_log.print\_log();}
+\DoxyCodeLine{00453\ }
+\DoxyCodeLine{00454\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nTP\(\backslash\)n"{}});}
+\DoxyCodeLine{00455\ \ \ \ \ tp\_log.print\_log();}
+\DoxyCodeLine{00456\ }
+\DoxyCodeLine{00457\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{00458\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\#-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ Summary\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\#\(\backslash\)n"{}});}
+\DoxyCodeLine{00459\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Benchmark:\ \%s\(\backslash\)n"{}},\ binary\_path.c\_str());}
+\DoxyCodeLine{00460\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Dataset:\ \%s\(\backslash\)n"{}},\ mesh\_path.c\_str());}
+\DoxyCodeLine{00461\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00462\ \ \ \ \ }
+\DoxyCodeLine{00463\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Simulation\ Runtime:\ \%.2f\ s\(\backslash\)n"{}},\ duration.count()\ /\ 1000.0f);}
+\DoxyCodeLine{00464\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00465\ }
+\DoxyCodeLine{00466\ \ \ \ \ setlocale(LC\_ALL,\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00467\ }
+\DoxyCodeLine{00468\ \ \ \ \ \textcolor{keywordtype}{float}\ frame\_time\ =\ simulator.current\_cycle\ /\ (2.0e9);}
+\DoxyCodeLine{00469\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Cycles:\ \%lld\(\backslash\)n"{}},\ simulator.current\_cycle);}
+\DoxyCodeLine{00470\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Frame\ Time\ @\ 2GHz:\ \%.2f\ ms\(\backslash\)n"{}},\ frame\_time\ *\ 1000.0f);}
+\DoxyCodeLine{00471\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Frame\ Rate\ @\ 2GHz:\ \%.0f\ fps\(\backslash\)n"{}},\ 1.0f\ /\ frame\_time);}
+\DoxyCodeLine{00472\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00473\ }
+\DoxyCodeLine{00474\ \ \ \ \ printf(\textcolor{stringliteral}{"{}L1\ Total:\ \%lld\(\backslash\)n"{}},\ l1\_log.get\_total());}
+\DoxyCodeLine{00475\ \ \ \ \ printf(\textcolor{stringliteral}{"{}L2\ Total:\ \%lld\(\backslash\)n"{}},\ l2\_log.get\_total());}
+\DoxyCodeLine{00476\ \ \ \ \ printf(\textcolor{stringliteral}{"{}MM\ Total:\ \%lld\(\backslash\)n"{}},\ l2\_log.\_misses);}
+\DoxyCodeLine{00477\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00478\ }
+\DoxyCodeLine{00479\ \ \ \ \ \textcolor{comment}{//power\ in\ watts}}
+\DoxyCodeLine{00480\ \ \ \ \ \textcolor{keywordtype}{float}\ l1\_power\ =\ (l1\_log.get\_total\_data\_array\_accesses()\ *\ l1\_dynamic\_read\_energy)\ /\ frame\_time\ +\ num\_tms\ *\ l1\_bank\_leakge\_power\ *\ 8;}
+\DoxyCodeLine{00481\ \ \ \ \ \textcolor{keywordtype}{float}\ l2\_power\ =\ (l2\_log.get\_total\_data\_array\_accesses()\ *\ l2\_dynamic\_read\_energy)\ /\ frame\_time\ +\ num\_l2\ *\ l2\_bank\_leakge\_power\ *\ 32;}
+\DoxyCodeLine{00482\ \ \ \ \ \textcolor{keywordtype}{float}\ mm\_power\ =\ mm.total\_power\_in\_watts();}
+\DoxyCodeLine{00483\ \ \ \ \ \textcolor{keywordtype}{float}\ total\_power\ =\ l1\_power\ +\ l2\_power\ +\ mm\_power;}
+\DoxyCodeLine{00484\ }
+\DoxyCodeLine{00485\ \ \ \ \ \textcolor{keywordtype}{float}\ power\_scale\ =\ 1.0f;}
+\DoxyCodeLine{00486\ \ \ \ \ printf(\textcolor{stringliteral}{"{}L1\ Power:\ \%.2f\ W\(\backslash\)n"{}},\ l1\_power\ *\ power\_scale);}
+\DoxyCodeLine{00487\ \ \ \ \ printf(\textcolor{stringliteral}{"{}L2\ Power:\ \%.2f\ W\(\backslash\)n"{}},\ l2\_power\ *\ power\_scale);}
+\DoxyCodeLine{00488\ \ \ \ \ printf(\textcolor{stringliteral}{"{}MM\ Power:\ \%.2f\ W\(\backslash\)n"{}},\ mm\_power\ *\ power\_scale);}
+\DoxyCodeLine{00489\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Total\ Power:\ \%.2f\ W\(\backslash\)n"{}},\ total\_power\ *\ power\_scale);}
+\DoxyCodeLine{00490\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00491\ }
+\DoxyCodeLine{00492\ \ \ \ \ \textcolor{keywordtype}{float}\ l1\_energy\ =\ l1\_power\ *\ frame\_time;}
+\DoxyCodeLine{00493\ \ \ \ \ \textcolor{keywordtype}{float}\ l2\_energy\ =\ l2\_power\ *\ frame\_time;}
+\DoxyCodeLine{00494\ \ \ \ \ \textcolor{keywordtype}{float}\ mm\_energy\ =\ mm\_power\ *\ frame\_time;}
+\DoxyCodeLine{00495\ \ \ \ \ \textcolor{keywordtype}{float}\ total\_enregy\ =\ l1\_energy\ +\ l2\_energy\ +\ mm\_energy;}
+\DoxyCodeLine{00496\ }
+\DoxyCodeLine{00497\ \ \ \ \ \textcolor{keywordtype}{float}\ energy\_scale\ =\ 1.0e6f;}
+\DoxyCodeLine{00498\ \ \ \ \ printf(\textcolor{stringliteral}{"{}L1\ Energy:\ \%.0f\ uJ\(\backslash\)n"{}},\ l1\_energy\ *\ energy\_scale);}
+\DoxyCodeLine{00499\ \ \ \ \ printf(\textcolor{stringliteral}{"{}L2\ Energy:\ \%.0f\ uJ\(\backslash\)n"{}},\ l2\_energy\ *\ energy\_scale);}
+\DoxyCodeLine{00500\ \ \ \ \ printf(\textcolor{stringliteral}{"{}MM\ Energy:\ \%.0f\ uJ\(\backslash\)n"{}},\ mm\_energy\ *\ energy\_scale);}
+\DoxyCodeLine{00501\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Total\ Energy:\ \%.0f\ uJ\(\backslash\)n"{}},\ total\_enregy\ *\ energy\_scale);}
+\DoxyCodeLine{00502\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00503\ }
+\DoxyCodeLine{00504\ }
+\DoxyCodeLine{00505\ \ \ \ \ FILE*\ prof\_stream\ =\ fopen(profile\_path.c\_str(),\ \textcolor{stringliteral}{"{}w"{}});}
+\DoxyCodeLine{00506\ \ \ \ \ \textcolor{keywordflow}{if}(prof\_stream)}
+\DoxyCodeLine{00507\ \ \ \ \ \{}
+\DoxyCodeLine{00508\ \ \ \ \ \ \ \ \ tp\_log.print\_profile(mm.\_data\_u8,\ prof\_stream);}
+\DoxyCodeLine{00509\ \ \ \ \ \ \ \ \ fclose(prof\_stream);}
+\DoxyCodeLine{00510\ \ \ \ \ \}}
+\DoxyCodeLine{00511\ }
+\DoxyCodeLine{00512\ \ \ \ \ stbi\_flip\_vertically\_on\_write(\textcolor{keyword}{true});}
+\DoxyCodeLine{00513\ \ \ \ \ paddr\_t\ paddr\_frame\_buffer\ =\ \textcolor{keyword}{reinterpret\_cast<}paddr\_t\textcolor{keyword}{>}(global\_data.framebuffer);}
+\DoxyCodeLine{00514\ \ \ \ \ mm.dump\_as\_png\_uint8(paddr\_frame\_buffer,\ global\_data.framebuffer\_width,\ global\_data.framebuffer\_height,\ framebuffer\_path);}
+\DoxyCodeLine{00515\ \}}
+\DoxyCodeLine{00516\ }
+\DoxyCodeLine{00517\ \}}
+
+\end{DoxyCode}

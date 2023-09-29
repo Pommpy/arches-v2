@@ -1,0 +1,113 @@
+\doxysection{Arches\+::Units\+::Unit\+TP Class Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_t_p}{}\label{class_arches_1_1_units_1_1_unit_t_p}\index{Arches::Units::UnitTP@{Arches::Units::UnitTP}}
+
+
+Class describes Thread-\/\+Processor unit.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/tp.\+hpp$>$}
+
+Inheritance diagram for Arches\+::Units\+::Unit\+TP\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_arches_1_1_units_1_1_unit_t_p}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_t_p_1_1_configuration}{Configuration}}
+\begin{DoxyCompactList}\small\item\em describes TP config characteristics \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_t_p_1_1_log}{Log}}
+\begin{DoxyCompactList}\small\item\em logger class to display debug info \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_ac59ee7399a11836877550081415ecbbc}\label{class_arches_1_1_units_1_1_unit_t_p_ac59ee7399a11836877550081415ecbbc} 
+{\bfseries Unit\+TP} (const \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_t_p_1_1_configuration}{Configuration}} \&config)
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_t_p_a4455482c4699bb9fffc575e6e5078948}{clock\+\_\+rise}} () override
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_t_p_a05e0e5988b9334bb2e30a16718e3fe84}{clock\+\_\+fall}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{Arches\+::\+ISA\+::\+RISCV\+::\+Execution\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Execution\+Base} (\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_integer_register_file}{Integer\+Register\+File}} \texorpdfstring{$\ast$}{*}int\+\_\+regs, \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_floating_point_register_file}{Floating\+Point\+Register\+File}} \texorpdfstring{$\ast$}{*}float\+\_\+regs)
+\item 
+void {\bfseries \+\_\+write\+\_\+register} (\mbox{\hyperlink{struct_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_reg_addr}{Reg\+Addr}} dst, const uint8\+\_\+t \texorpdfstring{$\ast$}{*}src, uint8\+\_\+t size)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_ab50c5d0fe4f9bc8620460ecee92da594}\label{class_arches_1_1_units_1_1_unit_t_p_ab50c5d0fe4f9bc8620460ecee92da594} 
+class \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_t_p_1_1_log}{Arches\+::\+Units\+::\+Unit\+TP\+::\+Log}} {\bfseries log}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{Arches\+::\+ISA\+::\+RISCV\+::\+Execution\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+uint8\+\_\+t \texorpdfstring{$\ast$}{*} {\bfseries backing\+\_\+memory} \{nullptr\}
+\item 
+\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_integer_register_file}{Integer\+Register\+File}} \texorpdfstring{$\ast$}{*} {\bfseries int\+\_\+regs} \{nullptr\}
+\item 
+\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_floating_point_register_file}{Floating\+Point\+Register\+File}} \texorpdfstring{$\ast$}{*} {\bfseries float\+\_\+regs} \{nullptr\}
+\item 
+Arches\+::vaddr\+\_\+t {\bfseries pc} \{0\}
+\item 
+bool {\bfseries branch\+\_\+taken} \{false\}
+\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Units::MemoryRequest::Type {\bfseries type}\\
+\>\mbox{\hyperlink{struct_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_reg_addr}{RegAddr}} {\bfseries dst}\\
+\>uint8\_t {\bfseries size}\\
+\>bool {\bfseries cached}\\
+\>paddr\_t {\bfseries vaddr}\\
+\>uint8\_t {\bfseries store\_data} \mbox{[}CACHE\_BLOCK\_SIZE\mbox{]}\\
+\} {\bfseries mem\_req}\\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class describes Thread-\/\+Processor unit. 
+
+This class describes the RISCV based core processor used by the simulator 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_a05e0e5988b9334bb2e30a16718e3fe84}\label{class_arches_1_1_units_1_1_unit_t_p_a05e0e5988b9334bb2e30a16718e3fe84} 
+\index{Arches::Units::UnitTP@{Arches::Units::UnitTP}!clock\_fall@{clock\_fall}}
+\index{clock\_fall@{clock\_fall}!Arches::Units::UnitTP@{Arches::Units::UnitTP}}
+\doxysubsubsection{\texorpdfstring{clock\_fall()}{clock\_fall()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+TP\+::clock\+\_\+fall (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_a4455482c4699bb9fffc575e6e5078948}\label{class_arches_1_1_units_1_1_unit_t_p_a4455482c4699bb9fffc575e6e5078948} 
+\index{Arches::Units::UnitTP@{Arches::Units::UnitTP}!clock\_rise@{clock\_rise}}
+\index{clock\_rise@{clock\_rise}!Arches::Units::UnitTP@{Arches::Units::UnitTP}}
+\doxysubsubsection{\texorpdfstring{clock\_rise()}{clock\_rise()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+TP\+::clock\+\_\+rise (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/tp.\+hpp\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/tp.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,86 @@
+\doxysection{ray-\/tracing-\/include.hpp}
+\hypertarget{describo_2src_2ray-tracing-include_8hpp_source}{}\label{describo_2src_2ray-tracing-include_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/ray-\/tracing-\/include.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/ray-\/tracing-\/include.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}rtm.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}random-\/number-\/generator.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}sampling.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}bvh.hpp"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}camera.hpp"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}ray.hpp"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}intersect.hpp"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}intersect-\/tt1.hpp"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}intersect-\/tt4.hpp"{}}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#define\ GLOBAL\_DATA\_ADDRESS\ 64ull}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_global_data}{GlobalData}}}
+\DoxyCodeLine{00017\ \{}
+\DoxyCodeLine{00018\ \ \ \ \ uint32\_t\ framebuffer\_width;}
+\DoxyCodeLine{00019\ \ \ \ \ uint32\_t\ framebuffer\_height;}
+\DoxyCodeLine{00020\ \ \ \ \ uint32\_t\ framebuffer\_size;}
+\DoxyCodeLine{00021\ \ \ \ \ uint32\_t*\ framebuffer;}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \ \ \ \ \mbox{\hyperlink{class_camera}{Camera}}\ camera;}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \ \ uint\ bounces;\ }
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \ \ \ \ uint\ config;}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00030\ \ \ \ \ \{}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_b_v_h_1_1_node}{BVH::Node}}*\ blas;}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_b_v_h_1_1_compressed_node4}{BVH::CompressedNode4}}*\ cblas;}
+\DoxyCodeLine{00033\ \ \ \ \ \};}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00036\ \ \ \ \ \{}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_mesh_pointers}{MeshPointers}}\ mesh;}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree1_pointers}{TesselationTree1Pointers}}\ tt1;}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree4_pointers}{TesselationTree4Pointers}}\ tt4;}
+\DoxyCodeLine{00040\ \ \ \ \ \};}
+\DoxyCodeLine{00041\ \ \ \ \ }
+\DoxyCodeLine{00042\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1uvec3}{glm::uvec3}}*\ ni;}
+\DoxyCodeLine{00043\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}*\ normals;}
+\DoxyCodeLine{00044\ \};}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keywordtype}{bool}\ intersect(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_global_data}{GlobalData}}\&\ global\_data,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ ray,\ \mbox{\hyperlink{struct_hit}{Hit}}\&\ hit)}
+\DoxyCodeLine{00047\ \{}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordflow}{switch}(global\_data.config)}
+\DoxyCodeLine{00049\ \ \ \ \ \{}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 0:\ \textcolor{keywordflow}{return}\ intersect(global\_data.cblas,\ global\_data.mesh,\ ray,\ hit);\ \textcolor{comment}{//BVHC}}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 1:\ \textcolor{keywordflow}{return}\ intersect(global\_data.cblas,\ global\_data.tt4,\ ray,\ hit);\ \textcolor{comment}{//TTC}}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 2:\ \textcolor{keywordflow}{return}\ intersect(global\_data.blas,\ global\_data.mesh,\ ray,\ hit);\ \textcolor{comment}{//BVH}}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 3:\ \textcolor{keywordflow}{return}\ intersect(global\_data.blas,\ global\_data.tt1,\ ray,\ hit);\ \textcolor{comment}{//TT}}
+\DoxyCodeLine{00054\ \ \ \ \ \}}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00056\ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{keywordtype}{bool}\ intersect(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_global_data}{GlobalData}}\&\ global\_data,\ uint\ last\_patch\_index,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ last\_ray,\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ ray,\ \mbox{\hyperlink{struct_hit}{Hit}}\&\ hit)}
+\DoxyCodeLine{00059\ \{}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordflow}{switch}(global\_data.config)}
+\DoxyCodeLine{00061\ \ \ \ \ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 0:\ }
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ intersect(global\_data.cblas,\ global\_data.mesh,\ ray,\ hit);\ \textcolor{comment}{//BVHC}}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 1:\ }
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree4_secondary_ray_data}{TesselationTree4SecondaryRayData}}\ data4(global\_data.tt4,\ last\_patch\_index,\ last\_ray);}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ intersect(global\_data.cblas,\ data4,\ ray,\ hit);\ \textcolor{comment}{//TTC}}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 2:\ }
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ intersect(global\_data.blas,\ global\_data.mesh,\ ray,\ hit);\ \textcolor{comment}{//BVH}}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 3:}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree1_secondary_ray_data}{TesselationTree1SecondaryRayData}}\ data1(global\_data.tt1,\ last\_patch\_index,\ last\_ray);}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ intersect(global\_data.blas,\ data1,\ ray,\ hit);\ \textcolor{comment}{//TT}}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00077\ \ \ \ \ \}}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00079\ \}}
+\DoxyCodeLine{00080\ }
+
+\end{DoxyCode}

@@ -1,0 +1,74 @@
+\doxysection{aabb.\+hpp}
+\hypertarget{describo_2src_2aabb_8hpp_source}{}\label{describo_2src_2aabb_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/aabb.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/aabb.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}rtm.hpp"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_a_a_b_b}{AABB}}}
+\DoxyCodeLine{00007\ \{}
+\DoxyCodeLine{00008\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00009\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ min\{\ \ FLT\_MAX\ \};}
+\DoxyCodeLine{00010\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ max\{\ -\/FLT\_MAX\ \};}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00013\ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \ \ \ \ \textcolor{keywordtype}{void}\ add(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\&\ other)}
+\DoxyCodeLine{00016\ \ \ \ \ \{}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ this-\/>min\ =\ rtm::min(this-\/>min,\ other.min);}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ this-\/>max\ =\ rtm::max(this-\/>max,\ other.max);}
+\DoxyCodeLine{00019\ \ \ \ \ \}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keywordtype}{float}\ surface\_area()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00022\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00023\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ x\ =\ max.x\ -\/\ min.x;}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ y\ =\ max.y\ -\/\ min.y;}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ z\ =\ max.z\ -\/\ min.z;}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (x\ *\ y\ +\ y\ *\ z\ +\ z\ *\ x)\ *\ 2.0f;}
+\DoxyCodeLine{00028\ \ \ \ \ \}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{float}\ cost()\ \{\ \textcolor{keywordflow}{return}\ 1.0f;\ \};}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ centroid()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ (min\ +\ max)\ *\ 0.5f;\ \}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \ \ uint32\_t\ longest\_axis()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00035\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ uint32\_t\ axis\ =\ 0;}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ max\_length\ =\ 0.0f;}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint32\_t\ i\ =\ 0;\ i\ <\ 3;\ ++i)}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ length\ =\ max[i]\ -\/\ min[i];}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(length\ >\ max\_length)}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ axis\ =\ i;}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max\_length\ =\ length;}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ axis;}
+\DoxyCodeLine{00048\ \ \ \ \ \}}
+\DoxyCodeLine{00049\ \};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_a_a_b_b16}{AABB16}}}
+\DoxyCodeLine{00053\ \{}
+\DoxyCodeLine{00054\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00055\ \ \ \ \ uint16\_t\ min[3];}
+\DoxyCodeLine{00056\ \ \ \ \ uint16\_t\ max[3];}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b16}{AABB16}}()\ \{\}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b16}{AABB16}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\&\ aabb)}
+\DoxyCodeLine{00061\ \ \ \ \ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ 3;\ ++i)}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ min[i]\ =\ f32\_to\_u16\_rd(aabb.min[i]\ *\ 0.5f\ +\ 0.5f);}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ max[i]\ =\ f32\_to\_u16\_ru(aabb.max[i]\ *\ 0.5f\ +\ 0.5f);}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00067\ \ \ \ \ \}}
+\DoxyCodeLine{00068\ \};}
+
+\end{DoxyCode}

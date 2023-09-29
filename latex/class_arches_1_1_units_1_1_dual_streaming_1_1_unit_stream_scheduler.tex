@@ -1,0 +1,134 @@
+\doxysection{Arches\+::Units\+::Dual\+Streaming\+::Unit\+Stream\+Scheduler Class Reference}
+\hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler}{}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler}\index{Arches::Units::DualStreaming::UnitStreamScheduler@{Arches::Units::DualStreaming::UnitStreamScheduler}}
+Inheritance diagram for Arches\+::Units\+::Dual\+Streaming\+::Unit\+Stream\+Scheduler\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_bucket_list}{Bucket\+List}}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_configuration}{Configuration}}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_hit_record_write_queue_entry}{Hit\+Record\+Write\+Queue\+Entry}}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_ray_read_queue_entry}{Ray\+Read\+Queue\+Entry}}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_ray_write_queue_entry}{Ray\+Write\+Queue\+Entry}}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_scene_segment_state}{Scene\+Segment\+State}}
+\item 
+class \mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_stream}{Stream}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a5eaa49940bf7082228a3e8f861f6f9d9}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a5eaa49940bf7082228a3e8f861f6f9d9} 
+void {\bfseries accept\+\_\+returns} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ae4749718fbc1b02c97d0bde0c4ef3856}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ae4749718fbc1b02c97d0bde0c4ef3856} 
+void {\bfseries accept\+\_\+requests} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a130b3b1381e7e9f1e6cb354170aa2f28}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a130b3b1381e7e9f1e6cb354170aa2f28} 
+void {\bfseries issue\+\_\+requests} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a3288764f754965b125401562001bfdb8}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a3288764f754965b125401562001bfdb8} 
+void {\bfseries issue\+\_\+returns} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a91e1ff78af43d7471000b7214d651d96}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a91e1ff78af43d7471000b7214d651d96} 
+uint {\bfseries select\+\_\+segment\+\_\+from\+\_\+buffer} (uint last\+\_\+segment\+\_\+index)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a1ea9725189e67037fc94cc7f76296c4b}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a1ea9725189e67037fc94cc7f76296c4b} 
+void {\bfseries update\+\_\+streams} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a6b8e3b284c2c31bb07e0f015fcb8296c}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a6b8e3b284c2c31bb07e0f015fcb8296c} 
+{\bfseries Unit\+Stream\+Scheduler} (\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_configuration}{Configuration}} config)
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a825d03f5b0400d8a47eb66f3d02f820d}{clock\+\_\+rise}} () override
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a43e9ec292ef5dee62f969b48e22b6016}{clock\+\_\+fall}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Unit\+Memory\+Base} (uint clients, uint servers)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ac18ef1c78f16e424c6f8d83d3c75bc26}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ac18ef1c78f16e424c6f8d83d3c75bc26} 
+std\+::queue$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_ray_write_queue_entry}{Ray\+Write\+Queue\+Entry}} $>$ {\bfseries ray\+\_\+write\+\_\+queue}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a07e0ad53ef70af345458d399cca2dbf9}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a07e0ad53ef70af345458d399cca2dbf9} 
+std\+::queue$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_ray_read_queue_entry}{Ray\+Read\+Queue\+Entry}} $>$ {\bfseries ray\+\_\+read\+\_\+queue}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a9bcd3b0bb4aa1e91f8e02e5245ca2edd}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a9bcd3b0bb4aa1e91f8e02e5245ca2edd} 
+std\+::queue$<$ paddr\+\_\+t $>$ {\bfseries hit\+\_\+record\+\_\+read\+\_\+queue}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ae370657dee0fbd1b62cd40ab0217eb32}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ae370657dee0fbd1b62cd40ab0217eb32} 
+std\+::map$<$ paddr\+\_\+t, \mbox{\hyperlink{struct_hit}{Hit}} $>$ {\bfseries new\+\_\+hit\+\_\+record\+\_\+set}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a196c206d96304d5ad30f941a4f5e6a06}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a196c206d96304d5ad30f941a4f5e6a06} 
+std\+::queue$<$ paddr\+\_\+t $>$ {\bfseries hit\+\_\+record\+\_\+write\+\_\+queue}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ab24a2290d228a16b33839a5f54c5771a}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ab24a2290d228a16b33839a5f54c5771a} 
+std\+::stack$<$ paddr\+\_\+t $>$ {\bfseries free\+\_\+buckets}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ae532807b7ecb9dac71908a8484c03844}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ae532807b7ecb9dac71908a8484c03844} 
+std\+::map$<$ uint, \mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_bucket_list}{Bucket\+List}} $>$ {\bfseries bucket\+\_\+lists}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ac9a7c71094d392291058b43dc8f59ba7}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_ac9a7c71094d392291058b43dc8f59ba7} 
+std\+::queue$<$ uint $>$ {\bfseries eligable\+\_\+segments}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a28701b5b3832acacb808844a4b42c234}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a28701b5b3832acacb808844a4b42c234} 
+std\+::vector$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_scene_segment_state}{Scene\+Segment\+State}} $>$ {\bfseries active\+\_\+segment\+\_\+states}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_aa1ba9bf891560090497027f657ee930e}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_aa1ba9bf891560090497027f657ee930e} 
+uint {\bfseries active\+\_\+segment\+\_\+arb\+\_\+index}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a51e8edf78531339327a6eacc872513fd}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a51e8edf78531339327a6eacc872513fd} 
+uint {\bfseries num\+\_\+active\+\_\+segments}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_interconnection_network}{Interconnection\+Network}}$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}}, \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{Memory\+Return}} $>$ {\bfseries interconnect}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a43e9ec292ef5dee62f969b48e22b6016}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a43e9ec292ef5dee62f969b48e22b6016} 
+\index{Arches::Units::DualStreaming::UnitStreamScheduler@{Arches::Units::DualStreaming::UnitStreamScheduler}!clock\_fall@{clock\_fall}}
+\index{clock\_fall@{clock\_fall}!Arches::Units::DualStreaming::UnitStreamScheduler@{Arches::Units::DualStreaming::UnitStreamScheduler}}
+\doxysubsubsection{\texorpdfstring{clock\_fall()}{clock\_fall()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Dual\+Streaming\+::\+Unit\+Stream\+Scheduler\+::clock\+\_\+fall (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a825d03f5b0400d8a47eb66f3d02f820d}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_a825d03f5b0400d8a47eb66f3d02f820d} 
+\index{Arches::Units::DualStreaming::UnitStreamScheduler@{Arches::Units::DualStreaming::UnitStreamScheduler}!clock\_rise@{clock\_rise}}
+\index{clock\_rise@{clock\_rise}!Arches::Units::DualStreaming::UnitStreamScheduler@{Arches::Units::DualStreaming::UnitStreamScheduler}}
+\doxysubsubsection{\texorpdfstring{clock\_rise()}{clock\_rise()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Dual\+Streaming\+::\+Unit\+Stream\+Scheduler\+::clock\+\_\+rise (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/units/dual-\/streaming/unit-\/stream-\/scheduler.\+hpp\end{DoxyCompactItemize}

@@ -1,0 +1,45 @@
+\doxysection{Arches\+::Units\+::Unit\+Base Class Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_base}{}\label{class_arches_1_1_units_1_1_unit_base}\index{Arches::Units::UnitBase@{Arches::Units::UnitBase}}
+
+
+Abstract class declaring foundation layout for units.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/base.\+hpp$>$}
+
+Inheritance diagram for Arches\+::Units\+::Unit\+Base\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=1.038961cm]{class_arches_1_1_units_1_1_unit_base}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_base_ad79adbf3f6d30baf9898417df5a2f1cb}\label{class_arches_1_1_units_1_1_unit_base_ad79adbf3f6d30baf9898417df5a2f1cb} 
+virtual void {\bfseries clock\+\_\+rise} ()=0
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_base_ad9bf75b2334cf90ca229d03960d8e9c7}\label{class_arches_1_1_units_1_1_unit_base_ad9bf75b2334cf90ca229d03960d8e9c7} 
+virtual void {\bfseries clock\+\_\+fall} ()=0
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_base_a087312c5403f6a62b62c3e17ba63b657}\label{class_arches_1_1_units_1_1_unit_base_a087312c5403f6a62b62c3e17ba63b657} 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_base_aabd12c782c0c30226252115b2ec74f9f}\label{class_arches_1_1_units_1_1_unit_base_aabd12c782c0c30226252115b2ec74f9f} 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Abstract class declaring foundation layout for units. 
+
+This class can provides interface to be implemented by simulator units. Each unit has to define its behavior on clock-\/rise and clock-\/fall signal. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/units/unit-\/base.\+hpp\end{DoxyCompactItemize}

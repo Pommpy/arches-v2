@@ -1,0 +1,473 @@
+\doxysection{unit-\/stream-\/scheduler.hpp}
+\hypertarget{unit-stream-scheduler_8hpp_source}{}\label{unit-stream-scheduler_8hpp_source}\index{arches-\/v2/src/arches/units/dual-\/streaming/unit-\/stream-\/scheduler.hpp@{arches-\/v2/src/arches/units/dual-\/streaming/unit-\/stream-\/scheduler.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once\ }}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}../../../stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}../unit-\/base.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}../unit-\/memory-\/base.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}../unit-\/main-\/memory-\/base.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}../unit-\/buffer.hpp"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}../../../../benchmarks/dual-\/streaming/src/ray.hpp"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}../../../../benchmarks/dual-\/streaming/src/treelet-\/bvh.hpp"{}}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }Units\ \{\ \textcolor{keyword}{namespace\ }DualStreaming\ \{}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#define\ ROW\_SIZE\ (8\ *\ 1024)}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ SCENE\_BUFFER\_SIZE\ (4\ *\ 1024\ *\ 1024)}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#define\ MAX\_ACTIVE\_SEGMENTS\ (SCENE\_BUFFER\_SIZE\ /\ TREELET\_SIZE)}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#define\ ROWS\_PER\_SEGMENT\ (TREELET\_SIZE\ /\ ROW\_SIZE)}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ RAY\_BUCKET\_SIZE\ 2048}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#define\ MAX\_RAYS\_PER\_BUCKET\ (sizeof(BucketRay)\ /\ 2036)}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_ray_bucket}{RayBucket}}}
+\DoxyCodeLine{00024\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ paddr\_t\ next\_bucket;}
+\DoxyCodeLine{00026\ \ \ \ \ uint\ num\_rays\{0\};}
+\DoxyCodeLine{00027\ \ \ \ \ \mbox{\hyperlink{struct_bucket_ray}{BucketRay}}\ bucket\_rays[MAX\_RAYS\_PER\_BUCKET];}
+\DoxyCodeLine{00028\ \};}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler}{UnitStreamScheduler}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{UnitMemoryBase}}}
+\DoxyCodeLine{00031\ \{}
+\DoxyCodeLine{00032\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_stream}{Stream}}}
+\DoxyCodeLine{00034\ \ \ \ \ \{}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ paddr\_t\ base\_addr\{0\};}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ uint\ size\{0\};}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ uint\ interface\_width\{CACHE\_BLOCK\_SIZE\};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ uint\ dst;}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ uint\ num\_requested\{0\};}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ uint\ num\_returned\{0\};}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_stream}{Stream}}()}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_stream}{Stream}}(paddr\_t\ base\_addr,\ uint\ bytes,\ uint\ interface\_width,\ uint\ dst)}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>base\_addr\ =\ base\_addr;}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>size\ =\ bytes\ /\ interface\_width;}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>interface\_width\ =\ interface\_width;}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>dst\ =\ dst;}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ fully\_requested()}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ num\_requested\ ==\ size;}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ fully\_returned()}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ num\_returned\ ==\ size;}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ count\_return()}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ num\_returned++;}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}\ get\_next\_request()}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}\ \mbox{\hyperlink{structreq}{req}};}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.type\ =\ MemoryRequest::Type::LOAD;}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.size\ =\ interface\_width;}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.paddr\ =\ base\_addr\ +\ num\_requested\ *\ interface\_width;}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ num\_requested++;}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structreq}{req}};}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00083\ \ \ \ \ \};}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_configuration}{Configuration}}}
+\DoxyCodeLine{00086\ \ \ \ \ \{}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ paddr\_t\ scene\_start;}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ paddr\_t\ bucket\_start;}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ uint\ num\_tms;}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ uint\ bucket\_size;}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ uint\ segment\_size;}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ uint\ ray\_size;}
+\DoxyCodeLine{00094\ \ \ \ \ \};}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_ray_write_queue_entry}{RayWriteQueueEntry}}}
+\DoxyCodeLine{00097\ \ \ \ \ \{}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_bucket_ray}{BucketRay}}\ bucket\_ray;}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ uint\ segment\_index;}
+\DoxyCodeLine{00100\ \ \ \ \ \};}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_ray_read_queue_entry}{RayReadQueueEntry}}}
+\DoxyCodeLine{00103\ \ \ \ \ \{}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ uint\ port\_index;}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ uint\ last\_segment;}
+\DoxyCodeLine{00106\ \ \ \ \ \};}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_hit_record_write_queue_entry}{HitRecordWriteQueueEntry}}}
+\DoxyCodeLine{00109\ \ \ \ \ \{}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ paddr\_t\ address;}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_hit}{Hit}}\ hit;}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ valid\{\textcolor{keyword}{false}\};}
+\DoxyCodeLine{00113\ \ \ \ \ \};}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_scene_segment_state}{SceneSegmentState}}}
+\DoxyCodeLine{00116\ \ \ \ \ \{}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ uint\ index\{0\};}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ uint\ buckets\_in\_flight\{0\};}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ paddr\_t\ head\_bucket\_address\{0x0ull\};}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ uint\ child\_index\{\string~0u\};}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ uint\ num\_children\{0\};}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ uint\ rows\_in\_buffer\{0\};}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ valid\{\textcolor{keyword}{false}\};}
+\DoxyCodeLine{00128\ \ \ \ \ \};}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_bucket_list}{BucketList}}}
+\DoxyCodeLine{00131\ \ \ \ \ \{}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ paddr\_t\ head\_bucket\_address;}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ paddr\_t\ tail\_bucket\_address;}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ uint\ tail\_fill;}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ uint\ tail\_channel;}
+\DoxyCodeLine{00137\ \ \ \ \ \};}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ std::queue<RayWriteQueueEntry>\ ray\_write\_queue;}
+\DoxyCodeLine{00140\ \ \ \ \ std::queue<RayReadQueueEntry>\ ray\_read\_queue;}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \ \ std::queue<paddr\_t>\ hit\_record\_read\_queue;}
+\DoxyCodeLine{00143\ \ \ \ \ std::map<paddr\_t,\ Hit>\ new\_hit\_record\_set;}
+\DoxyCodeLine{00144\ \ \ \ \ std::queue<paddr\_t>\ hit\_record\_write\_queue;}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \ \ std::stack<paddr\_t>\ \ \ \ \ \ \ \ free\_buckets;\ \textcolor{comment}{//todo\ this\ should\ be\ a\ linked\ list\ in\ memory}}
+\DoxyCodeLine{00147\ \ \ \ \ std::map<uint,\ BucketList>\ bucket\_lists;}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \ \ std::queue<uint>\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ eligable\_segments;}
+\DoxyCodeLine{00150\ \ \ \ \ std::vector<SceneSegmentState>\ active\_segment\_states;}
+\DoxyCodeLine{00151\ \ \ \ \ uint\ active\_segment\_arb\_index;}
+\DoxyCodeLine{00152\ \ \ \ \ uint\ num\_active\_segments;}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00155\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_main_memory_base}{UnitMainMemoryBase}}*\ \_main\_mem;}
+\DoxyCodeLine{00156\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_buffer}{UnitBuffer}}*\ \_scene\_buffer;}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \ \ uint\ \_num\_channels,\ \_num\_tms;}
+\DoxyCodeLine{00159\ \ \ \ \ paddr\_t\ \_scene\_start,\ \_hit\_record\_start,\ \_bucket\_start,\ \_bucket\_end;}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_stream}{Stream}}\ scene\_stream;}
+\DoxyCodeLine{00162\ \ \ \ \ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}\ scene\_buffer\_request;}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler_1_1_stream}{Stream}}\ ray\_stream;}
+\DoxyCodeLine{00165\ \ \ \ \ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{MemoryReturn}}\ ray\_stream\_return;}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \ \ \ \ \mbox{\hyperlink{struct_hit}{Hit}}\ hit\_reg;}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keywordtype}{void}\ accept\_returns()}
+\DoxyCodeLine{00171\ \ \ \ \ \{}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\&\ mmint\ =\ \_main\_mem-\/>interconnect;}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{MemoryReturn}}*\ ret;}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}((ret\ =\ mmint.get\_return(0))\ \&\&\ scene\_buffer\_request.type\ ==\ MemoryRequest::Type::NA)}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ scene\_buffer\_request.type\ =\ MemoryRequest::Type::STORE;}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \ \ \ \ scene\_buffer\_request.size\ =\ ret-\/>size;}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \ \ \ \ scene\_buffer\_request.paddr\ =\ (scene\_stream.dst\ *\ TREELET\_SIZE)\ +\ (ret-\/>paddr\ -\/\ scene\_stream.base\_addr);}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \ \ \ \ scene\_buffer\_request.data\ =\ ret-\/>data;}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \ \ \ \ mmint.acknowlege\_return(0);}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}((ret\ =\ mmint.get\_return(1))\ \&\&\ (ray\_stream\_return.type\ ==\ MemoryReturn::Type::NA))}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ ray\_stream\_return\ =\ *ret;}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ mmint.acknowlege\_return(1);}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(ret\ =\ mmint.get\_return(3))}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//data\ returned\ for\ the\ ray\ queue\ validate\ the\ entry\ or\ squash\ it}}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_hit}{Hit}}\ current\_hit\ =\ *(\mbox{\hyperlink{struct_hit}{Hit}}*)ret-\/>data;}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(current\_hit.t\ <\ new\_hit\_record\_set[ret-\/>paddr].t)}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//further\ than\ current\ record\ squash}}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ new\_hit\_record\_set.erase(ret-\/>paddr);}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//closer\ than\ current\ entry\ write\ back}}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit\_record\_write\_queue.emplace(ret-\/>paddr);}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ mmint.acknowlege\_return(3);}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00206\ \ \ \ \ \}}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{keywordtype}{void}\ accept\_requests()}
+\DoxyCodeLine{00209\ \ \ \ \ \{}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ interconnect.propagate\_requests([](\textcolor{keyword}{const}\ MemoryRequest\&\ \mbox{\hyperlink{structreq}{req}},\ uint\ client,\ uint\ num\_clients,\ uint\ num\_servers)-\/>uint}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ uint\ port\_index;}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ MemoryRequest*\ \mbox{\hyperlink{structreq}{req}}\ =\ interconnect.get\_request(0,\ port\_index);}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!\mbox{\hyperlink{structreq}{req}})\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \textcolor{comment}{//we\ have\ a\ request\ for\ a\ new\ scene\ segment\ this\ means\ we\ can\ decrement\ buckets\ in\ flight\ for\ the\ scene\ sgment\ whose\ bucket\ was\ previouly\ in\ the\ ray\ staging\ buffer}}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\mbox{\hyperlink{structreq}{req}}-\/>type\ ==\ MemoryRequest::Type::SBRAY)}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//forward\ the\ request\ to\ the\ queue}}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ ray\_write\_queue.push(*(RayWriteQueueEntry*)\mbox{\hyperlink{structreq}{req}}-\/>data);}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ \ \ interconnect.acknowlege\_request(0,\ port\_index);}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(\mbox{\hyperlink{structreq}{req}}-\/>type\ ==\ MemoryRequest::Type::LOAD\_RAY\_BUCKET)}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ last\_segment\_index\ =\ \string~0u;}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ last\_segment\_buffer\_index\ =\ *(uint32\_t*)\mbox{\hyperlink{structreq}{req}}-\/>data;}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(last\_segment\_buffer\_index\ !=\ \string~0u)}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SceneSegmentState\&\ last\_segment\_state\ =\ active\_segment\_states[last\_segment\_buffer\_index];}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ last\_segment\_state.buckets\_in\_flight-\/-\/;\ \textcolor{comment}{//we\ have\ one\ fewer\ buckets\ in\ flight\ for\ this\ segment}}
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!last\_segment\_state.head\_bucket\_address\ \&\&\ last\_segment\_state.buckets\_in\_flight\ ==\ 0)\ \textcolor{comment}{//we\ are\ done\ with\ the\ segment}}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//add\ child\ segments\ to\ eligable\ list\ since\ we\ can\ now\ intersect\ them}}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ last\_segment\_state.num\_children;\ ++i)}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ eligable\_segments.push(last\_segment\_state.child\_index\ +\ i);}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//remove\ from\ active\ segments}}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ last\_segment\_state.valid\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_active\_segments-\/-\/;}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ last\_segment\_index\ =\ last\_segment\_state.index;}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \ \ ray\_read\_queue.push(\{port\_index,\ last\_segment\_index\});}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \ \ \ \ interconnect.acknowlege\_request(0,\ port\_index);}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(\mbox{\hyperlink{structreq}{req}}-\/>type\ ==\ MemoryRequest::Type::CSHIT)}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_hit}{Hit}}\ hit\ =\ *(\mbox{\hyperlink{struct_hit}{Hit}}*)\mbox{\hyperlink{structreq}{req}}-\/>data;}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(new\_hit\_record\_set.find(\mbox{\hyperlink{structreq}{req}}-\/>paddr)\ !=\ new\_hit\_record\_set.end())}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(hit.t\ <\ new\_hit\_record\_set[\mbox{\hyperlink{structreq}{req}}-\/>paddr].t)\ new\_hit\_record\_set[\mbox{\hyperlink{structreq}{req}}-\/>paddr]\ =\ hit;}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ interconnect.acknowlege\_request(0,\ port\_index);}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//todo\ set\ limit\ on\ the\ number\ of\ hit\ records\ in\ the\ set}}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit\_record\_read\_queue.push(\mbox{\hyperlink{structreq}{req}}-\/>paddr);}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ new\_hit\_record\_set[\mbox{\hyperlink{structreq}{req}}-\/>paddr]\ =\ hit;}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ interconnect.acknowlege\_request(0,\ port\_index);}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00269\ \ \ \ \ \}}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \ \ \ \ \textcolor{keywordtype}{void}\ issue\_requests()}
+\DoxyCodeLine{00272\ \ \ \ \ \{}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\&\ mmint\ =\ \_main\_mem-\/>interconnect;}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!mmint.request\_pending(0)\ \&\&\ !scene\_stream.fully\_requested())}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ MemoryRequest\ \mbox{\hyperlink{structreq}{req}}\ =\ scene\_stream.get\_next\_request();}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \ \ \ \ \_main\_mem-\/>interconnect.add\_request(\mbox{\hyperlink{structreq}{req}},\ 0);}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00280\ }
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \ \ \textcolor{comment}{//forward\ the\ scene\ stream}}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\_scene\_buffer-\/>interconnect.request\_pending(\_num\_tms)\ \&\&\ (scene\_buffer\_request.type\ ==\ MemoryRequest::Type::STORE))}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ \ \ \ \ \_scene\_buffer-\/>interconnect.add\_request(scene\_buffer\_request,\ \_num\_tms);}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ \ \ \ \ scene\_stream.num\_returned++;}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ \ \ \ \ \ scene\_buffer\_request.type\ =\ MemoryRequest::Type::NA;}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!mmint.request\_pending(1)\ \&\&\ !ray\_stream.fully\_requested())}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ \ \ \ \ MemoryRequest\ \mbox{\hyperlink{structreq}{req}}\ =\ ray\_stream.get\_next\_request();}
+\DoxyCodeLine{00292\ \ \ \ \ \ \ \ \ \ \ \ \ \_main\_mem-\/>interconnect.add\_request(\mbox{\hyperlink{structreq}{req}},\ 1);}
+\DoxyCodeLine{00293\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00294\ }
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!mmint.request\_pending(2)\ \&\&\ !ray\_write\_queue.empty())}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//write\ next\ ray}}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ segment\_index\ =\ ray\_write\_queue.front().segment\_index;}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \ \ \ \ \ \ BucketList\&\ bucket\_list\ =\ bucket\_lists[segment\_index];}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(bucket\_list.tail\_fill\ ==\ MAX\_RAYS\_PER\_BUCKET)}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00302\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//fetch\ a\ new\ bucket\ to\ append\ to\ the\ list}}
+\DoxyCodeLine{00303\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(free\_buckets.empty())}
+\DoxyCodeLine{00304\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ free\_buckets.push(\_bucket\_end);}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_bucket\_end\ +=\ RAY\_BUCKET\_SIZE;}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ paddr\_t\ new\_bucket\_address\ =\ free\_buckets.top();\ free\_buckets.pop();}
+\DoxyCodeLine{00309\ }
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//link\ the\ new\ bucket\ to\ the\ tail\ bucket}}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_main\_mem-\/>direct\_write(\&new\_bucket\_address,\ \textcolor{keyword}{sizeof}(paddr\_t),\ bucket\_list.tail\_bucket\_address);}
+\DoxyCodeLine{00312\ }
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bucket\_list.tail\_bucket\_address\ =\ new\_bucket\_address;}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bucket\_list.tail\_fill\ =\ 0;}
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//zero\ the\ pointer\ for\ the\ new\ tail}}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ paddr\_t\ zero\ =\ 0x0ull;}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ max\_fill\ =\ MAX\_RAYS\_PER\_BUCKET;}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_main\_mem-\/>direct\_write(\&zero,\ \textcolor{keyword}{sizeof}(paddr\_t),\ bucket\_list.tail\_bucket\_address\ +\ 0);\ \textcolor{comment}{//Write\ null\ to\ next\ pointer\ in\ tail\ bucket}}
+\DoxyCodeLine{00320\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_main\_mem-\/>direct\_write(\&max\_fill,\ \textcolor{keyword}{sizeof}(uint),\ bucket\_list.tail\_bucket\_address\ +\ \textcolor{keyword}{sizeof}(paddr\_t));\ \textcolor{comment}{//Write\ max\ fill\ premtivley.\ If\ it\ not\ fully\ filled\ when\ we\ pop\ this\ list\ we\ will\ fix\ it}}
+\DoxyCodeLine{00321\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \ \ \ \ \ \ \ \ \ \ \ \ MemoryRequest\ \mbox{\hyperlink{structreq}{req}};}
+\DoxyCodeLine{00324\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.type\ =\ MemoryRequest::Type::STORE;}
+\DoxyCodeLine{00325\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.size\ =\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_bucket_ray}{BucketRay}});}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.paddr\ =\ (paddr\_t)(\&(*(RayBucket*)\&bucket\_list.tail\_bucket\_address).bucket\_rays[bucket\_list.tail\_fill]);}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.data\ =\ \&ray\_write\_queue.front().bucket\_ray;}
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \ \ \ \ \ \ mmint.add\_request(\mbox{\hyperlink{structreq}{req}},\ 2);}
+\DoxyCodeLine{00329\ }
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ \ \ \ \ \ ray\_write\_queue.pop();}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00332\ }
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!mmint.request\_pending(3)\ )}
+\DoxyCodeLine{00334\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!hit\_record\_read\_queue.empty())}
+\DoxyCodeLine{00336\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MemoryRequest\ \mbox{\hyperlink{structreq}{req}};}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.type\ =\ MemoryRequest::Type::LOAD;}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.size\ =\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_hit}{Hit}});}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.paddr\ =\ hit\_record\_read\_queue.front();\ hit\_record\_read\_queue.pop();}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mmint.add\_request(\mbox{\hyperlink{structreq}{req}},\ 3);}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(!hit\_record\_write\_queue.empty())}
+\DoxyCodeLine{00344\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00345\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MemoryRequest\ \mbox{\hyperlink{structreq}{req}};}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.type\ =\ MemoryRequest::Type::STORE;}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.size\ =\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_hit}{Hit}});}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.paddr\ =\ hit\_record\_write\_queue.front();\ hit\_record\_write\_queue.pop();}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.data\ =\ \&hit\_reg;}
+\DoxyCodeLine{00350\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit\_reg\ =\ new\_hit\_record\_set[\mbox{\hyperlink{structreq}{req}}.paddr];}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ new\_hit\_record\_set.erase(\mbox{\hyperlink{structreq}{req}}.paddr);}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mmint.add\_request(\mbox{\hyperlink{structreq}{req}},\ 3);}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00355\ \ \ \ \ \}}
+\DoxyCodeLine{00356\ }
+\DoxyCodeLine{00357\ \ \ \ \ \textcolor{keywordtype}{void}\ issue\_returns()}
+\DoxyCodeLine{00358\ \ \ \ \ \{}
+\DoxyCodeLine{00359\ \ \ \ \ \ \ \ \ \textcolor{comment}{//forward\ the\ ray\ stream}}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(interconnect.return\_pending(0)\ \&\&\ (ray\_stream\_return.type\ ==\ MemoryReturn::Type::LOAD\_RETURN))}
+\DoxyCodeLine{00361\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \ \ \ \ \ \ interconnect.add\_return(ray\_stream\_return,\ 0,\ ray\_stream.dst);}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ \ \ \ \ ray\_stream.num\_returned++;}
+\DoxyCodeLine{00364\ \ \ \ \ \ \ \ \ \ \ \ \ ray\_stream\_return.type\ =\ MemoryReturn::Type::NA;}
+\DoxyCodeLine{00365\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00366\ \ \ \ \ \}}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ \ \ \ \ uint\ select\_segment\_from\_buffer(uint\ last\_segment\_index)}
+\DoxyCodeLine{00369\ \ \ \ \ \{}
+\DoxyCodeLine{00370\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ active\_segment\_states.size();\ ++i)}
+\DoxyCodeLine{00371\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!active\_segment\_states[i].valid\ ||\ !active\_segment\_states[i].head\_bucket\_address)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(active\_segment\_states[i].index\ ==\ last\_segment\_index)\ \textcolor{keywordflow}{return}\ i;}
+\DoxyCodeLine{00374\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00375\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00376\ \ \ \ \ \ \ \ \ uint\ i\ =\ active\_segment\_arb\_index;}
+\DoxyCodeLine{00377\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{do}}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00379\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(active\_segment\_states[i].valid\ \&\&\ active\_segment\_states[i].head\_bucket\_address)}
+\DoxyCodeLine{00380\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00381\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ active\_segment\_arb\_index\ =\ i;}
+\DoxyCodeLine{00382\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ i;}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(++i\ ==\ active\_segment\_states.size())\ i\ =\ 0;}
+\DoxyCodeLine{00386\ \ \ \ \ \ \ \ \ \}\ }
+\DoxyCodeLine{00387\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(i\ !=\ active\_segment\_arb\_index);}
+\DoxyCodeLine{00388\ }
+\DoxyCodeLine{00389\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \string~0u;}
+\DoxyCodeLine{00390\ \ \ \ \ \}}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ \ \ \ \ \textcolor{keywordtype}{void}\ update\_streams()}
+\DoxyCodeLine{00393\ \ \ \ \ \{}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \ \ \textcolor{comment}{//if\ the\ current\ segment\ has\ no\ more\ pending\ streams\ we\ are\ ready\ for\ the\ next\ segment}}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(scene\_stream.fully\_returned()\ \&\&\ eligable\_segments.size()\ >\ 0\ \&\&\ num\_active\_segments\ <\ MAX\_ACTIVE\_SEGMENTS)}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//queue\ up\ the\ next\ segment\ streams}}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ \ \ \ \ \ \ num\_active\_segments++;}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ buffer\_index\ =\ 0;}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(buffer\_index\ =\ 0;\ buffer\_index\ <\ active\_segment\_states.size();\ ++buffer\_index)}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!active\_segment\_states[buffer\_index].valid)\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \ \ \ \ \ \ SceneSegmentState\&\ segment\_state\ =\ active\_segment\_states[buffer\_index];}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ \ \ \ \ segment\_state.index\ =\ eligable\_segments.front();\ eligable\_segments.pop();}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ \ \ \ \ \ \ segment\_state.buckets\_in\_flight\ =\ 0;}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ \ \ \ \ \ \ segment\_state.rows\_in\_buffer\ =\ 0;}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \ \ \ \ segment\_state.valid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \ \ \ \ segment\_state.head\_bucket\_address\ =\ bucket\_lists[segment\_state.index].head\_bucket\_address;}
+\DoxyCodeLine{00409\ }
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//write\ the\ last\ bucket\ fill\ to\ the\ last\ bucket}}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ \ \ \ \ \ \ \_main\_mem-\/>direct\_write(\&bucket\_lists[segment\_state.index].tail\_fill,\ \textcolor{keyword}{sizeof}(uint),\ bucket\_lists[segment\_state.index].tail\_bucket\_address\ +\ 8);}
+\DoxyCodeLine{00412\ \ \ \ \ \ \ \ \ \ \ \ \ bucket\_lists.erase(segment\_state.index);}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//this\ data\ will\ pass\ through\ the\ scheduler\ in\ the\ first\ line\ of\ the\ segment}}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//TODO:\ need\ to\ add\ a\ header\ to\ the\ scene\ sgments\ that\ encodes\ the\ child\ segments\ so\ we\ can\ manage\ the\ set\ of\ eligable\ segments}}
+\DoxyCodeLine{00416\ \ \ \ \ \ \ \ \ \ \ \ \ paddr\_t\ segment\_address\ =\ \_scene\_start\ +\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet}{Treelet}})\ *\ segment\_state.index;}
+\DoxyCodeLine{00417\ \ \ \ \ \ \ \ \ \ \ \ \ \_main\_mem-\/>direct\_read(\&segment\_state.child\_index,\ 4,\ segment\_address\ +\ 0);}
+\DoxyCodeLine{00418\ \ \ \ \ \ \ \ \ \ \ \ \ \_main\_mem-\/>direct\_read(\&segment\_state.num\_children,\ 4,\ segment\_address\ +\ 4);}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ \ \ \ \ \ \ \ \ \ \ \ \ scene\_stream\ =\ Stream(segment\_address,\ TREELET\_SIZE,\ CACHE\_BLOCK\_SIZE,\ buffer\_index);}
+\DoxyCodeLine{00421\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00422\ }
+\DoxyCodeLine{00423\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(ray\_stream.fully\_returned()\ \&\&\ !ray\_read\_queue.empty())}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00425\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//open\ new\ stream}}
+\DoxyCodeLine{00426\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ segment\_index\ =\ ray\_read\_queue.front().last\_segment;}
+\DoxyCodeLine{00427\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ port\_index\ =\ ray\_read\_queue.front().port\_index;}
+\DoxyCodeLine{00428\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ buffer\_index\ =\ select\_segment\_from\_buffer(segment\_index);}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(buffer\_index\ !=\ \string~0u)}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00431\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ray\_read\_queue.pop();}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SceneSegmentState\&\ segment\_state\ =\ active\_segment\_states[buffer\_index];}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//start\ streaming\ next\ ray\ bucket}}
+\DoxyCodeLine{00435\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ paddr\_t\ next\_bucket\_addr\ =\ segment\_state.head\_bucket\_address;}
+\DoxyCodeLine{00436\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_main\_mem-\/>direct\_read(\&segment\_state.head\_bucket\_address,\ 8,\ next\_bucket\_addr);\ \textcolor{comment}{//this\ data\ will\ pass\ through\ as\ soon\ as\ the\ first\ request\ returns\ from\ the\ stream\ we\ are\ about\ to\ open}}
+\DoxyCodeLine{00437\ }
+\DoxyCodeLine{00438\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ray\_stream\ =\ Stream(next\_bucket\_addr,\ RAY\_BUCKET\_SIZE,\ CACHE\_BLOCK\_SIZE,\ port\_index);}
+\DoxyCodeLine{00439\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00440\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00441\ \ \ \ \ \}}
+\DoxyCodeLine{00442\ }
+\DoxyCodeLine{00443\ \ \ \ \ UnitStreamScheduler(Configuration\ config)\ :\ \ UnitMemoryBase(config.num\_tms,\ 1)}
+\DoxyCodeLine{00444\ \ \ \ \ \{}
+\DoxyCodeLine{00445\ \ \ \ \ \ \ \ \ \_scene\_start\ =\ config.scene\_start;}
+\DoxyCodeLine{00446\ \ \ \ \ \ \ \ \ \_bucket\_start\ =\ config.bucket\_start;}
+\DoxyCodeLine{00447\ \ \ \ \ \ \ \ \ \_bucket\_end\ =\ \_bucket\_start;}
+\DoxyCodeLine{00448\ }
+\DoxyCodeLine{00449\ \ \ \ \ \ \ \ \ \_num\_channels\ =\ numDramChannels();}
+\DoxyCodeLine{00450\ \ \ \ \ \ \ \ \ \_num\_tms\ =\ config.num\_tms;}
+\DoxyCodeLine{00451\ \ \ \ \ \}}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_rise()\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00454\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00455\ \ \ \ \ \ \ \ \ accept\_requests();}
+\DoxyCodeLine{00456\ \ \ \ \ \ \ \ \ accept\_returns();}
+\DoxyCodeLine{00457\ \ \ \ \ \}}
+\DoxyCodeLine{00458\ }
+\DoxyCodeLine{00459\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_fall()\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00460\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00461\ \ \ \ \ \ \ \ \ update\_streams();}
+\DoxyCodeLine{00462\ \ \ \ \ \ \ \ \ issue\_requests();}
+\DoxyCodeLine{00463\ \ \ \ \ \ \ \ \ issue\_returns();}
+\DoxyCodeLine{00464\ \ \ \ \ \}}
+\DoxyCodeLine{00465\ \};}
+\DoxyCodeLine{00466\ }
+\DoxyCodeLine{00467\ \}\}\}}
+
+\end{DoxyCode}

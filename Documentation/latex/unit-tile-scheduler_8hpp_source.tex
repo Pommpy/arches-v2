@@ -1,0 +1,116 @@
+\doxysection{unit-\/tile-\/scheduler.hpp}
+\hypertarget{unit-tile-scheduler_8hpp_source}{}\label{unit-tile-scheduler_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/tile-\/scheduler.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/tile-\/scheduler.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once\ }}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}unit-\/base.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}unit-\/memory-\/base.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}unit-\/atomic-\/reg-\/file.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}../util/bit-\/manipulation.hpp"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }Units\ \{}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_thread_scheduler}{UnitThreadScheduler}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{UnitMemoryBase}}}
+\DoxyCodeLine{00012\ \{}
+\DoxyCodeLine{00013\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00014\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_thread_scheduler}{UnitThreadScheduler}}(uint\ num\_tp,\ uint\ tm\_index,\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_atomic_regfile}{UnitAtomicRegfile}}*\ atomic\_regs)\ :\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{UnitMemoryBase}}(num\_tp,\ 1),}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ num\_tp(num\_tp),\ tm\_index(tm\_index),\ atomic\_regs(atomic\_regs)}
+\DoxyCodeLine{00016\ \ \ \ \ \{}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ current\_offset\ =\ num\_tp;}
+\DoxyCodeLine{00018\ \ \ \ \ \}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_atomic_regfile}{UnitAtomicRegfile}}*\ atomic\_regs;}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \ \ \ \ uint\ num\_tp;}
+\DoxyCodeLine{00023\ \ \ \ \ uint\ tm\_index;}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \ \ uint\ current\_tile\{0\};}
+\DoxyCodeLine{00026\ \ \ \ \ uint\ current\_offset\{0\};}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \ \ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}\ current\_req;}
+\DoxyCodeLine{00029\ \ \ \ \ uint\ current\_port\_index\{\string~0u\};}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \ \ \ \ uint32\_t\ req\_reg;}
+\DoxyCodeLine{00032\ \ \ \ \ uint32\_t\ ret\_reg;}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{bool}\ stalled\_for\_atomic\_reg\{\textcolor{keyword}{false}\};}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_rise()\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00037\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ interconnect.propagate\_requests([](\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}\&\ \mbox{\hyperlink{structreq}{req}},\ uint\ client,\ uint\ num\_clients,\ uint\ num\_servers)-\/>uint}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(stalled\_for\_atomic\_reg)}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{MemoryReturn}}*\ ret\ =\ atomic\_regs-\/>interconnect.get\_return(tm\_index);}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(ret)}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_tile\ =\ *((uint32\_t*)ret-\/>data);}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_offset\ =\ 0;}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stalled\_for\_atomic\_reg\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ atomic\_regs-\/>interconnect.acknowlege\_return(tm\_index);}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(current\_port\_index\ ==\ \string~0u)}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ port\_index;}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}*\ \mbox{\hyperlink{structreq}{req}}\ =\ interconnect.get\_request(0,\ port\_index);}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!\mbox{\hyperlink{structreq}{req}})\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ assert(\mbox{\hyperlink{structreq}{req}}-\/>type\ ==\ MemoryRequest::Type::FCHTHRD);}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ interconnect.acknowlege\_request(0,\ port\_index);}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ current\_req\ =\ *\mbox{\hyperlink{structreq}{req}};}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ current\_port\_index\ =\ port\_index;}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00068\ \ \ \ \ \}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_fall()\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00071\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ interconnect.propagate\_ack();}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(stalled\_for\_atomic\_reg\ ||\ current\_port\_index\ ==\ \string~0u)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(current\_offset\ ==\ 64)}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}\ \mbox{\hyperlink{structreq}{req}};}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.type\ =\ MemoryRequest::Type::AMO\_ADD;}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.size\ =\ 4;}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.paddr\ =\ 0x0ull;}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{req}}.data\ =\ \&req\_reg;}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ req\_reg\ =\ 1;}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ atomic\_regs-\/>interconnect.add\_request(\mbox{\hyperlink{structreq}{req}},\ tm\_index);}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ stalled\_for\_atomic\_reg\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(!interconnect.return\_pending(0))}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{MemoryReturn}}\ ret;}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ ret.type\ =\ MemoryReturn::Type::LOAD\_RETURN;}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ ret.size\ =\ 4;}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ ret.paddr\ =\ current\_req.paddr;}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ ret.data\ =\ \&ret\_reg;}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//TODO:\ Tile}}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ x\ =\ (current\_tile\ \%\ (1024\ /\ 8))\ *\ 8\ +\ (current\_offset\ \%\ 8);}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ y\ =\ (current\_tile\ /\ (1024\ /\ 8))\ *\ 8\ +\ (current\_offset\ /\ 8);}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ ret\_reg\ =\ y\ *\ 1024\ +\ x;}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ interconnect.add\_return(ret,\ 0,\ current\_port\_index);}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \ \ \ \ current\_offset++;}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \ \ \ \ current\_port\_index\ =\ \string~0u;}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ interconnect.propagate\_returns();}
+\DoxyCodeLine{00107\ \ \ \ \ \}}
+\DoxyCodeLine{00108\ \};}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \}\}}
+
+\end{DoxyCode}

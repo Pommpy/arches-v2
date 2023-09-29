@@ -1,0 +1,66 @@
+\doxysection{camera.\+hpp}
+\hypertarget{describo_2src_2camera_8hpp_source}{}\label{describo_2src_2camera_8hpp_source}\index{arches-\/v2/benchmarks/describo/src/camera.hpp@{arches-\/v2/benchmarks/describo/src/camera.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}ray.hpp"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_camera}{Camera}}}
+\DoxyCodeLine{00007\ \{}
+\DoxyCodeLine{00008\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00009\ \ \ \ \ \textcolor{keywordtype}{float}\ \_drdt;}
+\DoxyCodeLine{00010\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}\ \_recip\_res;}
+\DoxyCodeLine{00011\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ \_position,\ \_x,\ \_y,\ \_z;}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00014\ \ \ \ \ \mbox{\hyperlink{class_camera}{Camera}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00017\ \ \ \ \ \mbox{\hyperlink{class_camera}{Camera}}(uint\ width,\ uint\ height,\ \textcolor{keywordtype}{float}\ focal\_length\ =\ 50.0f,}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ position\ =\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(0.0f,\ 0.0f,\ 1.0f),}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ target\ =\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(0.0f,\ 0.0f,\ 0.0f),}
+\DoxyCodeLine{00020\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ up\ =\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(0.0f,\ 1.0f,\ 0.0f))}
+\DoxyCodeLine{00021\ \ \ \ \ \{}
+\DoxyCodeLine{00022\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ aspect\ =\ (float)width\ /\ height;}
+\DoxyCodeLine{00023\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \ \ \_recip\_res.x\ =\ 1.0f\ /\ width;}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ \_recip\_res.y\ =\ 1.0f\ /\ height;}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \_drdt\ =\ 24.0f\ /\ focal\_length\ /\ height;}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \_drdt\ =\ sqrt(\_drdt\ *\ \_drdt\ /\ 3.1415926);}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \_position\ =\ position;}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ direction\ =\ target\ -\/\ position;}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \_z\ =\ -\/rtm::normalize(direction);}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \_x\ =\ rtm::normalize(cross(up,\ \_z));}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \_y\ =\ rtm::cross(\_z,\ \_x);}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \_x\ *=\ 24.0f\ /\ focal\_length\ *\ aspect;}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \_y\ *=\ 24.0f\ /\ focal\_length;}
+\DoxyCodeLine{00038\ \ \ \ \ \}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \ \ \mbox{\hyperlink{struct_ray}{Ray}}\ generate\_ray\_through\_pixel(uint\ i,\ uint\ j,\ \mbox{\hyperlink{class_r_n_g}{RNG}}*\ rng\ =\ \textcolor{keyword}{nullptr})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00042\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}\ uv((\textcolor{keywordtype}{float})i,\ (\textcolor{keywordtype}{float})j);}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(rng)uv\ +=\ rng-\/>randv2();}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ uv\ +=\ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}(0.5f);}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ uv\ *=\ \_recip\_res;}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ uv\ -\/=\ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}(0.5f);}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_ray}{Ray}}\ ray;}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ ray.d\ =\ (\_x\ *\ uv.x\ +\ \_y\ *\ uv.y\ -\/\ \_z);}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ ray.t\_min\ =\ T\_MIN;}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ ray.o\ =\ \_position;}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ ray.t\_max\ =\ T\_MAX;}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ ray.radius\ =\ 0.0f;}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ ray.drdt\ =\ \_drdt;}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ray;}
+\DoxyCodeLine{00059\ \ \ \ \ \}}
+\DoxyCodeLine{00060\ \};}
+
+\end{DoxyCode}

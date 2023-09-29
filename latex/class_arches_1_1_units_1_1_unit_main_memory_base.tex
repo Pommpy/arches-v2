@@ -1,0 +1,96 @@
+\doxysection{Arches\+::Units\+::Unit\+Main\+Memory\+Base Struct Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base}{}\label{class_arches_1_1_units_1_1_unit_main_memory_base}\index{Arches::Units::UnitMainMemoryBase@{Arches::Units::UnitMainMemoryBase}}
+
+
+Class describes main memory execution routines.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/main-\/memory-\/base.\+hpp$>$}
+
+Inheritance diagram for Arches\+::Units\+::Unit\+Main\+Memory\+Base\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4.000000cm]{class_arches_1_1_units_1_1_unit_main_memory_base}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_a6771e7f077b39d543027c49288a69182}\label{class_arches_1_1_units_1_1_unit_main_memory_base_a6771e7f077b39d543027c49288a69182} 
+{\bfseries Unit\+Main\+Memory\+Base} (uint num\+\_\+clients, uint num\+\_\+servers, size\+\_\+t size)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_a8f5069b7e29e6170dc64174f25cd79c0}\label{class_arches_1_1_units_1_1_unit_main_memory_base_a8f5069b7e29e6170dc64174f25cd79c0} 
+void {\bfseries clear} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_ad58f57ad3266d614a16dc7061cfa1f5e}\label{class_arches_1_1_units_1_1_unit_main_memory_base_ad58f57ad3266d614a16dc7061cfa1f5e} 
+void {\bfseries direct\+\_\+read} (void \texorpdfstring{$\ast$}{*}data, size\+\_\+t size, paddr\+\_\+t paddr) const
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_a3f43a047b190d48fe5760731fedd9949}\label{class_arches_1_1_units_1_1_unit_main_memory_base_a3f43a047b190d48fe5760731fedd9949} 
+void {\bfseries direct\+\_\+write} (const void \texorpdfstring{$\ast$}{*}data, size\+\_\+t size, paddr\+\_\+t paddr)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_a1c23f0fbcc2c120ac90e30a8d12bdfbc}\label{class_arches_1_1_units_1_1_unit_main_memory_base_a1c23f0fbcc2c120ac90e30a8d12bdfbc} 
+paddr\+\_\+t {\bfseries write\+\_\+elf} (\mbox{\hyperlink{class_arches_1_1_e_l_f}{ELF}} \&elf)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_ac7ac807072f8e0352b924c4ad2f3c19d}\label{class_arches_1_1_units_1_1_unit_main_memory_base_ac7ac807072f8e0352b924c4ad2f3c19d} 
+void {\bfseries dump\+\_\+as\+\_\+ppm\+\_\+uint8} (paddr\+\_\+t from\+\_\+paddr, size\+\_\+t width, size\+\_\+t height, std\+::string const \&path)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_ac5be78b2e407f92eab198be134c40a22}\label{class_arches_1_1_units_1_1_unit_main_memory_base_ac5be78b2e407f92eab198be134c40a22} 
+void {\bfseries dump\+\_\+as\+\_\+png\+\_\+uint8} (paddr\+\_\+t from\+\_\+paddr, size\+\_\+t width, size\+\_\+t height, std\+::string const \&path)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_ad715b7cdc4271ca51b7449aaf9cdd11e}\label{class_arches_1_1_units_1_1_unit_main_memory_base_ad715b7cdc4271ca51b7449aaf9cdd11e} 
+void {\bfseries dump\+\_\+as\+\_\+ppm\+\_\+float} (paddr\+\_\+t from\+\_\+paddr, size\+\_\+t width, size\+\_\+t height, std\+::string const \&path)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_a5e4f2720281035a4064e5dc5eeeedf3a}\label{class_arches_1_1_units_1_1_unit_main_memory_base_a5e4f2720281035a4064e5dc5eeeedf3a} 
+void {\bfseries \+\_\+print\+\_\+data} (uint8\+\_\+t \texorpdfstring{$\ast$}{*}data, int size) const
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Unit\+Memory\+Base} (uint clients, uint servers)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+virtual void {\bfseries clock\+\_\+rise} ()=0
+\item 
+virtual void {\bfseries clock\+\_\+fall} ()=0
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_aa2c43170e4b3a7f126c79eec8008b15c}\label{class_arches_1_1_units_1_1_unit_main_memory_base_aa2c43170e4b3a7f126c79eec8008b15c} 
+size\+\_\+t {\bfseries size\+\_\+bytes}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_main_memory_base_aa57cedcb2826b8d90cfe8e681ee538ff}\label{class_arches_1_1_units_1_1_unit_main_memory_base_aa57cedcb2826b8d90cfe8e681ee538ff} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint8\_t \texorpdfstring{$\ast$}{*} {\bfseries \_data\_u8}\\
+\>uint16\_t \texorpdfstring{$\ast$}{*} {\bfseries \_data\_u16}\\
+\>uint32\_t \texorpdfstring{$\ast$}{*} {\bfseries \_data\_u32}\\
+\>uint64\_t \texorpdfstring{$\ast$}{*} {\bfseries \_data\_u64}\\
+\}; \\
+
+\end{tabbing}\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_interconnection_network}{Interconnection\+Network}}$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}}, \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{Memory\+Return}} $>$ {\bfseries interconnect}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class describes main memory execution routines. 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/units/unit-\/main-\/memory-\/base.\+hpp\end{DoxyCompactItemize}

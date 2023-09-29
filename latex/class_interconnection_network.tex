@@ -1,0 +1,58 @@
+\doxysection{Interconnection\+Network\texorpdfstring{$<$}{<} REQ, RET \texorpdfstring{$>$}{>} Class Template Reference}
+\hypertarget{class_interconnection_network}{}\label{class_interconnection_network}\index{InterconnectionNetwork$<$ REQ, RET $>$@{InterconnectionNetwork$<$ REQ, RET $>$}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_interconnection_network_a365b6fba950fae8d14c83e878b1fb7ce}\label{class_interconnection_network_a365b6fba950fae8d14c83e878b1fb7ce} 
+{\bfseries Interconnection\+Network} (uint clients, uint servers)
+\item 
+\Hypertarget{class_interconnection_network_aa6fa0814ddeb3f1f7da6456cedb79f35}\label{class_interconnection_network_aa6fa0814ddeb3f1f7da6456cedb79f35} 
+void {\bfseries propagate\+\_\+requests} (uint(\texorpdfstring{$\ast$}{*}routing\+\_\+func)(const REQ \&\mbox{\hyperlink{structreq}{req}}, uint client, uint num\+\_\+clients, uint num\+\_\+servers))
+\item 
+\Hypertarget{class_interconnection_network_a224730d540aff0d5e35c0baff44b6a21}\label{class_interconnection_network_a224730d540aff0d5e35c0baff44b6a21} 
+const REQ \texorpdfstring{$\ast$}{*} {\bfseries get\+\_\+request} (uint server, uint \&client)
+\item 
+\Hypertarget{class_interconnection_network_a88e0ceebf4485a64550a891a243c42dd}\label{class_interconnection_network_a88e0ceebf4485a64550a891a243c42dd} 
+void {\bfseries acknowlege\+\_\+request} (uint server, uint client)
+\item 
+\Hypertarget{class_interconnection_network_a3513fcef9da662c98c14a5fc418fc4d3}\label{class_interconnection_network_a3513fcef9da662c98c14a5fc418fc4d3} 
+uint64\+\_\+t {\bfseries merge\+\_\+requests} (const REQ \&request)
+\item 
+\Hypertarget{class_interconnection_network_aa4c312c397d901ea79446cb515427580}\label{class_interconnection_network_aa4c312c397d901ea79446cb515427580} 
+void {\bfseries acknowlege\+\_\+requests} (uint server, uint64\+\_\+t client\+\_\+mask)
+\item 
+\Hypertarget{class_interconnection_network_a51ca0ead02bc84f379ee6e791dc3a676}\label{class_interconnection_network_a51ca0ead02bc84f379ee6e791dc3a676} 
+uint {\bfseries num\+\_\+request\+\_\+pending} (uint server)
+\item 
+\Hypertarget{class_interconnection_network_af7715497df3c13b50b8b1d8eb11166e5}\label{class_interconnection_network_af7715497df3c13b50b8b1d8eb11166e5} 
+void {\bfseries propagate\+\_\+ack} ()
+\item 
+\Hypertarget{class_interconnection_network_aa02b28e256810296a8c026fec98a3673}\label{class_interconnection_network_aa02b28e256810296a8c026fec98a3673} 
+void {\bfseries add\+\_\+return} (const RET \&data, uint server, uint client)
+\item 
+\Hypertarget{class_interconnection_network_a8ac6871a5e70b8e9db2378ad57060313}\label{class_interconnection_network_a8ac6871a5e70b8e9db2378ad57060313} 
+void {\bfseries add\+\_\+returns} (const RET \&data, uint server, uint64\+\_\+t client\+\_\+mask)
+\item 
+\Hypertarget{class_interconnection_network_a71aa2fe1db86d94bf3ea76168332663f}\label{class_interconnection_network_a71aa2fe1db86d94bf3ea76168332663f} 
+bool {\bfseries return\+\_\+pending} (uint server)
+\item 
+\Hypertarget{class_interconnection_network_a8fafdf715d0b47dc7e3336dd2fa71d61}\label{class_interconnection_network_a8fafdf715d0b47dc7e3336dd2fa71d61} 
+void {\bfseries propagate\+\_\+returns} ()
+\item 
+\Hypertarget{class_interconnection_network_a905995b263df76d15288167d3fa0e5e0}\label{class_interconnection_network_a905995b263df76d15288167d3fa0e5e0} 
+const RET \texorpdfstring{$\ast$}{*} {\bfseries get\+\_\+return} (uint client)
+\item 
+\Hypertarget{class_interconnection_network_a1868b49036ea65144740fb812d629a05}\label{class_interconnection_network_a1868b49036ea65144740fb812d629a05} 
+void {\bfseries acknowlege\+\_\+return} (uint client)
+\item 
+\Hypertarget{class_interconnection_network_abd4fe8482b6d1889fbcaaa35f9b22fff}\label{class_interconnection_network_abd4fe8482b6d1889fbcaaa35f9b22fff} 
+void {\bfseries add\+\_\+request} (const REQ \&\mbox{\hyperlink{structreq}{req}}, uint client)
+\item 
+\Hypertarget{class_interconnection_network_abe61722fef3f28d88e2ac55a31e14b4f}\label{class_interconnection_network_abe61722fef3f28d88e2ac55a31e14b4f} 
+bool {\bfseries request\+\_\+pending} (uint client)
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/simulator/interconnects.\+hpp\end{DoxyCompactItemize}

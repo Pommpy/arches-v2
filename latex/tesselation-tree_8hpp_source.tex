@@ -1,0 +1,32 @@
+\doxysection{tesselation-\/tree.hpp}
+\hypertarget{tesselation-tree_8hpp_source}{}\label{tesselation-tree_8hpp_source}\index{arches-\/v2/benchmarks/describo/src/tesselation-\/tree.hpp@{arches-\/v2/benchmarks/describo/src/tesselation-\/tree.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{keyword}{struct\ }\textcolor{keyword}{alignas}(32)\ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}}
+\DoxyCodeLine{00005\ \{}
+\DoxyCodeLine{00006\ \ \ \ \ uint64\_t\ data[4];}
+\DoxyCodeLine{00007\ \};}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00011\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ RET>}
+\DoxyCodeLine{00012\ \textcolor{keyword}{inline}\ RET\ \_deserialize(std::ifstream\&\ stream)}
+\DoxyCodeLine{00013\ \{}
+\DoxyCodeLine{00014\ \ \ \ \ RET\ value;}
+\DoxyCodeLine{00015\ \ \ \ \ stream.read((\textcolor{keywordtype}{char}*)\&value,\ \textcolor{keyword}{sizeof}(RET));}
+\DoxyCodeLine{00016\ \ \ \ \ \textcolor{keywordflow}{return}\ value;}
+\DoxyCodeLine{00017\ \}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ RET>}
+\DoxyCodeLine{00020\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ \_deserialize\_vector(std::vector<RET>\&\ vector,\ std::ifstream\&\ stream)}
+\DoxyCodeLine{00021\ \{}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ size\ =\ \_deserialize<size\_t>(stream);}
+\DoxyCodeLine{00023\ \ \ \ \ vector.resize(size);}
+\DoxyCodeLine{00024\ \ \ \ \ stream.read((\textcolor{keywordtype}{char}*)vector.data(),\ vector.size()\ *\ \textcolor{keyword}{sizeof}(RET));}
+\DoxyCodeLine{00025\ \}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

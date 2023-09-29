@@ -1,0 +1,56 @@
+\doxysection{Arches\+::Units\+::Memory\+Return Struct Reference}
+\hypertarget{struct_arches_1_1_units_1_1_memory_return}{}\label{struct_arches_1_1_units_1_1_memory_return}\index{Arches::Units::MemoryReturn@{Arches::Units::MemoryReturn}}
+
+
+Class declares various memory return operation types for custom hardware.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/memory-\/base.\+hpp$>$}
+
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_return_ad1831afdc3961c3d1d9c89dd83d77eaa}\label{struct_arches_1_1_units_1_1_memory_return_ad1831afdc3961c3d1d9c89dd83d77eaa} 
+enum class {\bfseries Type} \+: uint8\+\_\+t \{ {\bfseries NA}
+, {\bfseries LOAD\+\_\+\+RETURN}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_return_af444c5d5401aa7e83b263f1b192e1295}\label{struct_arches_1_1_units_1_1_memory_return_af444c5d5401aa7e83b263f1b192e1295} 
+bool {\bfseries operator==} (const \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{Memory\+Return}} \&other) const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_return_ace2369a5bf39d32a9532a27745cb04c3}\label{struct_arches_1_1_units_1_1_memory_return_ace2369a5bf39d32a9532a27745cb04c3} 
+Type {\bfseries type}
+\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_return_a6120bd34abd70928ed19e4e827be0e62}\label{struct_arches_1_1_units_1_1_memory_return_a6120bd34abd70928ed19e4e827be0e62} 
+uint8\+\_\+t {\bfseries size}
+\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_return_a5ca890415e340544f5837247733b08f4}\label{struct_arches_1_1_units_1_1_memory_return_a5ca890415e340544f5837247733b08f4} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>paddr\_t {\bfseries paddr}\\
+\>vaddr\_t {\bfseries vaddr}\\
+\}; \\
+
+\end{tabbing}\item 
+\Hypertarget{struct_arches_1_1_units_1_1_memory_return_a13d6e1eec491b99379c522944be308f5}\label{struct_arches_1_1_units_1_1_memory_return_a13d6e1eec491b99379c522944be308f5} 
+void \texorpdfstring{$\ast$}{*} {\bfseries data} \{nullptr\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class declares various memory return operation types for custom hardware. 
+
+Currently the memory returns are similar to that of RISCV with some additional types to support our customized ray-\/tracing HW 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/units/unit-\/memory-\/base.\+hpp\end{DoxyCompactItemize}

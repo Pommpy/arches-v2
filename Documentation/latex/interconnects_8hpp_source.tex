@@ -1,0 +1,234 @@
+\doxysection{interconnects.\+hpp}
+\hypertarget{interconnects_8hpp_source}{}\label{interconnects_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/simulator/interconnects.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/simulator/interconnects.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}../util/arbitration.hpp"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{struct\ }\textcolor{keyword}{alignas}(64)\ \mbox{\hyperlink{struct__64_aligned}{\_64Aligned}}}
+\DoxyCodeLine{00007\ \{}
+\DoxyCodeLine{00008\ \ \ \ \ uint8\_t\ \_u8[64];}
+\DoxyCodeLine{00009\ \ \ \ \ \mbox{\hyperlink{struct__64_aligned}{\_64Aligned}}()}
+\DoxyCodeLine{00010\ \ \ \ \ \{}
+\DoxyCodeLine{00011\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ 64;\ ++i)\ \_u8[i]\ =\ 0u;}
+\DoxyCodeLine{00012\ \ \ \ \ \}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \ \ \ \ uint8\_t\&\ operator[](uint\ index)}
+\DoxyCodeLine{00015\ \ \ \ \ \{}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \_u8[index];}
+\DoxyCodeLine{00017\ \ \ \ \ \}}
+\DoxyCodeLine{00018\ \};}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ RET>}
+\DoxyCodeLine{00021\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_bus}{Bus}}}
+\DoxyCodeLine{00022\ \{}
+\DoxyCodeLine{00023\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{comment}{//Should\ be\ much\ more\ efficent\ since\ each\ line\ has\ one\ byte\ and\ they\ are\ alligne\ they\ will\ likely\ be\ on\ the\ same\ line}}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{comment}{//reads\ to\ the\ data\ only\ happen\ if\ pending\ flag\ is\ set\ and\ ack\ is\ done\ by\ clearing\ the\ pending\ bit}}
+\DoxyCodeLine{00026\ \ \ \ \ std::vector<\_64Aligned>\ \_pending;}
+\DoxyCodeLine{00027\ \ \ \ \ std::vector<RET>\ \ \ \ \ \ \ \ \ \ \_data;}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00030\ \ \ \ \ \mbox{\hyperlink{class_bus}{Bus}}(uint\ size)}
+\DoxyCodeLine{00031\ \ \ \ \ \{}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \_pending.resize((size\ +\ 63)\ /\ 64);}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \_data.resize(size);}
+\DoxyCodeLine{00034\ \ \ \ \ \}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \mbox{\hyperlink{class_bus}{\string~Bus}}()}
+\DoxyCodeLine{00037\ \ \ \ \ \{}
+\DoxyCodeLine{00038\ \ \ \ \ \}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ uint\ size()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \_data.size();\ \}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{bool}\ transfer\_pending(uint\ index)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00043\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ uint8\_t*\ pending\ =\ (uint8\_t*)\_pending.data();}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ assert(index\ <\ size());}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ pending[index];}
+\DoxyCodeLine{00049\ \ \ \ \ \}}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordtype}{void}\ acknowlege(uint\ index)}
+\DoxyCodeLine{00051\ \ \ \ \ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ uint8\_t*\ pending\ =\ (uint8\_t*)\_pending.data();}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ assert(index\ <\ size());}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ assert(pending[index]);}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ pending[index]\ =\ 0;}
+\DoxyCodeLine{00058\ \ \ \ \ \}}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keyword}{const}\ RET\&\ transfer(uint\ index)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00060\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ uint8\_t*\ pending\ =\ (uint8\_t*)\_pending.data();}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ assert(index\ <\ size());}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ assert(pending[index]);}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \_data[index];}
+\DoxyCodeLine{00067\ \ \ \ \ \}}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{void}\ add\_transfer(\textcolor{keyword}{const}\ RET\&\ data,\ uint\ index)}
+\DoxyCodeLine{00069\ \ \ \ \ \{}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ uint8\_t*\ pending\ =\ (uint8\_t*)\_pending.data();}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ assert(index\ <\ size());}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ assert(!pending[index]);}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \_data[index]\ =\ data;}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ pending[index]\ =\ 1;}
+\DoxyCodeLine{00077\ \ \ \ \ \}}
+\DoxyCodeLine{00078\ \};}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{comment}{//up\ to\ 64\ client\ and\ servers}}
+\DoxyCodeLine{00081\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ REQ,\ \textcolor{keyword}{typename}\ RET>}
+\DoxyCodeLine{00082\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_interconnection_network}{InterconnectionNetwork}}}
+\DoxyCodeLine{00083\ \{}
+\DoxyCodeLine{00084\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00085\ \ \ \ \ \mbox{\hyperlink{struct__64_aligned}{\_64Aligned}}\ \_request\_pending;\ \textcolor{comment}{//these\ are\ used\ as\ a\ thread\ safe\ way\ of\ setting\ pending\ bit}}
+\DoxyCodeLine{00086\ \ \ \ \ \mbox{\hyperlink{struct__64_aligned}{\_64Aligned}}\ \_return\_ack;}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ std::vector<REQ>\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_request\_regs;\ \textcolor{comment}{//the\ requests\ but}}
+\DoxyCodeLine{00089\ \ \ \ \ std::vector<RoundRobinArbitrator64>\ \_request\_arbs;\ \textcolor{comment}{//the\ arbitrator\ for\ putting\ incoming\ request\ on\ the\ data\ lines}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ std::vector<RET>\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_return\_regs;\ \textcolor{comment}{//the\ return\ regs}}
+\DoxyCodeLine{00092\ \ \ \ \ std::vector<RoundRobinArbitrator64>\ \_return\_arbs;\ \textcolor{comment}{//the\ arbitrators\ for\ selecting\ which\ request\ to\ service}}
+\DoxyCodeLine{00093\ \ \ \ \ uint64\_t\ \_server\_pending\_mask;}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00096\ \ \ \ \ \mbox{\hyperlink{class_interconnection_network}{InterconnectionNetwork}}(uint\ clients,\ uint\ servers)}
+\DoxyCodeLine{00097\ \ \ \ \ \{}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \_request\_regs.resize(clients);}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \_return\_regs.resize(servers);}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \_request\_arbs.resize(servers);}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \_return\_arbs.resize(clients);}
+\DoxyCodeLine{00102\ \ \ \ \ \}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{comment}{//SERVER\ INTERFACE}}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{comment}{//Clock\ rise}}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{comment}{//Must\ call\ at\ the\ begining\ of\ clock\ rise.\ Propagates\ requests}}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{keywordtype}{void}\ propagate\_requests(uint\ (*routing\_func)(\textcolor{keyword}{const}\ REQ\&\ \mbox{\hyperlink{structreq}{req}},\ uint\ client,\ uint\ num\_clients,\ uint\ num\_servers))}
+\DoxyCodeLine{00108\ \ \ \ \ \{}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ client\ =\ 0;\ client\ <\ \_request\_regs.size();\ ++client)}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!\_request\_pending[client])\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ server\ =\ routing\_func(\_request\_regs[client],\ client,\ \_request\_regs.size(),\ \_return\_regs.size());}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \_request\_arbs[server].add(client);}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ server\ =\ 0;\ server\ <\ \_request\_arbs.size();\ ++server)}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \_request\_arbs[server].update();}
+\DoxyCodeLine{00118\ \ \ \ \ \}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keyword}{const}\ REQ*\ get\_request(uint\ server,\ uint\&\ client)}
+\DoxyCodeLine{00121\ \ \ \ \ \{}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ client\ =\ \_request\_arbs[server].current();}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(client\ ==\ \string~0)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_request\_regs[client];}
+\DoxyCodeLine{00125\ \ \ \ \ \}}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keywordtype}{void}\ acknowlege\_request(uint\ server,\ uint\ client)}
+\DoxyCodeLine{00128\ \ \ \ \ \{}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \_request\_arbs[server].remove(client);}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \_request\_pending[client]\ =\ 0;}
+\DoxyCodeLine{00131\ \ \ \ \ \}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \ \ uint64\_t\ merge\_requests(\textcolor{keyword}{const}\ REQ\&\ request)}
+\DoxyCodeLine{00134\ \ \ \ \ \{}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ uint64\_t\ client\_mask\ =\ 0;}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ \_request\_regs.size();\ ++i)}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\_request\_pending[i]\ \&\&\ \_request\_regs[i]\ ==\ request)}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ client\_mask\ |=\ 0x1ull\ <<\ i;}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ client\_mask;}
+\DoxyCodeLine{00141\ \ \ \ \ \}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keywordtype}{void}\ acknowlege\_requests(uint\ server,\ uint64\_t\ client\_mask)}
+\DoxyCodeLine{00144\ \ \ \ \ \{}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ client\ =\ 0;\ client\ <\ \_request\_regs.size();\ ++client)}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!((client\_mask\ >>\ client)\ \&\ 0x1ull))\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ acknowlege\_request(server,\ client);}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00150\ \ \ \ \ \}}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \ \ \ \ uint\ num\_request\_pending(uint\ server)}
+\DoxyCodeLine{00153\ \ \ \ \ \{}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \_request\_arbs[server].num\_pending();}
+\DoxyCodeLine{00155\ \ \ \ \ \}}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{comment}{//Clock\ rise}}
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{comment}{//Must\ call\ at\ begining\ of\ clock\ fall.\ Propagates\ acks}}
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{keywordtype}{void}\ propagate\_ack()}
+\DoxyCodeLine{00160\ \ \ \ \ \{}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ client\ =\ 0;\ client\ <\ \_return\_arbs.size();\ ++client)}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ server\ =\ \_return\_arbs[client].current();}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(server\ ==\ \string~0\ ||\ !\_return\_ack[client])\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \ \ \ \ \_return\_ack[client]\ =\ 0;}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \ \ \ \ \_return\_arbs[client].remove(server);}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \_server\_pending\_mask\ =\ 0;}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ client\ =\ 0;\ client\ <\ \_request\_regs.size();\ ++client)}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ \_server\_pending\_mask\ |=\ \_return\_arbs[client].pending\_mask();}
+\DoxyCodeLine{00173\ \ \ \ \ \}}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \ \ \ \ \textcolor{keywordtype}{void}\ add\_return(\textcolor{keyword}{const}\ RET\&\ data,\ uint\ server,\ uint\ client)}
+\DoxyCodeLine{00176\ \ \ \ \ \{}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \_return\_regs[server]\ =\ data;}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \_return\_arbs[client].add(server);}
+\DoxyCodeLine{00179\ \ \ \ \ \}}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordtype}{void}\ add\_returns(\textcolor{keyword}{const}\ RET\&\ data,\ uint\ server,\ uint64\_t\ client\_mask)}
+\DoxyCodeLine{00182\ \ \ \ \ \{}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \_return\_regs[server]\ =\ data;}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ client\ =\ 0;\ client\ <\ \_return\_arbs.size();\ ++client)}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!((client\_mask\ >>\ client)\ \&\ 0x1ull))\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ \_return\_arbs[client].add(server);}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00189\ \ \ \ \ \}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordtype}{bool}\ return\_pending(uint\ server)}
+\DoxyCodeLine{00192\ \ \ \ \ \{}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\_server\_pending\_mask\ >>\ server)\ \&\ 0x1ull;}
+\DoxyCodeLine{00194\ \ \ \ \ \}}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{comment}{//Must\ call\ at\ end\ of\ clock\ fall.\ Propagates\ returns}}
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keywordtype}{void}\ propagate\_returns()}
+\DoxyCodeLine{00198\ \ \ \ \ \{}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ client\ =\ 0;\ client\ <\ \_return\_arbs.size();\ ++client)}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \ \ \ \ \_return\_arbs[client].update();}
+\DoxyCodeLine{00201\ \ \ \ \ \}}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{comment}{//CLIENT\ INTERFACE}}
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{comment}{//clock\ rise}}
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keyword}{const}\ RET*\ get\_return(uint\ client)}
+\DoxyCodeLine{00206\ \ \ \ \ \{}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ uint\ server\ =\ \_return\_arbs[client].current();}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(server\ ==\ \string~0)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_return\_regs[server];}
+\DoxyCodeLine{00210\ \ \ \ \ \}}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \ \ \textcolor{keywordtype}{void}\ acknowlege\_return(uint\ client)}
+\DoxyCodeLine{00213\ \ \ \ \ \{}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \_return\_ack[client]\ =\ 1;}
+\DoxyCodeLine{00215\ \ \ \ \ \}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \textcolor{comment}{//clock\ fall}}
+\DoxyCodeLine{00218\ \ \ \ \ \textcolor{keywordtype}{void}\ add\_request(\textcolor{keyword}{const}\ REQ\&\ \mbox{\hyperlink{structreq}{req}},\ uint\ client)}
+\DoxyCodeLine{00219\ \ \ \ \ \{}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \_request\_regs[client]\ =\ \mbox{\hyperlink{structreq}{req}};}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \_request\_pending[client]\ =\ 1;}
+\DoxyCodeLine{00222\ \ \ \ \ \}}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{keywordtype}{bool}\ request\_pending(uint\ client)}
+\DoxyCodeLine{00225\ \ \ \ \ \{}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \_request\_pending[client];}
+\DoxyCodeLine{00227\ \ \ \ \ \}}
+\DoxyCodeLine{00228\ \};}
+
+\end{DoxyCode}

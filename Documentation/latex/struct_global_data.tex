@@ -1,0 +1,88 @@
+\doxysection{Global\+Data Struct Reference}
+\hypertarget{struct_global_data}{}\label{struct_global_data}\index{GlobalData@{GlobalData}}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{struct_global_data_ac85dfc8895048c93c7a7208db2d712ed}\label{struct_global_data_ac85dfc8895048c93c7a7208db2d712ed} 
+uint32\+\_\+t {\bfseries framebuffer\+\_\+width}
+\item 
+\Hypertarget{struct_global_data_aa8d96850f671069618ffad6cc079aeb3}\label{struct_global_data_aa8d96850f671069618ffad6cc079aeb3} 
+uint32\+\_\+t {\bfseries framebuffer\+\_\+height}
+\item 
+\Hypertarget{struct_global_data_a348efd7b145832b9e0b23d03a9d2ffb3}\label{struct_global_data_a348efd7b145832b9e0b23d03a9d2ffb3} 
+uint32\+\_\+t {\bfseries framebuffer\+\_\+size}
+\item 
+\Hypertarget{struct_global_data_adee2fc3af2224af9aaeb515ec89712f2}\label{struct_global_data_adee2fc3af2224af9aaeb515ec89712f2} 
+uint32\+\_\+t \texorpdfstring{$\ast$}{*} {\bfseries framebuffer}
+\item 
+\Hypertarget{struct_global_data_af12841caf449f4d08fb88cd74c4983f5}\label{struct_global_data_af12841caf449f4d08fb88cd74c4983f5} 
+\mbox{\hyperlink{class_camera}{Camera}} {\bfseries camera}
+\item 
+\Hypertarget{struct_global_data_a462cb38d23dc8848d41848e638ae65f6}\label{struct_global_data_a462cb38d23dc8848d41848e638ae65f6} 
+uint {\bfseries bounces}
+\item 
+\Hypertarget{struct_global_data_a6409a10d80d4db289774802cb289fdc5}\label{struct_global_data_a6409a10d80d4db289774802cb289fdc5} 
+uint {\bfseries config}
+\item 
+\Hypertarget{struct_global_data_a83895090fe0a848881c96c3ffcca290e}\label{struct_global_data_a83895090fe0a848881c96c3ffcca290e} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\mbox{\hyperlink{struct_b_v_h_1_1_node}{BVH::Node}} \texorpdfstring{$\ast$}{*} {\bfseries blas}\\
+\>\mbox{\hyperlink{struct_b_v_h_1_1_compressed_node4}{BVH::CompressedNode4}} \texorpdfstring{$\ast$}{*} {\bfseries cblas}\\
+\}; \\
+
+\end{tabbing}\item 
+\Hypertarget{struct_global_data_a4b0c09cd382bbf49805abbdd69fc78d6}\label{struct_global_data_a4b0c09cd382bbf49805abbdd69fc78d6} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\mbox{\hyperlink{struct_mesh_pointers}{MeshPointers}} {\bfseries mesh}\\
+\>\mbox{\hyperlink{struct_tesselation_tree1_pointers}{TesselationTree1Pointers}} {\bfseries tt1}\\
+\>\mbox{\hyperlink{struct_tesselation_tree4_pointers}{TesselationTree4Pointers}} {\bfseries tt4}\\
+\}; \\
+
+\end{tabbing}\item 
+\Hypertarget{struct_global_data_ad7abbf47bb73d7e4958fa88ac19b666b}\label{struct_global_data_ad7abbf47bb73d7e4958fa88ac19b666b} 
+\mbox{\hyperlink{classrtm_1_1uvec3}{glm\+::uvec3}} \texorpdfstring{$\ast$}{*} {\bfseries ni}
+\item 
+\Hypertarget{struct_global_data_ad331904e3d8c66aa67253bbc501fc101}\label{struct_global_data_ad331904e3d8c66aa67253bbc501fc101} 
+\mbox{\hyperlink{classrtm_1_1vec3}{glm\+::vec3}} \texorpdfstring{$\ast$}{*} {\bfseries normals}
+\item 
+\Hypertarget{struct_global_data_af8a5867a1bf0fcbd63093b9468b06c06}\label{struct_global_data_af8a5867a1bf0fcbd63093b9468b06c06} 
+uint32\+\_\+t {\bfseries samples\+\_\+per\+\_\+pixel}
+\item 
+\Hypertarget{struct_global_data_a4a743775ad6b029cf613722b5f9116d4}\label{struct_global_data_a4a743775ad6b029cf613722b5f9116d4} 
+float {\bfseries inverse\+\_\+samples\+\_\+per\+\_\+pixel}
+\item 
+\Hypertarget{struct_global_data_a0d12f9de29ff2c9029d383260cc104f4}\label{struct_global_data_a0d12f9de29ff2c9029d383260cc104f4} 
+uint32\+\_\+t {\bfseries max\+\_\+path\+\_\+depth}
+\item 
+\Hypertarget{struct_global_data_a9a1f407d5f07d87a28098d7f4c6423e4}\label{struct_global_data_a9a1f407d5f07d87a28098d7f4c6423e4} 
+\mbox{\hyperlink{classrtm_1_1vec3}{rtm\+::vec3}} {\bfseries light\+\_\+dir}
+\item 
+\Hypertarget{struct_global_data_a48fe444f3d31360be284f760aa4f8264}\label{struct_global_data_a48fe444f3d31360be284f760aa4f8264} 
+\mbox{\hyperlink{class_triangle}{Triangle}} \texorpdfstring{$\ast$}{*} {\bfseries triangles}
+\item 
+\Hypertarget{struct_global_data_ad780ce1cce595f4b58a13e4e47b7089a}\label{struct_global_data_ad780ce1cce595f4b58a13e4e47b7089a} 
+\mbox{\hyperlink{struct_treelet}{Treelet}} \texorpdfstring{$\ast$}{*} {\bfseries treelets}
+\item 
+\Hypertarget{struct_global_data_a3fd8a5342ab7e67f7a1168881d644df4}\label{struct_global_data_a3fd8a5342ab7e67f7a1168881d644df4} 
+\mbox{\hyperlink{struct_hit}{Hit}} \texorpdfstring{$\ast$}{*} {\bfseries hit\+\_\+records}
+\item 
+\Hypertarget{struct_global_data_a265a4e1595948ee1aad1362a6d4f8f55}\label{struct_global_data_a265a4e1595948ee1aad1362a6d4f8f55} 
+\mbox{\hyperlink{struct_treelet}{Treelet}} \texorpdfstring{$\ast$}{*} {\bfseries scene\+\_\+buffer}
+\item 
+\Hypertarget{struct_global_data_a66284470acd3e9b5e0ad8f6bede7e3cf}\label{struct_global_data_a66284470acd3e9b5e0ad8f6bede7e3cf} 
+void \texorpdfstring{$\ast$}{*} {\bfseries ray\+\_\+staging\+\_\+buffer}
+\item 
+\Hypertarget{struct_global_data_a577ee56adb823a9dbbcf7674d46099ca}\label{struct_global_data_a577ee56adb823a9dbbcf7674d46099ca} 
+uint32\+\_\+t {\bfseries max\+\_\+bounces}
+\end{DoxyCompactItemize}
+
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/ray-\/tracing-\/include.\+hpp\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/benchmarks/dual-\/streaming/src/ray-\/tracing-\/include.\+hpp\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/benchmarks/trax/src/ray-\/tracing-\/include.\+hpp\end{DoxyCompactItemize}

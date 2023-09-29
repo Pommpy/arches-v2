@@ -1,0 +1,354 @@
+\doxysection{elf.\+hpp}
+\hypertarget{elf_8hpp_source}{}\label{elf_8hpp_source}\index{arches-\/v2/src/arches/util/elf.hpp@{arches-\/v2/src/arches/util/elf.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{keyword}{namespace\ }Arches\ \{}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{namespace\ }Util\ \{}
+\DoxyCodeLine{00009\ \ \ \ \ \textcolor{keyword}{class\ }File;}
+\DoxyCodeLine{00010\ \}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_err_inv_file}{ErrInvFile}}\ final\ :\ \textcolor{keyword}{public}\ std::runtime\_error\ \{}
+\DoxyCodeLine{00014\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{class_arches_1_1_err_inv_file}{ErrInvFile}}(std::string\ \textcolor{keyword}{const}\&\ msg)\ :\ std::runtime\_error(\textcolor{stringliteral}{"{}Invalid\ file:\ "{}}+msg+\textcolor{stringliteral}{"{}!"{}})\ \{\}}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{class_arches_1_1_err_inv_file}{\string~ErrInvFile}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00017\ \};}
+\DoxyCodeLine{00018\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_err_unacc_file}{ErrUnaccFile}}\ final\ :\ \textcolor{keyword}{public}\ std::runtime\_error\ \{}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00020\ \ \ \ \ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{class_arches_1_1_err_unacc_file}{ErrUnaccFile}}(std::string\ \textcolor{keyword}{const}\&\ msg)\ :\ std::runtime\_error(\textcolor{stringliteral}{"{}Unacceptable\ file:\ "{}}+msg+\textcolor{stringliteral}{"{}!"{}})\ \{\}}
+\DoxyCodeLine{00021\ \ \ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{class_arches_1_1_err_unacc_file}{\string~ErrUnaccFile}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00022\ \};}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{comment}{//The\ names\ in\ this\ class\ come\ from\ the\ actual\ ELF\ documentation:}}
+\DoxyCodeLine{00026\ \textcolor{comment}{//\ \ http://man7.org/linux/man-\/pages/man5/elf.5.html}}
+\DoxyCodeLine{00027\ \textcolor{comment}{//\ \ Note:\ different\ resources\ separate\ out\ the\ magic\ number\ from\ the\ identifier,\ making\ the\ relation}}
+\DoxyCodeLine{00028\ \textcolor{comment}{//\ \ \ \ \ \ to\ the\ actual\ standard\ tricky.}}
+\DoxyCodeLine{00029\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_e_l_f}{ELF}}\ final\ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{comment}{//ELF\ header:\ table\ of\ data\ at\ file\ offset\ 0.}}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ Ref.:\ http://refspecs.linuxbase.org/elf/gabi4+/ch4.eheader.html}}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header}{ELF\_Header}}\ final\ \{}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Identifier}}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t}{E\_IDENT}}\ final\ \{\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Magic\ number:\ \{\ 0x7F\ 'E'\ 'L'\ 'F'\ \}}}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ u8[4];}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ u32;}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ magic;}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Bit\ width\ of\ target\ system}}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ EI\_CLASS\ :\ uint8\_t\ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFCLASSNONE\ =\ 0,\ \textcolor{comment}{//Invalid}}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFCLASS32\ \ \ =\ 1,\ \textcolor{comment}{//32-\/bit\ architecture}}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFCLASS64\ \ \ =\ 2,\ \textcolor{comment}{//64-\/bit\ architecture}}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ ei\_class;}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Endianness}}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ EI\_DATA\ :\ uint8\_t\ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFDATANONE\ =\ 0,\ \textcolor{comment}{//Unknown\ data\ format}}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFDATA2LSB\ =\ 1,\ \textcolor{comment}{//Two's\ complement,\ little-\/endian}}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFDATA2MSB\ =\ 2\ \ \textcolor{comment}{//Two's\ complement,\ big-\/endian}}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ ei\_data;}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Version\ number\ of\ ELF\ specification}}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ EI\_VERSION\ :\ uint8\_t\ \{}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EV\_NONE\ \ \ \ =\ 0,\ \textcolor{comment}{//Invalid\ version}}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EV\_CURRENT\ =\ 1\ \ \textcolor{comment}{//Current\ version}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ ei\_version;}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//OS\ and\ ABI\ of\ target\ system}}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ Note:\ platform-\/specific\ values\ are\ keyed\ from\ this\ value.}}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ EI\_OSABI\ :\ uint8\_t\ \{}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_NONE\ \ \ \ \ \ \ =\ \ \ 0,\ \textcolor{comment}{//No\ extensions\ or\ unspecified\ (same\ as\ \`{}ELFOSABI\_SYSV`)}}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_SYSV\ \ \ \ \ \ \ =\ \ \ 0,\ \textcolor{comment}{//UNIX\ System\ V}}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_HPUX\ \ \ \ \ \ \ =\ \ \ 1,\ \textcolor{comment}{//Hewlett-\/Packard\ HP-\/UX}}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_NETBSD\ \ \ \ \ =\ \ \ 2,\ \textcolor{comment}{//NetBSD}}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_LINUX\ \ \ \ \ \ =\ \ \ 3,\ \textcolor{comment}{//Linux}}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_SOLARIS\ \ \ \ =\ \ \ 6,\ \textcolor{comment}{//Sun\ Solaris}}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_AIX\ \ \ \ \ \ \ \ =\ \ \ 7,\ \textcolor{comment}{//AIX}}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_IRIX\ \ \ \ \ \ \ =\ \ \ 8,\ \textcolor{comment}{//IRIX}}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_FREEBSD\ \ \ \ =\ \ \ 9,\ \textcolor{comment}{//FreeBSD}}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_TRU64\ \ \ \ \ \ =\ \ 10,\ \textcolor{comment}{//Compaq\ TRU64\ UNIX}}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_MODESTO\ \ \ \ =\ \ 11,\ \textcolor{comment}{//Novell\ Modesto}}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_OPENBSD\ \ \ \ =\ \ 12,\ \textcolor{comment}{//Open\ BSD}}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_OPENVMS\ \ \ \ =\ \ 13,\ \textcolor{comment}{//Open\ VMS}}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_NSK\ \ \ \ \ \ \ \ =\ \ 14,\ \textcolor{comment}{//Hewlett-\/Packard\ Non-\/Stop\ Kernel}}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_ARM\ \ \ \ \ \ \ \ =\ \ 97,\ \textcolor{comment}{//ARM}}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ELFOSABI\_STANDALONE\ =\ 255\ \ \textcolor{comment}{//Stand-\/alone\ (embedded)}}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ ei\_osabi;}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Used\ to\ distinguish\ among\ incompatible\ versions\ of\ an\ ABI.\ \ Often\ \`{}0x00`:}}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ unspecified.}}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ ei\_abiversion;}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Unused\ space.\ \ Ought\ to\ be\ zeroes,\ but\ if\ not\ it's\ officially\ ignored.}}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ ei\_pad[7];}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ e\_ident;}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_assert}(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t}{E\_IDENT}})==16,\textcolor{stringliteral}{"{}Implementation\ error!"{}});}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Object\ file\ type}}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ E\_TYPE\ :\ uint16\_t\ \{}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ET\_NONE\ \ \ =\ 0x0000,\ \textcolor{comment}{//No\ file\ type}}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ET\_REL\ \ \ \ =\ 0x0001,\ \textcolor{comment}{//Relocatable\ file}}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ET\_EXEC\ \ \ =\ 0x0002,\ \textcolor{comment}{//Executable\ file}}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ET\_DYN\ \ \ \ =\ 0x0003,\ \textcolor{comment}{//Shared\ object\ file}}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ET\_CORE\ \ \ =\ 0x0004,\ \textcolor{comment}{//Core\ file}}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ET\_LOOS\ \ \ =\ 0xFE00,\ \textcolor{comment}{//OS-\/specific}}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ET\_HIOS\ \ \ =\ 0xFEFF,\ \textcolor{comment}{//OS-\/specific}}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ET\_LOPROC\ =\ 0xFF00,\ \textcolor{comment}{//Processor-\/specific}}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ET\_HIPROC\ =\ 0xFFFF\ \ \textcolor{comment}{//Processor-\/specific}}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ e\_type;}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Required\ architecture}}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ E\_MACHINE\ :\ uint16\_t\ \{}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_NONE\ \ \ \ \ \ \ \ =\ \ \ 0,\ \textcolor{comment}{//Unknown\ /\ no\ machine}}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_M32\ \ \ \ \ \ \ \ \ =\ \ \ 1,\ \textcolor{comment}{//AT\&T\ WE\ 32100}}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_SPARC\ \ \ \ \ \ \ =\ \ \ 2,\ \textcolor{comment}{//Sun\ Microsystems\ SPARC}}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_386\ \ \ \ \ \ \ \ \ =\ \ \ 3,\ \textcolor{comment}{//Intel\ 80386}}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_68K\ \ \ \ \ \ \ \ \ =\ \ \ 4,\ \textcolor{comment}{//Motorola\ 68000}}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_88K\ \ \ \ \ \ \ \ \ =\ \ \ 5,\ \textcolor{comment}{//Motorola\ 88000}}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//(6\ reserved;\ was\ \`{}EM\_486`)}}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_860\ \ \ \ \ \ \ \ \ =\ \ \ 7,\ \textcolor{comment}{//Intel\ 80860}}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_MIPS\ \ \ \ \ \ \ \ =\ \ \ 8,\ \textcolor{comment}{//MIPS\ I\ RS3000\ (big-\/endian\ only)\ architecture}}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_S370\ \ \ \ \ \ \ \ =\ \ \ 9,\ \textcolor{comment}{//IBM\ System/370\ Processor}}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_MIPS\_RS3\_LE\ =\ \ 10,\ \textcolor{comment}{//MIPS\ RS3000\ Little-\/endian}}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//([11-\/14]\ reserved)}}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_PARISC\ \ \ \ \ \ =\ \ 15,\ \textcolor{comment}{//Hewlett-\/Packard\ PA-\/RISC}}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//(16\ reserved)}}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_VPP500\ \ \ \ \ \ =\ \ 17,\ \textcolor{comment}{//Fujitsu\ VPP500}}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_SPARC32PLUS\ =\ \ 18,\ \textcolor{comment}{//Enhanced\ instruction\ set\ SPARC}}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_960\ \ \ \ \ \ \ \ \ =\ \ 19,\ \textcolor{comment}{//Intel\ 80960}}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_PPC\ \ \ \ \ \ \ \ \ =\ \ 20,\ \textcolor{comment}{//PowerPC}}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_PPC64\ \ \ \ \ \ \ =\ \ 21,\ \textcolor{comment}{//PowerPC\ 64-\/bit}}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_S390\ \ \ \ \ \ \ \ =\ \ 22,\ \textcolor{comment}{//IBM\ System/390\ Processor}}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//([23-\/35]\ reserved)}}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_V800\ \ \ \ \ \ \ \ =\ \ 36,\ \textcolor{comment}{//NEC\ V800}}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_FR20\ \ \ \ \ \ \ \ =\ \ 37,\ \textcolor{comment}{//Fujitsu\ FR20}}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_RH32\ \ \ \ \ \ \ \ =\ \ 38,\ \textcolor{comment}{//TRW\ RH-\/32}}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_RCE\ \ \ \ \ \ \ \ \ =\ \ 39,\ \textcolor{comment}{//Motorola\ RCE}}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ARM\ \ \ \ \ \ \ \ \ =\ \ 40,\ \textcolor{comment}{//Advanced\ RISC\ Machines\ ARM}}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ALPHA\ \ \ \ \ \ \ =\ \ 41,\ \textcolor{comment}{//Digital\ Alpha}}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_SH\ \ \ \ \ \ \ \ \ \ =\ \ 42,\ \textcolor{comment}{//Renesas\ SuperH\ /\ Hitachi\ SH}}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_SPARCV9\ \ \ \ \ =\ \ 43,\ \textcolor{comment}{//SPARC\ Version\ 9\ 64-\/bit}}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_TRICORE\ \ \ \ \ =\ \ 44,\ \textcolor{comment}{//Siemens\ TriCore\ embedded\ processor}}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ARC\ \ \ \ \ \ \ \ \ =\ \ 45,\ \textcolor{comment}{//Argonaut\ RISC\ Core,\ Argonaut\ Technologies\ Inc.}}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_H8\_300\ \ \ \ \ \ =\ \ 46,\ \textcolor{comment}{//Hitachi\ H8/300}}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_H8\_300H\ \ \ \ \ =\ \ 47,\ \textcolor{comment}{//Hitachi\ H8/300H}}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_H8S\ \ \ \ \ \ \ \ \ =\ \ 48,\ \textcolor{comment}{//Hitachi\ H8S}}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_H8\_500\ \ \ \ \ \ =\ \ 49,\ \textcolor{comment}{//Hitachi\ H8/500}}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_IA\_64\ \ \ \ \ \ \ =\ \ 50,\ \textcolor{comment}{//Intel\ Itanium\ IA-\/64\ processor\ architecture}}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_MIPS\_X\ \ \ \ \ \ =\ \ 51,\ \textcolor{comment}{//Stanford\ MIPS-\/X}}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_COLDFIRE\ \ \ \ =\ \ 52,\ \textcolor{comment}{//Motorola\ ColdFire}}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_68HC12\ \ \ \ \ \ =\ \ 53,\ \textcolor{comment}{//Motorola\ M68HC12}}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_MMA\ \ \ \ \ \ \ \ \ =\ \ 54,\ \textcolor{comment}{//Fujitsu\ MMA\ Multimedia\ Accelerator}}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_PCP\ \ \ \ \ \ \ \ \ =\ \ 55,\ \textcolor{comment}{//Siemens\ PCP}}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_NCPU\ \ \ \ \ \ \ \ =\ \ 56,\ \textcolor{comment}{//Sony\ nCPU\ embedded\ RISC\ processor}}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_NDR1\ \ \ \ \ \ \ \ =\ \ 57,\ \textcolor{comment}{//Denso\ NDR1\ microprocessor}}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_STARCORE\ \ \ \ =\ \ 58,\ \textcolor{comment}{//Motorola\ Star*Core\ processor}}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ME16\ \ \ \ \ \ \ \ =\ \ 59,\ \textcolor{comment}{//Toyota\ ME16\ processor}}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ST100\ \ \ \ \ \ \ =\ \ 60,\ \textcolor{comment}{//STMicroelectronics\ ST100\ processor}}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_TINYJ\ \ \ \ \ \ \ =\ \ 61,\ \textcolor{comment}{//Advanced\ Logic\ Corp.\ TinyJ\ embedded\ processor\ family}}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_X86\_64\ \ \ \ \ \ =\ \ 62,\ \textcolor{comment}{//AMD\ x86-\/64\ architecture}}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_PDSP\ \ \ \ \ \ \ \ =\ \ 63,\ \textcolor{comment}{//Sony\ DSP\ Processor}}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_PDP10\ \ \ \ \ \ \ =\ \ 64,\ \textcolor{comment}{//Digital\ Equipment\ Corp.\ PDP-\/10}}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_PDP11\ \ \ \ \ \ \ =\ \ 65,\ \textcolor{comment}{//Digital\ Equipment\ Corp.\ PDP-\/11}}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_FX66\ \ \ \ \ \ \ \ =\ \ 66,\ \textcolor{comment}{//Siemens\ FX66\ microcontroller}}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ST9PLUS\ \ \ \ \ =\ \ 67,\ \textcolor{comment}{//STMicroelectronics\ ST9+\ 8/16\ bit\ microcontroller}}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ST7\ \ \ \ \ \ \ \ \ =\ \ 68,\ \textcolor{comment}{//STMicroelectronics\ ST7\ 8-\/bit\ microcontroller}}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_68HC16\ \ \ \ \ \ =\ \ 69,\ \textcolor{comment}{//Motorola\ MC68HC16\ Microcontroller}}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_68HC11\ \ \ \ \ \ =\ \ 70,\ \textcolor{comment}{//Motorola\ MC68HC11\ Microcontroller}}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_68HC08\ \ \ \ \ \ =\ \ 71,\ \textcolor{comment}{//Motorola\ MC68HC08\ Microcontroller}}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_68HC05\ \ \ \ \ \ =\ \ 72,\ \textcolor{comment}{//Motorola\ MC68HC05\ Microcontroller}}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_SVX\ \ \ \ \ \ \ \ \ =\ \ 73,\ \textcolor{comment}{//Silicon\ Graphics\ SVx}}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ST19\ \ \ \ \ \ \ \ =\ \ 74,\ \textcolor{comment}{//STMicroelectronics\ ST19\ 8-\/bit\ microcontroller}}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_VAX\ \ \ \ \ \ \ \ \ =\ \ 75,\ \textcolor{comment}{//DEC\ VAX}}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_CRIS\ \ \ \ \ \ \ \ =\ \ 76,\ \textcolor{comment}{//Axis\ Communications\ 32-\/bit\ embedded\ processor}}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_JAVELIN\ \ \ \ \ =\ \ 77,\ \textcolor{comment}{//Infineon\ Technologies\ 32-\/bit\ embedded\ processor}}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_FIREPATH\ \ \ \ =\ \ 78,\ \textcolor{comment}{//Element\ 14\ 64-\/bit\ DSP\ Processor}}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ZSP\ \ \ \ \ \ \ \ \ =\ \ 79,\ \textcolor{comment}{//LSI\ Logic\ 16-\/bit\ DSP\ Processor}}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_MMIX\ \ \ \ \ \ \ \ =\ \ 80,\ \textcolor{comment}{//Donald\ Knuth's\ educational\ 64-\/bit\ processor}}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_HUANY\ \ \ \ \ \ \ =\ \ 81,\ \textcolor{comment}{//Harvard\ University\ machine-\/independent\ object\ files}}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_PRISM\ \ \ \ \ \ \ =\ \ 82,\ \textcolor{comment}{//SiTera\ Prism}}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_AVR\ \ \ \ \ \ \ \ \ =\ \ 83,\ \textcolor{comment}{//Atmel\ AVR\ 8-\/bit\ microcontroller}}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_FR30\ \ \ \ \ \ \ \ =\ \ 84,\ \textcolor{comment}{//Fujitsu\ FR30}}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_D10V\ \ \ \ \ \ \ \ =\ \ 85,\ \textcolor{comment}{//Mitsubishi\ D10V}}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_D30V\ \ \ \ \ \ \ \ =\ \ 86,\ \textcolor{comment}{//Mitsubishi\ D30V}}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_V850\ \ \ \ \ \ \ \ =\ \ 87,\ \textcolor{comment}{//NEC\ v850}}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_M32R\ \ \ \ \ \ \ \ =\ \ 88,\ \textcolor{comment}{//Mitsubishi\ M32R}}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_MN10300\ \ \ \ \ =\ \ 89,\ \textcolor{comment}{//Matsushita\ MN10300}}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_MN10200\ \ \ \ \ =\ \ 90,\ \textcolor{comment}{//Matsushita\ MN10200}}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_PJ\ \ \ \ \ \ \ \ \ \ =\ \ 91,\ \textcolor{comment}{//picoJava}}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_OPENRISC\ \ \ \ =\ \ 92,\ \textcolor{comment}{//OpenRISC\ 32-\/bit\ embedded\ processor}}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ARC\_A5\ \ \ \ \ \ =\ \ 93,\ \textcolor{comment}{//ARC\ Cores\ Tangent-\/A5}}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_XTENSA\ \ \ \ \ \ =\ \ 94,\ \textcolor{comment}{//Tensilica\ Xtensa\ Architecture}}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_VIDEOCORE\ \ \ =\ \ 95,\ \textcolor{comment}{//Alphamosaic\ VideoCore\ processor}}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_TMM\_GPP\ \ \ \ \ =\ \ 96,\ \textcolor{comment}{//Thompson\ Multimedia\ General\ Purpose\ Processor}}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_NS32K\ \ \ \ \ \ \ =\ \ 97,\ \textcolor{comment}{//National\ Semiconductor\ 32000\ series}}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_TPC\ \ \ \ \ \ \ \ \ =\ \ 98,\ \textcolor{comment}{//Tenor\ Network\ TPC\ processor}}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_SNP1K\ \ \ \ \ \ \ =\ \ 99,\ \textcolor{comment}{//Trebia\ SNP\ 1000\ processor}}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EM\_ST200\ \ \ \ \ \ \ =\ 100\ \ \textcolor{comment}{//STMicroelectronics\ (www.st.com)\ ST200\ microcontroller}}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ e\_machine;}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//File\ version}}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ E\_VERSION\ :\ uint32\_t\ \{}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EV\_NONE\ \ \ \ =\ 0u,}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ EV\_CURRENT\ =\ 1u}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ e\_version;}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Entry\ point\ (zero\ if\ none)}}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{\ uint32\_t\ u32;\ uint64\_t\ u64;\ \}\ e\_entry;}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Program\ header\ table\ file\ offset\ (zero\ if\ none)}}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{\ uint32\_t\ u32;\ uint64\_t\ u64;\ \}\ e\_phoff;}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Section\ header\ table\ file\ offset\ (zero\ if\ none)}}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{\ uint32\_t\ u32;\ uint64\_t\ u64;\ \}\ e\_shoff;}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Processor-\/specific\ flags}}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ e\_flags;}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Size\ of\ this\ header}}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint16\_t\ e\_ehsize;}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Size\ of\ each\ entry\ in\ program\ header\ table}}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint16\_t\ e\_phentsize;}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Number\ of\ entries\ in\ program\ header\ table\ (zero\ if\ no\ table)}}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint16\_t\ e\_phnum;}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Size\ of\ each\ entry\ in\ section\ header\ table}}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint16\_t\ e\_shentsize;}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Number\ of\ entries\ in\ section\ header\ table\ (zero\ if\ the\ number\ is}}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ larger\ than\ 0xFF00\ (in\ which\ case\ the\ actual\ number\ is\ stored\ in\ \`{}.sh\_size`\ in}}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ the\ section\ header,\ which\ would\ otherwise\ be\ zero)\ or\ if\ no\ table)}}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint16\_t\ e\_shnum;}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Section\ header\ table\ index\ of\ entry\ associated\ with\ the\ section\ name\ string\ table}}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ (zero\ if\ none)}}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint16\_t\ e\_shstrndx;}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{explicit}\ ELF\_Header(Util::File*\ file);}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \string~ELF\_Header()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ RET>\ RET\ fix\_endianness(RET\ x)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ ELF\_Header*\ elf\_header;}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \textcolor{keyword}{class\ }LoadableSegment;}
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \textcolor{comment}{//Program\ header:\ array\ of\ structures,\ each\ describing\ a\ segment\ (comprised\ of\ section(s))}}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ or\ other\ information\ the\ system\ needs\ to\ prepare\ the\ program\ for\ execution}}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ Ref.:\ http://refspecs.linuxbase.org/elf/gabi4+/ch5.pheader.html}}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_program_header}{ProgramHeader}}\ final\ \{}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element}{ArrayElement}}\ final\ \{}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header}{ELF\_Header}}\ \textcolor{keyword}{const}*\ \_header;}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Type\ of\ element}}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ P\_TYPE\ :\ uint32\_t\ \{}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Array\ element\ is\ unused;\ other\ members'\ values\ undefined}}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_NULL\ \ \ \ =\ 0x00000000u,}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Loadable\ segment\ of\ size\ \`{}.p\_memsz`\ initialized\ with\ data\ of\ length}}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ \`{}.p\_filesz`\ and\ the\ rest\ padded\ with\ zeroes}}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_LOAD\ \ \ \ =\ 0x00000001u,}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Dynamic\ linking\ information}}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_DYNAMIC\ =\ 0x00000002u,}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Location\ and\ size\ of\ a\ null-\/terminated\ path\ name\ to\ invoke\ as\ an}}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ interpreter}}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_INTERP\ \ =\ 0x00000003u,}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Location\ and\ size\ of\ auxiliary\ information}}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_NOTE\ \ \ \ =\ 0x00000004u,}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//(Reserved)}}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_SHLIB\ \ \ =\ 0x00000005u,}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Location\ and\ size\ of\ the\ program\ header\ table}}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_PHDR\ \ \ \ =\ 0x00000006u,}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Thread-\/local\ storage\ template}}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_TLS\ \ \ \ \ =\ 0x00000007u,}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Range\ of\ OS-\/specific\ semantics}}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_LOOS\ \ \ \ =\ 0x60000000u,}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_HIOS\ \ \ \ =\ 0x6FFFFFFFu,}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Range\ of\ processor-\/specific\ semantics}}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_LOPROC\ \ =\ 0x70000000u,}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PT\_HIPROC\ \ =\ 0x7FFFFFFFu}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ p\_type;}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//File\ offset\ of\ segment\ data}}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{\ uint32\_t\ u32;\ uint64\_t\ u64;\ \}\ p\_offset;}
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Virtual\ address\ where\ segment\ should\ be\ loaded}}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{\ uint32\_t\ u32;\ uint64\_t\ u64;\ \}\ p\_vaddr;}
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Physical\ address,\ as-\/relevant}}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{\ uint32\_t\ u32;\ uint64\_t\ u64;\ \}\ p\_paddr;}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Size\ of\ the\ segment\ data\ contained\ in\ the\ file\ (may\ be\ zero)}}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{\ uint32\_t\ u32;\ uint64\_t\ u64;\ \}\ p\_filesz;}
+\DoxyCodeLine{00291\ }
+\DoxyCodeLine{00292\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Size\ of\ the\ segment\ (may\ be\ zero,\ but\ probably\ shouldn't\ be)}}
+\DoxyCodeLine{00293\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{\ uint32\_t\ u32;\ uint64\_t\ u64;\ \}\ p\_memsz;}
+\DoxyCodeLine{00294\ }
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ P\_FLAGS\ :\ uint32\_t\ \{}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PF\_X\ \ \ \ \ \ \ \ =\ 0x00000001u,\ \textcolor{comment}{//Execute}}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PF\_W\ \ \ \ \ \ \ \ =\ 0x00000002u,\ \textcolor{comment}{//Write}}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PF\_R\ \ \ \ \ \ \ \ =\ 0x00000004u,\ \textcolor{comment}{//Read}}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PF\_MASKOS\ \ \ =\ 0x0FF00000u,\ \textcolor{comment}{//Unspecified}}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PF\_MASKPROC\ =\ 0xF0000000u\ \ \textcolor{comment}{//Unspecified}}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ p\_flags;}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//If\ greater\ than\ 1,\ value\ is\ the\ alignment\ of\ the\ segment\ in\ memory\ and\ in}}
+\DoxyCodeLine{00304\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ the\ file\ data\ (i.e.,\ it\ evenly\ divides\ \`{}.p\_offset`\ and\ \`{}.p\_vaddr`).}}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{\ uint32\_t\ u32;\ uint64\_t\ u64;\ \}\ p\_align;}
+\DoxyCodeLine{00306\ }
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//If\ a\ loadable\ segment,\ updated\ to\ point\ to\ the\ segment's\ data\ (note:}}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ updated\ to\ \`{}nullptr`\ if\ not\ a\ loadable\ segment).}}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_loadable_segment}{LoadableSegment}}*\ segment;}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element}{ArrayElement}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element}{ArrayElement}}(\mbox{\hyperlink{class_arches_1_1_util_1_1_file}{Util::File}}*\ file,\ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header}{ELF\_Header}}\ \textcolor{keyword}{const}*\ elf\_header);}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_program_header_1_1_array_element}{\string~ArrayElement}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::vector<ArrayElement>\ arr;}
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00320\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_program_header}{ProgramHeader}}(\mbox{\hyperlink{class_arches_1_1_util_1_1_file}{Util::File}}*\ file,\ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header}{ELF\_Header}}\ \textcolor{keyword}{const}*\ elf\_header);}
+\DoxyCodeLine{00321\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_program_header}{\string~ProgramHeader}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00322\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00323\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_program_header}{ProgramHeader}}*\ program\_header;}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \ \ \ \ \ \ \ \ \textcolor{comment}{//Loadable\ segments}}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_loadable_segment}{LoadableSegment}}\ final\ \{}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header}{ELF\_Header}}\ \textcolor{keyword}{const}*\ \_header;}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Virtual\ address\ where\ segment\ should\ be\ loaded}}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ vaddr\_t\ vaddr;}
+\DoxyCodeLine{00332\ }
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//Data\ loaded\ into\ the\ start\ of\ the\ segment}}
+\DoxyCodeLine{00334\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::vector<uint8\_t>\ data;}
+\DoxyCodeLine{00335\ }
+\DoxyCodeLine{00336\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_loadable_segment}{LoadableSegment}}(\mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_e_l_f___header}{ELF\_Header}}\ \textcolor{keyword}{const}*\ header)\ :\ \_header(header)\ \{\}}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f_1_1_loadable_segment}{\string~LoadableSegment}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ \ std::vector<LoadableSegment*>\ segments;}
+\DoxyCodeLine{00341\ }
+\DoxyCodeLine{00342\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{class_arches_1_1_e_l_f}{ELF}}(std::string\ \textcolor{keyword}{const}\&\ path);}
+\DoxyCodeLine{00344\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_e_l_f}{\string~ELF}}();}
+\DoxyCodeLine{00345\ \};}
+\DoxyCodeLine{00346\ }
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \}}
+
+\end{DoxyCode}

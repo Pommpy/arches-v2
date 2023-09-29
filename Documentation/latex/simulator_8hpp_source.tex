@@ -1,0 +1,109 @@
+\doxysection{simulator.\+hpp}
+\hypertarget{simulator_8hpp_source}{}\label{simulator_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/simulator/simulator.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/simulator/simulator.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#if\ 1}}
+\DoxyCodeLine{00010\ \textcolor{keyword}{namespace\ }Arches\ \{}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{keyword}{namespace\ }Units}
+\DoxyCodeLine{00013\ \{}
+\DoxyCodeLine{00014\ \ \ \ \ \textcolor{keyword}{class\ }UnitBase;}
+\DoxyCodeLine{00015\ \}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}}}
+\DoxyCodeLine{00023\ \{}
+\DoxyCodeLine{00024\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keyword}{struct\ }UnitGroup}
+\DoxyCodeLine{00029\ \ \ \ \ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ uint\ start;}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ uint\ end;}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ UnitGroup()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ UnitGroup(uint\ start,\ uint\ end)\ :\ start(start),\ end(end)\ \{\}}
+\DoxyCodeLine{00035\ \ \ \ \ \};}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00038\ \ \ \ \ std::vector<UnitGroup>\ \_unit\_groups;\ }
+\DoxyCodeLine{00039\ \ \ \ \ }
+\DoxyCodeLine{00041\ \ \ \ \ std::vector<Units::UnitBase*>\ \_units;}
+\DoxyCodeLine{00042\ \ \ \ \ }
+\DoxyCodeLine{00043\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00044\ \ \ \ \ }
+\DoxyCodeLine{00046\ \ \ \ \ std::atomic\_uint\ \mbox{\hyperlink{class_arches_1_1_simulator_a59ba067f32b17a0829f99faf19d7f81d}{units\_executing}}\{0\};}
+\DoxyCodeLine{00047\ \ \ \ \ }
+\DoxyCodeLine{00049\ \ \ \ \ cycles\_t\ \mbox{\hyperlink{class_arches_1_1_simulator_adab84dcde58cf510501ac9d5c5f21ef5}{current\_cycle}}\{\ 0\ \};}
+\DoxyCodeLine{00050\ \ \ \ \ }
+\DoxyCodeLine{00052\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_simulator_a4be971f7e79a8e02da70b247dab51b52}{Simulator}}()\ \{\ \_unit\_groups.emplace\_back(0u,\ 0u);\ \}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_arches_1_1_simulator_ad06f537f7185d63b1c8f17d1ab3fe975}{register\_unit}}(\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Units::UnitBase}}*\ unit);}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_arches_1_1_simulator_abc35e15bb255cdc777c3729f9019b701}{start\_new\_unit\_group}}();}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_arches_1_1_simulator_aad8200f4749c4e768ae4ee5dde9aff51}{\_clock\_rise}}();}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_arches_1_1_simulator_a633e9d997cb1487f44ef233e21d9b875}{\_clock\_fall}}();}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_arches_1_1_simulator_a88a8edb448a57a007b8313d58380fdd4}{execute}}();}
+\DoxyCodeLine{00068\ \};}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#include\ <thread>}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#include\ <barrier>}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{keyword}{namespace\ }Arches}
+\DoxyCodeLine{00077\ \{}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keyword}{namespace\ }Units}
+\DoxyCodeLine{00080\ \ \ \ \ \{}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \textcolor{keyword}{class\ }UnitBase;}
+\DoxyCodeLine{00082\ \ \ \ \ \}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{class\ }Simulator}
+\DoxyCodeLine{00085\ \ \ \ \ \{}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }UnitGroup}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ start;}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ size;}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ UnitGroup()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ UnitGroup(uint\ start,\ uint\ size)\ :\ start(start),\ size(size)\ \{\}}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ std::vector<UnitGroup>\ \_unit\_groups;}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ std::vector<Units::UnitBase*>\ \_units;}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ std::atomic\_bool\ \ \ \ \ \ \ \ \ \ \ \ \ \ \_done\{\textcolor{keyword}{false}\};}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ std::atomic\_uint\ \_rise\_index\{0\};}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ std::atomic\_uint\ \_fall\_index\{0\};}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ std::vector<std::thread*>\ \_thread\_pool;}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ std::barrier<std::\_No\_completion\_function>\ \_barrier;}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ cycles\_t\ \mbox{\hyperlink{class_arches_1_1_simulator_adab84dcde58cf510501ac9d5c5f21ef5}{current\_cycle}}\{\string~0ull\};}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_simulator_a4be971f7e79a8e02da70b247dab51b52}{Simulator}}(uint\ num\_threads);}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_arches_1_1_simulator_ad06f537f7185d63b1c8f17d1ab3fe975}{register\_unit}}(Units::UnitBase*\ unit);}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_arches_1_1_simulator_abc35e15bb255cdc777c3729f9019b701}{start\_new\_unit\_group}}();}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_arches_1_1_simulator_aad8200f4749c4e768ae4ee5dde9aff51}{\_clock\_rise}}();}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_arches_1_1_simulator_a633e9d997cb1487f44ef233e21d9b875}{\_clock\_fall}}();}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \_thread\_work(uint\ thread\_id);}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_arches_1_1_simulator_a88a8edb448a57a007b8313d58380fdd4}{execute}}();}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \ \ \};}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

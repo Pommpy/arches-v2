@@ -1,0 +1,216 @@
+\doxysection{intersect-\/tt.hpp}
+\hypertarget{intersect-tt_8hpp_source}{}\label{intersect-tt_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/intersect-\/tt.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/intersect-\/tt.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}intersect.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}tesselation-\/tree.hpp"{}}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{class_triangle}{Triangle}}\ decompact(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}\&\ ctri)}
+\DoxyCodeLine{00008\ \{}
+\DoxyCodeLine{00009\ \ \ \ \ uint64\_t\ dw0\ =\ ctri.data[0];}
+\DoxyCodeLine{00010\ \ \ \ \ uint64\_t\ dw1\ =\ ctri.data[1];}
+\DoxyCodeLine{00011\ \ \ \ \ uint64\_t\ dw2\ =\ ctri.data[2];}
+\DoxyCodeLine{00012\ \ \ \ \ uint64\_t\ dw3\ =\ ctri.data[3];}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \ \ \ \ \textcolor{keywordtype}{float}\ f0\ =\ u24\_to\_f32(dw0\ \&\ 0xffffff);}
+\DoxyCodeLine{00015\ \ \ \ \ \textcolor{keywordtype}{float}\ f1\ =\ u24\_to\_f32((dw0\ >>\ 24)\ \&\ 0xffffff);}
+\DoxyCodeLine{00016\ \ \ \ \ \textcolor{keywordtype}{float}\ f2\ =\ u24\_to\_f32(((dw0\ >>\ 48)\ |\ (dw1\ <<\ 16))\ \&\ 0xffffff);}
+\DoxyCodeLine{00017\ \ \ \ \ \textcolor{keywordtype}{float}\ f3\ =\ u24\_to\_f32((dw1\ >>\ 8)\ \&\ 0xffffff);}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keywordtype}{float}\ f4\ =\ u24\_to\_f32((dw1\ >>\ 32)\ \&\ 0xffffff);}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keywordtype}{float}\ f5\ =\ u24\_to\_f32(((dw1\ >>\ 56)\ |\ (dw2\ <<\ 8))\ \&\ 0xffffff);}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keywordtype}{float}\ f6\ =\ u24\_to\_f32((dw2\ >>\ 16)\ \&\ 0xffffff);}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keywordtype}{float}\ f7\ =\ u24\_to\_f32((dw2\ >>\ 40)\ \&\ 0xffffff);}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordtype}{float}\ f8\ =\ u24\_to\_f32(dw3\ \&\ 0xffffff);}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{class_triangle}{Triangle}}(\mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}(f0,\ f1,\ f2),\ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}(f3,\ f4,\ f5),\ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}(f6,\ f7,\ f8));}
+\DoxyCodeLine{00025\ \}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ evalute\_deformation\_bounds(uint32\_t\ qdb,\ \textcolor{keywordtype}{float}\ max\_db\_over\_max\_error,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_triangle}{Triangle}}\&\ tri,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ ray)}
+\DoxyCodeLine{00028\ \{}
+\DoxyCodeLine{00029\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ fdbs((\textcolor{keywordtype}{float})(qdb\ >>\ 00\ \&\ 0x3ff),\ (\textcolor{keywordtype}{float})(qdb\ >>\ 10\ \&\ 0x3ff),\ (\textcolor{keywordtype}{float})(qdb\ >>\ 20\ \&\ 0x3ff));}
+\DoxyCodeLine{00030\ \ \ \ \ fdbs\ *=\ (1.0f\ /\ 1023.0f);}
+\DoxyCodeLine{00031\ \ \ \ \ fdbs\ *=\ fdbs;}
+\DoxyCodeLine{00032\ \ \ \ \ fdbs\ *=\ max\_db\_over\_max\_error;}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ dlen(glm::dot(tri.vrts[0]\ -\/\ ray.o,\ ray.d),\ glm::dot(tri.vrts[1]\ -\/\ ray.o,\ ray.d),\ glm::dot(tri.vrts[2]\ -\/\ ray.o,\ ray.d));}
+\DoxyCodeLine{00035\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ mdlen(std::min(dlen[1],\ dlen[2]),\ std::min(dlen[2],\ dlen[0]),\ std::min(dlen[0],\ dlen[1]));}
+\DoxyCodeLine{00036\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ r\ =\ mdlen\ *\ ray.drdt\ +\ ray.radius;}
+\DoxyCodeLine{00037\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ recip\_r(\_rcp(r[0]),\ \_rcp(r[1]),\ \_rcp(r[2]));}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ delta\ =\ fdbs\ *\ recip\_r\ -\/\ 1.0f;}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordflow}{return}\ glm::clamp(delta,\ 0.0f,\ 1.0f);}
+\DoxyCodeLine{00041\ \}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{class_triangle}{Triangle}}\ get\_transformed\_triangle(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_triangle}{Triangle}}\&\ prnt\_tri,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_triangle}{Triangle}}\&\ cntr\_tri,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\&\ edge\_states)}
+\DoxyCodeLine{00044\ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{class_triangle}{Triangle}}(}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ mix((prnt\_tri.vrts[1]\ +\ prnt\_tri.vrts[2])\ *\ 0.5f,\ cntr\_tri.vrts[0],\ edge\_states[0]),}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ mix((prnt\_tri.vrts[2]\ +\ prnt\_tri.vrts[0])\ *\ 0.5f,\ cntr\_tri.vrts[1],\ edge\_states[1]),}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ mix((prnt\_tri.vrts[0]\ +\ prnt\_tri.vrts[1])\ *\ 0.5f,\ cntr\_tri.vrts[2],\ edge\_states[2])}
+\DoxyCodeLine{00049\ \ \ \ \ );}
+\DoxyCodeLine{00050\ \}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \mbox{\hyperlink{class_triangle}{Triangle}}\ reconstruct\_triangle(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_triangle}{Triangle}}\&\ prnt\_tri,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_triangle}{Triangle}}\&\ cntr\_tri,\ \textcolor{keyword}{const}\ uint32\_t\ tri\_type)}
+\DoxyCodeLine{00053\ \{}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordflow}{if}(tri\_type\ ==\ 0)\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{class_triangle}{Triangle}}(prnt\_tri.vrts[0],\ cntr\_tri.vrts[2],\ cntr\_tri.vrts[1]);}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(tri\_type\ ==\ 1)\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{class_triangle}{Triangle}}(cntr\_tri.vrts[2],\ prnt\_tri.vrts[1],\ cntr\_tri.vrts[0]);}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(tri\_type\ ==\ 2)\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{class_triangle}{Triangle}}(cntr\_tri.vrts[1],\ cntr\_tri.vrts[0],\ prnt\_tri.vrts[2]);}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{/*if(tri\_type\ ==\ 3)*/}\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{class_triangle}{Triangle}}(cntr\_tri.vrts[0],\ cntr\_tri.vrts[1],\ cntr\_tri.vrts[2]);}
+\DoxyCodeLine{00058\ \}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{keyword}{const}\ uint\ lod\_node\_offset[16]\ =\ \{0,\ 1,\ 5,\ 21,\ 85,\ 341,\ 1365,\ 5461,\ 21845,\ 87381,\ 349525\};}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_i_a_o}{IAO}}}
+\DoxyCodeLine{00063\ \{}
+\DoxyCodeLine{00064\ \ \ \ \ uint32\_t\ i;}
+\DoxyCodeLine{00065\ \ \ \ \ uint16\_t\ a;}
+\DoxyCodeLine{00066\ \ \ \ \ uint8\_t\ o;}
+\DoxyCodeLine{00067\ \};}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{struct_i_a_o}{IAO}}\ iao\_to\_child\_iao(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_i_a_o}{IAO}}\&\ in,\ uint\ type)}
+\DoxyCodeLine{00070\ \{}
+\DoxyCodeLine{00071\ \ \ \ \ \mbox{\hyperlink{struct_i_a_o}{IAO}}\ out;}
+\DoxyCodeLine{00072\ \ \ \ \ type\ |=\ in.o\ <<\ 2;}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordflow}{switch}(type)}
+\DoxyCodeLine{00074\ \ \ \ \ \{}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keywordflow}{case}\ 0b000:}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ out.a\ =\ in.a\ +\ 1;}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ out.i\ =\ in.i\ +\ in.a\ +\ 2;}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ out.o\ =\ 0;}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordflow}{case}\ 0b001:}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ out.a\ =\ in.a;}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ out.i\ =\ in.i;}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ out.o\ =\ 0;}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordflow}{case}\ 0b010:}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ out.a\ =\ in.a\ +\ 1;}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ out.i\ =\ in.i\ +\ in.a\ +\ 1;}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ out.o\ =\ 0;}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordflow}{case}\ 0b011:}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ out.a\ =\ in.a\ +\ 1;}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ out.i\ =\ in.i\ +\ in.a\ +\ 1;}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ out.o\ =\ 1;}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordflow}{case}\ 0b100:}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ out.a\ =\ in.a;}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ out.i\ =\ in.i;}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ out.o\ =\ 1;}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordflow}{case}\ 0b101:}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ out.a\ =\ in.a\ +\ 1;}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ out.i\ =\ in.i\ +\ in.a\ +\ 2;}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ out.o\ =\ 1;}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordflow}{case}\ 0b110:}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ out.a\ =\ in.a;}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ out.i\ =\ in.i\ +\ 1;}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ out.o\ =\ 1;}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordflow}{case}\ 0b111:}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ out.a\ =\ in.a;}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ out.i\ =\ in.i\ +\ 1;}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ out.o\ =\ 0;}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00122\ \ \ \ \ \}}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordflow}{return}\ out;}
+\DoxyCodeLine{00124\ \}}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \textcolor{keyword}{const}\ uint\ lod\_face\_offset[16]\ =\ \{0,\ 1,\ 4,\ 14,\ 50,\ 186,\ 714,\ 2784,\ 11050,\ 43946,\ 175274\};}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{classrtm_1_1uvec3}{glm::uvec3}}\ iao\_to\_vi(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_i_a_o}{IAO}}\&\ iao,\ uint\ lod)}
+\DoxyCodeLine{00129\ \{}
+\DoxyCodeLine{00130\ \ \ \ \ uint\ face\_start\ =\ (lod\_face\_offset[lod]\ +\ iao.i)\ *\ 3;}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordflow}{if}(iao.o\ ==\ 0)\ \textcolor{comment}{//up}}
+\DoxyCodeLine{00132\ \ \ \ \ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1uvec3}{glm::uvec3}}\ vi;}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ vi[0]\ =\ face\_start\ +\ 0;}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ vi[1]\ =\ face\_start\ +\ 1;}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ vi[2]\ =\ face\_start\ +\ 2;}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ vi;}
+\DoxyCodeLine{00138\ \ \ \ \ \}}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{//down}}
+\DoxyCodeLine{00140\ \ \ \ \ \{}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1uvec3}{glm::uvec3}}\ vi;}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ vi[0]\ =\ face\_start\ +\ 3;}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ vi[1]\ =\ face\_start\ +\ 1\ -\/\ (iao.a\ *\ 3);}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ vi[2]\ =\ face\_start\ +\ 2;}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ vi;}
+\DoxyCodeLine{00146\ \ \ \ \ \}}
+\DoxyCodeLine{00147\ \}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{class_triangle}{Triangle}}\ get\_tri(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_i_a_o}{IAO}}\&\ iao,\ uint\ lod,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}*\ triangles)}
+\DoxyCodeLine{00150\ \{}
+\DoxyCodeLine{00151\ \ \ \ \ uint\ face\ =\ lod\_face\_offset[lod]\ +\ iao.i;}
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{keywordflow}{if}(iao.o\ ==\ 0)\ \textcolor{comment}{//up}}
+\DoxyCodeLine{00153\ \ \ \ \ \{}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}\&\ tri\ =\ triangles[face];}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ decompact(tri);}
+\DoxyCodeLine{00156\ \ \ \ \ \}}
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{//down}}
+\DoxyCodeLine{00158\ \ \ \ \ \{}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}\&\ tri0\ =\ triangles[face\ +\ 1];}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}\&\ tri1\ =\ triangles[face\ -\/\ iao.a];}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}\&\ tri2\ =\ triangles[face];}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{class_triangle}{Triangle}}(decompact(tri0).vrts[0],\ decompact(tri1).vrts[1],\ decompact(tri2).vrts[2]);}
+\DoxyCodeLine{00163\ \ \ \ \ \}}
+\DoxyCodeLine{00164\ \}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \textcolor{keyword}{inline}\ uint\ find\_shared\_edge(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrtm_1_1uvec3}{glm::uvec3}}\&\ crnt\_ptch\_inds,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classrtm_1_1uvec3}{glm::uvec3}}\&\ prev\_ptch\_inds)}
+\DoxyCodeLine{00167\ \{}
+\DoxyCodeLine{00168\ \ \ \ \ uint32\_t\ match\_mask\ =\ 0;}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ 3;\ ++i)}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ j\ =\ 0;\ j\ <\ 3;\ ++j)}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(crnt\_ptch\_inds[i]\ ==\ prev\_ptch\_inds[j])}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ match\_mask\ |=\ 1\ <<\ i;}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \ \ \ \ \textcolor{keywordflow}{if}(match\_mask\ ==\ 6)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{keywordflow}{if}(match\_mask\ ==\ 5)\ \textcolor{keywordflow}{return}\ 1;\ }
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{keywordflow}{if}(match\_mask\ ==\ 3)\ \textcolor{keywordflow}{return}\ 2;}
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keywordflow}{return}\ 3;}
+\DoxyCodeLine{00181\ \}}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \textcolor{keyword}{inline}\ uint\ propagate\_shared\_edge(uint\ prnt\_shrd\_edg,\ uint\ tri\_typ)}
+\DoxyCodeLine{00184\ \{}
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordflow}{if}(prnt\_shrd\_edg\ ==\ 3\ ||\ tri\_typ\ ==\ 3\ ||\ prnt\_shrd\_edg\ ==\ tri\_typ)\ \textcolor{keywordflow}{return}\ 3;}
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keywordflow}{return}\ prnt\_shrd\_edg;}
+\DoxyCodeLine{00187\ \}}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ evalute\_deformation\_bounds(uint32\_t\ qdb,\ \textcolor{keywordtype}{float}\ max\_db\_over\_max\_error,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_triangle}{Triangle}}\&\ tri,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ last\_ray,\ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ ray,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ edge\_mask[3])}
+\DoxyCodeLine{00190\ \{}
+\DoxyCodeLine{00191\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ fdbs((\textcolor{keywordtype}{float})(qdb\ >>\ 00\ \&\ 0x3ff),\ (\textcolor{keywordtype}{float})(qdb\ >>\ 10\ \&\ 0x3ff),\ (\textcolor{keywordtype}{float})(qdb\ >>\ 20\ \&\ 0x3ff));}
+\DoxyCodeLine{00192\ \ \ \ \ fdbs\ *=\ (1.0f\ /\ 1023.0f);}
+\DoxyCodeLine{00193\ \ \ \ \ fdbs\ *=\ fdbs;}
+\DoxyCodeLine{00194\ \ \ \ \ fdbs\ *=\ max\_db\_over\_max\_error;}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ dlen(glm::dot(tri.vrts[0]\ -\/\ ray.o,\ ray.d),\ glm::dot(tri.vrts[1]\ -\/\ ray.o,\ ray.d),\ glm::dot(tri.vrts[2]\ -\/\ ray.o,\ ray.d));}
+\DoxyCodeLine{00197\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ last\_dlen(glm::dot(tri.vrts[0]\ -\/\ last\_ray.o,\ last\_ray.d),\ glm::dot(tri.vrts[1]\ -\/\ last\_ray.o,\ last\_ray.d),\ glm::dot(tri.vrts[2]\ -\/\ last\_ray.o,\ last\_ray.d));}
+\DoxyCodeLine{00198\ \ \ \ \ }
+\DoxyCodeLine{00199\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ r;}
+\DoxyCodeLine{00200\ \ \ \ \ \textcolor{keywordflow}{if}(edge\_mask[0])\ r[0]\ =\ std::min(last\_dlen[1],\ last\_dlen[2])\ *\ last\_ray.drdt\ +\ last\_ray.radius;}
+\DoxyCodeLine{00201\ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ \ \ \ \ r[0]\ =\ std::min(\ \ \ \ \ dlen[1],\ \ \ \ \ \ dlen[2])\ *\ \ \ \ \ \ ray.drdt\ +\ \ \ \ \ \ ray.radius;}
+\DoxyCodeLine{00202\ \ \ \ \ \textcolor{keywordflow}{if}(edge\_mask[1])\ r[1]\ =\ std::min(last\_dlen[2],\ last\_dlen[0])\ *\ last\_ray.drdt\ +\ last\_ray.radius;}
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ \ \ \ \ r[1]\ =\ std::min(\ \ \ \ \ dlen[2],\ \ \ \ \ \ dlen[0])\ *\ \ \ \ \ \ ray.drdt\ +\ \ \ \ \ \ ray.radius;}
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{keywordflow}{if}(edge\_mask[2])\ r[2]\ =\ std::min(last\_dlen[0],\ last\_dlen[1])\ *\ last\_ray.drdt\ +\ last\_ray.radius;}
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ \ \ \ \ r[2]\ =\ std::min(\ \ \ \ \ dlen[0],\ \ \ \ \ \ dlen[1])\ *\ \ \ \ \ \ ray.drdt\ +\ \ \ \ \ \ ray.radius;}
+\DoxyCodeLine{00206\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ recip\_r(\_rcp(r[0]),\ \_rcp(r[1]),\ \_rcp(r[2]));}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ delta\ =\ fdbs\ *\ recip\_r\ -\/\ 1.0f;}
+\DoxyCodeLine{00209\ \ \ \ \ \textcolor{keywordflow}{return}\ glm::clamp(delta,\ 0.0f,\ 1.0f);}
+\DoxyCodeLine{00210\ \}}
+
+\end{DoxyCode}

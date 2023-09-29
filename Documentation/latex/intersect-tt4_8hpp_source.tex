@@ -1,0 +1,338 @@
+\doxysection{intersect-\/tt4.hpp}
+\hypertarget{intersect-tt4_8hpp_source}{}\label{intersect-tt4_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/intersect-\/tt4.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/intersect-\/tt4.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}intersect-\/tt.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}tesselation-\/tree4.hpp"{}}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ intersect(\ \textcolor{keyword}{const}\ uint32\_t\ patch\_index,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_tesselation_tree4_pointers}{TesselationTree4Pointers}}\&\ tes\_tree,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ ray,\ \mbox{\hyperlink{struct_hit}{Hit}}\&\ hit)}
+\DoxyCodeLine{00008\ \{}
+\DoxyCodeLine{00009\ \ \ \ \ \textcolor{keyword}{struct\ }NodeStackEntry}
+\DoxyCodeLine{00010\ \ \ \ \ \{}
+\DoxyCodeLine{00011\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ t;}
+\DoxyCodeLine{00012\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00013\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00014\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ node\_index\ :\ 26;}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ lod\ :\ 4;}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ tri\_type\ :\ 2;}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ uint32\_t\ dbs;}
+\DoxyCodeLine{00019\ \ \ \ \ \}}
+\DoxyCodeLine{00020\ \ \ \ \ node\_stack[3\ *\ 8];}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keyword}{struct\ }TriangleStackEntry}
+\DoxyCodeLine{00023\ \ \ \ \ \{}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}\ tri;\textcolor{comment}{//TODO\ maybe\ remove?}}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}\ new\_center\_tri;}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ child\_transformed;}
+\DoxyCodeLine{00027\ \ \ \ \ \}}
+\DoxyCodeLine{00028\ \ \ \ \ tri\_stack[8];}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree4_1_1_header}{TesselationTree4::Header}}\ header;}
+\DoxyCodeLine{00031\ \ \ \ \ move\_to\_stack(header,\ tes\_tree.headers[patch\_index]);}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ inv\_d\ =\ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}(1.0f)\ /\ ray.d;}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{float}\ max\_db\_over\_max\_error\ =\ header.max\_db\ *\ ray.rcp\_max\_error;}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_tesselation_tree4_1_1_compressed_node4}{TesselationTree4::CompressedNode4}}*\ nodes\ =\ \&tes\_tree.nodes[header.root\_node\_offset];}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}*\ triangles\ =\ \&tes\_tree.triangles[header.root\_tri\_offset];}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ uint32\_t\ node\_stack\_size\ =\ 1u;}
+\DoxyCodeLine{00039\ \ \ \ \ node\_stack[0].t\ =\ intersect(decompress(header.node.aabb),\ ray,\ inv\_d);}
+\DoxyCodeLine{00040\ \ \ \ \ node\_stack[0].node\_index\ =\ 0;}
+\DoxyCodeLine{00041\ \ \ \ \ node\_stack[0].lod\ =\ 0;}
+\DoxyCodeLine{00042\ \ \ \ \ node\_stack[0].tri\_type\ =\ 0;}
+\DoxyCodeLine{00043\ \ \ \ \ node\_stack[0].dbs\ =\ header.node.dbs;}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \ \ uint32\_t\ hit\_lod\ =\ \string~0u;}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordflow}{do}}
+\DoxyCodeLine{00047\ \ \ \ \ \{}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ NodeStackEntry\ current\_node\_entry\ =\ node\_stack[-\/-\/node\_stack\_size];}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(current\_node\_entry.t\ >=\ hit.t)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ uint32\_t\ dbs\ =\ current\_node\_entry.dbs;}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ uint32\_t\ node\_index\ =\ current\_node\_entry.node\_index;}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ uint32\_t\ lod\ =\ current\_node\_entry.lod;}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ uint32\_t\ tri\_type\ =\ current\_node\_entry.tri\_type;}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(lod\ ==\ 0)\ tri\_stack[lod].tri\ =\ decompact(header.tri);}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ tri\_stack[lod].tri\ =\ reconstruct\_triangle(tri\_stack[lod\ -\/\ 1u].tri,\ tri\_stack[lod\ -\/\ 1u].new\_center\_tri,\ tri\_type);}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \textcolor{comment}{//determine\ if\ triangle\ needs\ subdivision.\ Probably\ should\ use\ hardware}}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ edge\_states\ =\ evalute\_deformation\_bounds(dbs,\ max\_db\_over\_max\_error,\ tri\_stack[lod].tri,\ ray);}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \textcolor{comment}{//if\ acceptable\ intersect\ otherwise\ traverse\ into\ the\ next\ LOD}}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(edge\_states[0]\ <=\ 0.0f\ \&\&\ edge\_states[1]\ <=\ 0.0f\ \&\&\ edge\_states[2]\ <=\ 0.0f)}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(intersect(tri\_stack[lod].tri,\ ray,\ hit))}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.id\ =\ node\_index;}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit\_lod\ =\ lod;}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \textcolor{comment}{//load\ the\ center\ triangle\ in\ the\ 4\ triangles\ that\ subdivide\ the\ current\ triangle.\ This\ can\ be\ used\ along\ with\ the\ parent\ to\ recontruct\ the\ other\ 3\ children\ effectivley\ reducing\ memory\ trafic\ (I\ think).\ \ \ \ \ \ }}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ uint32\_t\ absoulte\_node\_index\ =\ lod\_node\_offset[lod]\ +\ node\_index;}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}\ new\_tri;\ }
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ move\_to\_stack(new\_tri,\ triangles[absoulte\_node\_index]);}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ tri\_stack[lod].new\_center\_tri\ =\ get\_transformed\_triangle(tri\_stack[lod].tri,\ decompact(new\_tri),\ edge\_states);}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \textcolor{comment}{//if\ the\ next\ LOD\ is\ the\ leaf\ intersect\ othewise\ push\ the\ child\ nodes\ onto\ the\ stack}}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ uint32\_t\ next\_level\ =\ lod\ +\ 1;}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ uint32\_t\ first\_child\_index\ =\ node\_index\ <<\ 2;\ \textcolor{comment}{//compute\ first\ child\ index}}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(next\_level\ ==\ header.last\_lod)\ \textcolor{comment}{//leaf\ node}}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint32\_t\ i\ =\ 0;\ i\ <\ 4;\ ++i)}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(intersect(reconstruct\_triangle(tri\_stack[lod].tri,\ tri\_stack[lod].new\_center\_tri,\ i),\ ray,\ hit))}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.id\ =\ first\_child\_index\ +\ i;}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit\_lod\ =\ next\_level;}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{//interior\ node}}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ tri\_stack[lod].child\_transformed\ =\ (edge\_states[0]\ <\ 1.0f)\ ||\ (edge\_states[1]\ <\ 1.0f)\ ||\ (edge\_states[2]\ <\ 1.0f)\ ||\ ((lod\ !=\ 0)\ \&\&\ tri\_stack[lod\ -\/\ 1].child\_transformed);}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ temp\_node\_stack\_size\ =\ node\_stack\_size;}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree4_1_1_compressed_node4}{TesselationTree4::CompressedNode4}}\ node4;}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ move\_to\_stack(node4,\ nodes[absoulte\_node\_index]);}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint32\_t\ i\ =\ 0;\ i\ <\ 4;\ ++i)}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb\ =\ decompress(node4.nodes[i].aabb);}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(tri\_stack[lod].child\_transformed)}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}\ tri\ =\ reconstruct\_triangle(tri\_stack[lod].tri,\ tri\_stack[lod].new\_center\_tri,\ i);}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ aabb.add(tri.aabb());}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NodeStackEntry\ entry;}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry.t\ =\ intersect(aabb,\ ray,\ inv\_d);}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry.node\_index\ =\ first\_child\_index\ +\ i;}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry.lod\ =\ next\_level;}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry.tri\_type\ =\ i;}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry.dbs\ =\ node4.nodes[i].dbs;}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(entry.t\ <\ hit.t)\ insert(entry,\ node\_stack,\ node\_stack\_size++,\ temp\_node\_stack\_size);}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00120\ \ \ \ \ \}\ \textcolor{keywordflow}{while}(node\_stack\_size);}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{comment}{//if\ we\ found\ a\ hit\ convert\ barycentric\ coords\ to\ max\ lod}}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordflow}{if}(hit\_lod\ !=\ \string~0u)}
+\DoxyCodeLine{00124\ \ \ \ \ \{}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\ \ \ \ \#if\ 0}}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint32\_t\ i\ =\ hit\_lod;\ i\ <\ lli;\ ++i)}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ tri\_type;}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ hit.bc\ *=\ \mbox{\hyperlink{classrtm_1_1vec2}{glm::vec2}}(2.0f);}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(hit.bc.x\ >\ 1.0f)}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tri\_type\ =\ 0;}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.bc\ -\/=\ \mbox{\hyperlink{classrtm_1_1vec2}{glm::vec2}}(1.0f,\ 0.0f);}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(hit.bc.y\ >\ 1.0f)}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tri\_type\ =\ 1;}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.bc\ -\/=\ \mbox{\hyperlink{classrtm_1_1vec2}{glm::vec2}}(0.0f,\ 1.0f);}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(hit.bc.x\ +\ hit.bc.y\ <\ 1.0f)}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tri\_type\ =\ 2;}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tri\_type\ =\ 3;}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.bc\ =\ \mbox{\hyperlink{classrtm_1_1vec2}{glm::vec2}}(1.0f,\ 1.0f)\ -\/\ hit.bc;}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ hit.id\ <<=\ 2;}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ hit.id\ |=\ tri\_type;}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ hit.id\ +=\ header.id\_offset;}
+\DoxyCodeLine{00156\ \ \ \ \ \}}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{keywordflow}{return}\ hit\_lod\ !=\ \string~0u;}
+\DoxyCodeLine{00159\ \}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ intersect(\textcolor{keyword}{const}\ uint32\_t\ patch\_index,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_tesselation_tree4_secondary_ray_data}{TesselationTree4SecondaryRayData}}\&\ data,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ ray,\ \mbox{\hyperlink{struct_hit}{Hit}}\&\ hit)}
+\DoxyCodeLine{00166\ \{}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keyword}{struct\ }NodeStackEntry}
+\DoxyCodeLine{00168\ \ \ \ \ \{}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ t;}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ node\_index\ :\ 26;}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ lod\ :\ 4;}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ tri\_type\ :\ 2;}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ uint32\_t\ dbs;}
+\DoxyCodeLine{00177\ \ \ \ \ \}\ node\_stack[3\ *\ 8];}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keyword}{struct\ }TriangleStackEntry}
+\DoxyCodeLine{00181\ \ \ \ \ \{}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}\ tri;\textcolor{comment}{//TODO\ maybe\ remove?}}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}\ new\_center\_tri;}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ uint8\_t\ shared\_edge;}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ child\_transformed;}
+\DoxyCodeLine{00186\ \ \ \ \ \}}
+\DoxyCodeLine{00187\ \ \ \ \ tri\_stack[8];}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree4_1_1_header}{TesselationTree4::Header}}\ header;}
+\DoxyCodeLine{00190\ \ \ \ \ move\_to\_stack(header,\ data.tes\_tree.headers[patch\_index]);}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ inv\_d\ =\ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}(1.0f)\ /\ ray.d;}
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{keywordtype}{float}\ max\_db\_over\_max\_error\ =\ header.max\_db\ *\ ray.rcp\_max\_error;}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_tesselation_tree4_1_1_compressed_node4}{TesselationTree4::CompressedNode4}}*\ nodes\ =\ \&data.tes\_tree.nodes[header.root\_node\_offset];}
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}*\ triangles\ =\ \&data.tes\_tree.triangles[header.root\_tri\_offset];}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ \ \ \ \ uint32\_t\ node\_stack\_size\ =\ 1u;}
+\DoxyCodeLine{00198\ \ \ \ \ node\_stack[0].t\ =\ intersect(decompress(header.node.aabb),\ ray,\ inv\_d);}
+\DoxyCodeLine{00199\ \ \ \ \ node\_stack[0].dbs\ =\ header.node.dbs;}
+\DoxyCodeLine{00200\ \ \ \ \ node\_stack[0].node\_index\ =\ 0;}
+\DoxyCodeLine{00201\ \ \ \ \ node\_stack[0].lod\ =\ 0;}
+\DoxyCodeLine{00202\ \ \ \ \ node\_stack[0].tri\_type\ =\ 0;}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1uvec3}{glm::uvec3}}\ previous\_patch\_indices(0);}
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keywordflow}{if}(data.last\_patch\_index\ !=\ \string~0)\ previous\_patch\_indices\ \ =\ data.tes\_tree.vertex\_indices[data.last\_patch\_index];}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ \ \ uint32\_t\ hit\_lod\ =\ \string~0u;}
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{keywordflow}{do}}
+\DoxyCodeLine{00209\ \ \ \ \ \{}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ NodeStackEntry\ current\_node\_entry\ =\ node\_stack[-\/-\/node\_stack\_size];}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(current\_node\_entry.t\ >=\ hit.t)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ uint32\_t\ dbs\ =\ current\_node\_entry.dbs;}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ uint32\_t\ node\_index\ =\ current\_node\_entry.node\_index;}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ uint32\_t\ lod\ =\ current\_node\_entry.lod;}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ uint32\_t\ tri\_type\ =\ current\_node\_entry.tri\_type;}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(lod\ ==\ 0)}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \ \ \ \ tri\_stack[lod].tri\ =\ decompact(header.tri);}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(data.last\_patch\_index\ !=\ \string~0)\ tri\_stack[0].shared\_edge\ =\ find\_shared\_edge(data.tes\_tree.vertex\_indices[patch\_index],\ previous\_patch\_indices);}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tri\_stack[0].shared\_edge\ =\ 3;}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ tri\_stack[lod].tri\ =\ reconstruct\_triangle(tri\_stack[lod\ -\/\ 1u].tri,\ tri\_stack[lod\ -\/\ 1u].new\_center\_tri,\ tri\_type);}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ tri\_stack[lod].shared\_edge\ =\ propagate\_shared\_edge(tri\_stack[lod\ -\/\ 1u].shared\_edge,\ tri\_type);}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \textcolor{comment}{//determine\ if\ triangle\ needs\ subdivision.\ Probably\ should\ use\ hardware}}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ edge\_mask[3]\ =\ \{patch\_index\ ==\ data.last\_patch\_index\ ||\ tri\_stack[lod].shared\_edge\ ==\ 0,\ patch\_index\ ==\ data.last\_patch\_index\ ||\ tri\_stack[lod].shared\_edge\ ==\ 1,\ patch\_index\ ==\ data.last\_patch\_index\ ||\ tri\_stack[lod].shared\_edge\ ==\ 2\};}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}\ edge\_states\ =\ evalute\_deformation\_bounds(dbs,\ max\_db\_over\_max\_error,\ tri\_stack[lod].tri,\ data.last\_ray,\ ray,\ edge\_mask);}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \textcolor{comment}{//if\ acceptable\ intersect\ otherwise\ traverse\ into\ the\ next\ LOD}}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(edge\_states[0]\ <=\ 0.0f\ \&\&\ edge\_states[1]\ <=\ 0.0f\ \&\&\ edge\_states[2]\ <=\ 0.0f)}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(intersect(tri\_stack[lod].tri,\ ray,\ hit))}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.id\ =\ node\_index;}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.patch\_index\ =\ patch\_index;}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit\_lod\ =\ lod;}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ \textcolor{comment}{//load\ the\ center\ triangle\ in\ the\ 4\ triangles\ that\ subdivide\ the\ current\ triangle.\ This\ can\ be\ used\ along\ with\ the\ parent\ to\ recontruct\ the\ other\ 3\ children\ effectivley\ reducing\ memory\ trafic\ (I\ think).\ \ \ \ \ \ }}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ uint32\_t\ absoulte\_node\_index\ =\ lod\_node\_offset[lod]\ +\ node\_index;}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}\ new\_tri;}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ move\_to\_stack(new\_tri,\ triangles[absoulte\_node\_index]);}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ tri\_stack[lod].new\_center\_tri\ =\ get\_transformed\_triangle(tri\_stack[lod].tri,\ decompact(new\_tri),\ edge\_states);}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \textcolor{comment}{//if\ the\ next\ LOD\ is\ the\ leaf\ intersect\ othewise\ push\ the\ child\ nodes\ onto\ the\ stack}}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ uint32\_t\ next\_level\ =\ lod\ +\ 1;}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ uint32\_t\ first\_child\_index\ =\ node\_index\ <<\ 2;\ \textcolor{comment}{//compute\ first\ child\ idnex}}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(next\_level\ ==\ header.last\_lod)\ \textcolor{comment}{//leaf\ node}}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint32\_t\ i\ =\ 0;\ i\ <\ 4;\ ++i)}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(intersect(reconstruct\_triangle(tri\_stack[lod].tri,\ tri\_stack[lod].new\_center\_tri,\ i),\ ray,\ hit))}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.id\ =\ first\_child\_index\ +\ i;}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.patch\_index\ =\ patch\_index;}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit\_lod\ =\ next\_level;}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{//interior\ node}}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ \ \ \ \ tri\_stack[lod].child\_transformed\ =\ (edge\_states[0]\ <\ 1.0f)\ ||\ (edge\_states[1]\ <\ 1.0f)\ ||\ (edge\_states[2]\ <\ 1.0f)\ ||\ ((lod\ !=\ 0)\ \&\&\ tri\_stack[lod\ -\/\ 1].child\_transformed);}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ temp\_node\_stack\_size\ =\ node\_stack\_size;}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree4_1_1_compressed_node4}{TesselationTree4::CompressedNode4}}\ node4;}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \ \ \ \ move\_to\_stack(node4,\ nodes[absoulte\_node\_index]);}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint32\_t\ i\ =\ 0;\ i\ <\ 4;\ ++i)}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb\ =\ decompress(node4.nodes[i].aabb);}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(tri\_stack[lod].child\_transformed)}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}\ tri\ =\ reconstruct\_triangle(tri\_stack[lod].tri,\ tri\_stack[lod].new\_center\_tri,\ i);}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ aabb.add(tri.aabb());}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NodeStackEntry\ entry;}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry.t\ =\ intersect(aabb,\ ray,\ inv\_d);}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry.node\_index\ =\ first\_child\_index\ +\ i;}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry.lod\ =\ next\_level;}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry.tri\_type\ =\ i;}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry.dbs\ =\ node4.nodes[i].dbs;}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(entry.t\ <\ hit.t)\ insert(entry,\ node\_stack,\ node\_stack\_size++,\ temp\_node\_stack\_size);}
+\DoxyCodeLine{00292\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00293\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00294\ \ \ \ \ \}\ \textcolor{keywordflow}{while}(node\_stack\_size);}
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ \ \ \ \ \textcolor{comment}{//if\ we\ found\ a\ hit\ convert\ barycentric\ coords\ to\ max\ lod}}
+\DoxyCodeLine{00297\ \ \ \ \ \textcolor{keywordflow}{if}(hit\_lod\ !=\ \string~0u)}
+\DoxyCodeLine{00298\ \ \ \ \ \{}
+\DoxyCodeLine{00299\ \textcolor{preprocessor}{\ \ \ \ \#if\ 1}}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint32\_t\ i\ =\ hit\_lod;\ i\ <\ \ header.last\_lod;\ ++i)}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00302\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ tri\_type;}
+\DoxyCodeLine{00303\ \ \ \ \ \ \ \ \ \ \ \ \ hit.bc\ *=\ \mbox{\hyperlink{classrtm_1_1vec2}{glm::vec2}}(2.0f);}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(hit.bc.x\ >\ 1.0f)}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tri\_type\ =\ 0;}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.bc\ -\/=\ \mbox{\hyperlink{classrtm_1_1vec2}{glm::vec2}}(1.0f,\ 0.0f);}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(hit.bc.y\ >\ 1.0f)}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tri\_type\ =\ 1;}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.bc\ -\/=\ \mbox{\hyperlink{classrtm_1_1vec2}{glm::vec2}}(0.0f,\ 1.0f);}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(hit.bc.x\ +\ hit.bc.y\ <\ 1.0f)}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tri\_type\ =\ 2;}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00320\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00321\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tri\_type\ =\ 3;}
+\DoxyCodeLine{00322\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.bc\ =\ \mbox{\hyperlink{classrtm_1_1vec2}{glm::vec2}}(1.0f,\ 1.0f)\ -\/\ hit.bc;}
+\DoxyCodeLine{00323\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \ \ \ \ \ \ \ \ \ \ \ \ hit.id\ <<=\ 2;}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \ \ \ \ \ \ hit.id\ |=\ tri\_type;}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ hit.id\ +=\ header.id\_offset;}
+\DoxyCodeLine{00330\ \ \ \ \ \}}
+\DoxyCodeLine{00331\ }
+\DoxyCodeLine{00332\ \ \ \ \ \textcolor{keywordflow}{return}\ hit\_lod\ !=\ \string~0u;}
+\DoxyCodeLine{00333\ \}}
+
+\end{DoxyCode}

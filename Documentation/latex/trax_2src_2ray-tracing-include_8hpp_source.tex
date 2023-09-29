@@ -1,0 +1,34 @@
+\doxysection{ray-\/tracing-\/include.hpp}
+\hypertarget{trax_2src_2ray-tracing-include_8hpp_source}{}\label{trax_2src_2ray-tracing-include_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/trax/src/ray-\/tracing-\/include.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/trax/src/ray-\/tracing-\/include.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}rtm.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}random-\/number-\/generator.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}sampling.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}bvh.hpp"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}camera.hpp"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}ray.hpp"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}intersect.hpp"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}mesh.hpp"{}}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ GLOBAL\_DATA\_ADDRESS\ 256ull}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_global_data}{GlobalData}}}
+\DoxyCodeLine{00016\ \{}
+\DoxyCodeLine{00017\ \ \ \ \ uint32\_t\ framebuffer\_width;}
+\DoxyCodeLine{00018\ \ \ \ \ uint32\_t\ framebuffer\_height;}
+\DoxyCodeLine{00019\ \ \ \ \ uint32\_t\ framebuffer\_size;}
+\DoxyCodeLine{00020\ \ \ \ \ uint32\_t*\ framebuffer;}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \ \ \ \ uint32\_t\ samples\_per\_pixel;}
+\DoxyCodeLine{00023\ \ \ \ \ uint32\_t\ max\_bounces;}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ light\_dir;}
+\DoxyCodeLine{00026\ \ \ \ \ \mbox{\hyperlink{struct_mesh_pointers}{MeshPointers}}\ mesh;}
+\DoxyCodeLine{00027\ \ \ \ \ \mbox{\hyperlink{class_camera}{Camera}}\ camera;}
+\DoxyCodeLine{00028\ \};}
+
+\end{DoxyCode}

@@ -1,0 +1,53 @@
+\doxysection{Arches\+::ISA\+::RISCV\+::Execution\+Base Class Reference}
+\hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}\index{Arches::ISA::RISCV::ExecutionBase@{Arches::ISA::RISCV::ExecutionBase}}
+Inheritance diagram for Arches\+::ISA\+::RISCV\+::Execution\+Base\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_ac7f6fdfa9ce1a9d6e808dd2776ea8a92}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_ac7f6fdfa9ce1a9d6e808dd2776ea8a92} 
+{\bfseries Execution\+Base} (\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_integer_register_file}{Integer\+Register\+File}} \texorpdfstring{$\ast$}{*}int\+\_\+regs, \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_floating_point_register_file}{Floating\+Point\+Register\+File}} \texorpdfstring{$\ast$}{*}float\+\_\+regs)
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a79a6e421b8944d81fdc5115f75942baa}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a79a6e421b8944d81fdc5115f75942baa} 
+void {\bfseries \+\_\+write\+\_\+register} (\mbox{\hyperlink{struct_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_reg_addr}{Reg\+Addr}} dst, const uint8\+\_\+t \texorpdfstring{$\ast$}{*}src, uint8\+\_\+t size)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a69eec14422dd3a82067fa6bb1d266395}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a69eec14422dd3a82067fa6bb1d266395} 
+uint8\+\_\+t \texorpdfstring{$\ast$}{*} {\bfseries backing\+\_\+memory} \{nullptr\}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a4ba818989f4d3c353efdc3028ddea02e}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a4ba818989f4d3c353efdc3028ddea02e} 
+\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_integer_register_file}{Integer\+Register\+File}} \texorpdfstring{$\ast$}{*} {\bfseries int\+\_\+regs} \{nullptr\}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_aae020af5df9c9cf9d7155f46d38d303e}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_aae020af5df9c9cf9d7155f46d38d303e} 
+\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_floating_point_register_file}{Floating\+Point\+Register\+File}} \texorpdfstring{$\ast$}{*} {\bfseries float\+\_\+regs} \{nullptr\}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a03cb9f283884773ff137f5f82f4531c2}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a03cb9f283884773ff137f5f82f4531c2} 
+Arches\+::vaddr\+\_\+t {\bfseries pc} \{0\}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a20f704e9375b2efa7c53917d6aae00f6}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a20f704e9375b2efa7c53917d6aae00f6} 
+bool {\bfseries branch\+\_\+taken} \{false\}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a3fccc8dc980707837499565cb343a9ab}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base_a3fccc8dc980707837499565cb343a9ab} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Units::MemoryRequest::Type {\bfseries type}\\
+\>\mbox{\hyperlink{struct_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_reg_addr}{RegAddr}} {\bfseries dst}\\
+\>uint8\_t {\bfseries size}\\
+\>bool {\bfseries cached}\\
+\>paddr\_t {\bfseries vaddr}\\
+\>uint8\_t {\bfseries store\_data} \mbox{[}CACHE\_BLOCK\_SIZE\mbox{]}\\
+\} {\bfseries mem\_req}\\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/isa/execution-\/base.\+hpp\end{DoxyCompactItemize}

@@ -1,0 +1,70 @@
+\doxysection{Arches\+::Units\+::Unit\+TP\+::Log Class Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log}{}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log}\index{Arches::Units::UnitTP::Log@{Arches::Units::UnitTP::Log}}
+
+
+logger class to display debug info  
+
+
+
+
+{\ttfamily \#include $<$unit-\/tp.\+hpp$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a3c33cc182b93f01c86cdbb668df1944a}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a3c33cc182b93f01c86cdbb668df1944a} 
+{\bfseries Log} (uint64\+\_\+t elf\+\_\+start\+\_\+addr)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_aa46944ed762ff97809dc365f7109f1f5}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_aa46944ed762ff97809dc365f7109f1f5} 
+void {\bfseries reset} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_ad602fdd2034ecaecabac832254426e08}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_ad602fdd2034ecaecabac832254426e08} 
+void {\bfseries accumulate} (const \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_t_p_1_1_log}{Log}} \&other)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_af4cf55308a38e87ef12dd68201783f28}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_af4cf55308a38e87ef12dd68201783f28} 
+void {\bfseries log\+\_\+cycle} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a73a3d3e4b7f92e93e09bc07370b1d608}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a73a3d3e4b7f92e93e09bc07370b1d608} 
+void {\bfseries log\+\_\+instruction\+\_\+issue} (const \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{ISA\+::\+RISCV\+::\+Instruction\+Info}} \&info, vaddr\+\_\+t pc)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_ad99dbe075a4486eec00ef420309a7e6d}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_ad99dbe075a4486eec00ef420309a7e6d} 
+void {\bfseries log\+\_\+resource\+\_\+stall} (const \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{ISA\+::\+RISCV\+::\+Instruction\+Info}} \&info)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a97b86aa5944015441f747be95b4b330f}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a97b86aa5944015441f747be95b4b330f} 
+void {\bfseries log\+\_\+data\+\_\+stall} (uint8\+\_\+t type)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_aab2a3dab2f9874fbc8480f838ccfd648}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_aab2a3dab2f9874fbc8480f838ccfd648} 
+void {\bfseries print\+\_\+log} (FILE \texorpdfstring{$\ast$}{*}stream=stdout, uint num\+\_\+units=1)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a856ed8db5a59d60094206d05ec5ec4cb}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a856ed8db5a59d60094206d05ec5ec4cb} 
+void {\bfseries print\+\_\+profile} (uint8\+\_\+t \texorpdfstring{$\ast$}{*}backing\+\_\+memory, FILE \texorpdfstring{$\ast$}{*}stream=stdout)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_aa59080828df53dff8a146a193efbfbbe}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_aa59080828df53dff8a146a193efbfbbe} 
+vaddr\+\_\+t {\bfseries \+\_\+elf\+\_\+start\+\_\+addr}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a7fa2dae0ca7f6bfda7cad24c423dc360}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a7fa2dae0ca7f6bfda7cad24c423dc360} 
+std\+::vector$<$ uint64\+\_\+t $>$ {\bfseries \+\_\+profile\+\_\+counters}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a7b49dfd0c2ee3bf68382e0b68b37ef75}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a7b49dfd0c2ee3bf68382e0b68b37ef75} 
+uint {\bfseries \+\_\+instr\+\_\+index} \{0\}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_ae25a16dff2c13eae53c89053da9b3b22}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_ae25a16dff2c13eae53c89053da9b3b22} 
+uint64\+\_\+t {\bfseries \+\_\+instruction\+\_\+counters} \mbox{[}static\+\_\+cast$<$ size\+\_\+t $>$(ISA\+::\+RISCV\+::\+Type\+::\+NUM\+\_\+\+TYPES)\mbox{]}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_ae49d6e5b2311a161fbcf1e4180cf26ac}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_ae49d6e5b2311a161fbcf1e4180cf26ac} 
+uint64\+\_\+t {\bfseries \+\_\+resource\+\_\+stall\+\_\+counters} \mbox{[}static\+\_\+cast$<$ size\+\_\+t $>$(ISA\+::\+RISCV\+::\+Type\+::\+NUM\+\_\+\+TYPES)\mbox{]}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a741c995f5b88f184296ae790ed78ee6a}\label{class_arches_1_1_units_1_1_unit_t_p_1_1_log_a741c995f5b88f184296ae790ed78ee6a} 
+uint64\+\_\+t {\bfseries \+\_\+data\+\_\+stall\+\_\+counters} \mbox{[}static\+\_\+cast$<$ size\+\_\+t $>$(ISA\+::\+RISCV\+::\+Type\+::\+NUM\+\_\+\+TYPES)\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+logger class to display debug info 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/units/unit-\/tp.\+hpp\end{DoxyCompactItemize}

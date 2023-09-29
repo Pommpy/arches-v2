@@ -1,0 +1,134 @@
+\doxysection{L2\+Cache.\+h}
+\hypertarget{_l2_cache_8h_source}{}\label{_l2_cache_8h_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/usimm/L2Cache.h@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/usimm/L2Cache.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ \_SIMHWRT\_L2\_CACHE\_H\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ \_SIMHWRT\_L2\_CACHE\_H\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ A\ simple\ memory\ that\ implements\ one\ level\ of\ direct-\/mapped\ cache}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ with\ parameterized\ memory\ size\ and\ cache\ size}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}MemoryBase.h"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}memory\_controller.h"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <pthread.h>}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{class\ }MainMemory;}
+\DoxyCodeLine{00012\ \textcolor{keyword}{class\ }L1Cache;}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_l2_cache}{L2Cache}}\ :\ \textcolor{keyword}{public}\ MemoryBase,\ \textcolor{keyword}{public}\ \mbox{\hyperlink{struct_usimm_listener}{UsimmListener}}}
+\DoxyCodeLine{00016\ \{}
+\DoxyCodeLine{00017\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ UNROLL\_HIT\ \ =\ 1;}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ UNROLL\_MISS\ =\ 2;}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{comment}{//\ We\ need\ line\_size,\ cache\_size,\ issue\_width}}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{comment}{//\ line\_size\ determines\ the\ number\ of\ words\ in\ the\ line\ by\ 2\string^line\_size}}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{comment}{//\ Also\ need\ hit\_latency,\ and\ miss\_penalty}}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{comment}{//\ issue\_width\ is\ essentially\ just\ the\ number\ of\ copies\ of\ the\ cache\ available.}}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{comment}{//\ cache\_size\ is\ the\ size\ of\ the\ cache\ in\ blocks\ (words)}}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{comment}{//\ num\_blocks\ is\ the\ size\ of\ the\ memory\ in\ blocks\ (words)}}
+\DoxyCodeLine{00027\ \ \ \ \ \mbox{\hyperlink{class_l2_cache}{L2Cache}}(MainMemory*\ mem,}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \textcolor{keyword}{const}\ cache\_size,}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \textcolor{keyword}{const}\ hit\_latency,}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \textcolor{keyword}{const}\ \_disable\_usimm,}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ \textcolor{keyword}{const}\ \_area,}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ \textcolor{keyword}{const}\ \_energy,}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \textcolor{keyword}{const}\ \_num\_banks\ \ \ \ =\ 4,}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \textcolor{keyword}{const}\ \_line\_size\ \ \ \ =\ 2,}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \textcolor{keyword}{const}\ \_memory\_trace\ =\ \textcolor{keyword}{false},}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \textcolor{keyword}{const}\ \_l2\_off\ \ \ \ \ \ \ =\ \textcolor{keyword}{false},}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \textcolor{keyword}{const}\ l1\_off\ \ \ \ \ \ \ \ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00038\ \ \ \ \ \mbox{\hyperlink{class_l2_cache}{\string~L2Cache}}();}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ SupportsOp(Instruction::Opcode\ \textcolor{keyword}{const}\ op)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ AcceptInstruction(Instruction\&\ ins,}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IssueUnit*\ \textcolor{keyword}{const}\ issuer,}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ThreadState*\ \textcolor{keyword}{const}\ thread);}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ UsimmNotifyEvent(\textcolor{keywordtype}{int}\ \textcolor{keyword}{const}\ address,}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ \textcolor{keyword}{const}\ write\_cycle,}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Instruction::Opcode\ \textcolor{keyword}{const}\ op);}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{comment}{//\ From\ HardwareModule}}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ \ \ ClockRise();}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ \ \ ClockFall();}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ \ \ Print()\ \ \ \ \ \ \ \textcolor{keyword}{const};}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ \ \ PrintStats()\ \ \textcolor{keyword}{const};}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{double}\ Utilization()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordtype}{bool}\ IssueInstruction(\textcolor{keyword}{const}\ Instruction*\ \textcolor{keyword}{const}\ ins,}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ L1Cache*\ \textcolor{keyword}{const}\ L1,}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ThreadState*\ \textcolor{keyword}{const}\ thread,}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ \&ret\_latency,}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ \textcolor{keyword}{const}\ current\_cycle,}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \textcolor{keyword}{const}\ address,}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\&\ unroll\_type);}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordtype}{void}\ Reset();}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordtype}{void}\ Clear();}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{float}\ area;}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{float}\ energy;}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keywordtype}{int}\ outstanding\_data;}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keywordtype}{int}\ max\_outstanding\_data;}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{int}\ max\_data\_per\_cycle;}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordtype}{int}\ line\_fill\_size;}
+\DoxyCodeLine{00074\ \ \ \ \ pthread\_mutex\_t\ cache\_mutex;}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keywordtype}{bool}\ unit\_off;}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordtype}{bool}\ disable\_usimm;}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordtype}{int}\ hit\_latency;}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{int}\ cache\_size;}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{int}\ num\_banks;}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ *last\_issued;}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordtype}{int}\ line\_size;}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordtype}{int}\ processed\_this\_cycle;}
+\DoxyCodeLine{00084\ \ \ \ \ MainMemory\ *\ mem;}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ current\_cycle;}
+\DoxyCodeLine{00086\ \ \ \ \ std::vector<CacheUpdate>\ update\_list;}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{comment}{//\ need\ a\ way\ to\ decide\ when\ instructions\ finish}}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{comment}{//InstructionPriorityQueue*\ instructions;}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{comment}{//\ For\ address\ calculations}}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordtype}{int}\ offset\_mask;}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordtype}{int}\ index\_mask;}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordtype}{int}\ tag\_mask;}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{keywordtype}{int}\ index\_tag\_mask;}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keywordtype}{int}\ index\_shift;}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{comment}{//\ Address\ Storage}}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordtype}{int}\ *\ tags;}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keywordtype}{bool}\ *\ valid;}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keywordtype}{bool}\ UpdateCache(\textcolor{keywordtype}{int}\ address,\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ update\_cycle);}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keywordtype}{bool}\ PendingUpdate(\textcolor{keywordtype}{int}\ address,\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\&\ temp\_latency);}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keywordtype}{bool}\ BankConflict(\textcolor{keywordtype}{int}\ address,\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ cycle);}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordtype}{int}\ issued\_this\_cycle;}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{comment}{//\ \ bool\ issued\_atominc;}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{comment}{//\ Hit\ statistics}}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ bandwidth\_stalls;}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ memory\_faults;}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ hits;}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stores;}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ accesses;}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ misses;}
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ bank\_conflicts;}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{comment}{//\ Memory\ access\ record}}
+\DoxyCodeLine{00119\ \textcolor{comment}{//\ \ \ bool\ memory\_trace;}}
+\DoxyCodeLine{00120\ \textcolor{comment}{//\ \ \ int\ *access\_record;}}
+\DoxyCodeLine{00121\ \textcolor{comment}{//\ \ \ int\ *access\_hit;}}
+\DoxyCodeLine{00122\ \textcolor{comment}{//\ \ \ int\ *access\_miss;}}
+\DoxyCodeLine{00123\ \textcolor{comment}{//\ \ \ int\ *cache\_record;}}
+\DoxyCodeLine{00124\ \textcolor{comment}{//\ \ \ int\ *cache\_hits;}}
+\DoxyCodeLine{00125\ \textcolor{comment}{//\ \ \ int\ *cache\_miss;}}
+\DoxyCodeLine{00126\ \};}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \_SIMHWRT\_L2\_CACHE\_H\_}}
+
+\end{DoxyCode}

@@ -1,0 +1,94 @@
+\doxysection{Arches\+::Units\+::Unit\+Cache\+::Log Struct Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log}{}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log}\index{Arches::Units::UnitCache::Log@{Arches::Units::UnitCache::Log}}
+
+
+Logger class that logs debug info to track execution.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/cache.\+hpp$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_afd3b777f98394225570fb60033d9b152}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_afd3b777f98394225570fb60033d9b152} 
+void {\bfseries reset} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_ab95804d50672bab243822f5db7c71d8a}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_ab95804d50672bab243822f5db7c71d8a} 
+void {\bfseries accumulate} (const \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache_1_1_log}{Log}} \&other)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_ae0dfa791075bcea164ef1ee87ba7cd68}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_ae0dfa791075bcea164ef1ee87ba7cd68} 
+void {\bfseries log\+\_\+requests} (uint n=1)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a6326eef35eaecc2187d4a8450dcef3df}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a6326eef35eaecc2187d4a8450dcef3df} 
+void {\bfseries log\+\_\+hit} (uint n=1)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_aaf97627026d5e32209d3a6c1f6be579a}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_aaf97627026d5e32209d3a6c1f6be579a} 
+void {\bfseries log\+\_\+miss} (uint n=1)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_af7ae3c9dd7e63798f57d69b0170e2a9f}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_af7ae3c9dd7e63798f57d69b0170e2a9f} 
+void {\bfseries log\+\_\+lfb\+\_\+hit} (uint n=1)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a95cb5d60d59b6b975c84baa158802ba4}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a95cb5d60d59b6b975c84baa158802ba4} 
+void {\bfseries log\+\_\+half\+\_\+miss} (uint n=1)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a053d0621cdc66873e0599edcd03cb4d6}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a053d0621cdc66873e0599edcd03cb4d6} 
+void {\bfseries log\+\_\+bank\+\_\+conflict} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a01f09c7b1f5d4a9c7ab86cf49986422d}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a01f09c7b1f5d4a9c7ab86cf49986422d} 
+void {\bfseries log\+\_\+lfb\+\_\+stall} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a8f1dac4d441781ac51bfcda945ac9cbd}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a8f1dac4d441781ac51bfcda945ac9cbd} 
+void {\bfseries log\+\_\+data\+\_\+array\+\_\+read} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a6339f8a8a6c92b7133a6948ede03d040}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a6339f8a8a6c92b7133a6948ede03d040} 
+void {\bfseries log\+\_\+data\+\_\+array\+\_\+write} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_ad82a3df069c7b4afa460a7f49696f140}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_ad82a3df069c7b4afa460a7f49696f140} 
+uint64\+\_\+t {\bfseries get\+\_\+total} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a4bbc3d18dc29c0755edd00b9001998b9}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a4bbc3d18dc29c0755edd00b9001998b9} 
+uint64\+\_\+t {\bfseries get\+\_\+total\+\_\+data\+\_\+array\+\_\+accesses} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_aa8b7ed028796877c84be63c127fb7613}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_aa8b7ed028796877c84be63c127fb7613} 
+void {\bfseries print\+\_\+log} (FILE \texorpdfstring{$\ast$}{*}stream=stdout, uint units=1)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a08b778b860aea08dd1ed65f40c0e4f72}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a08b778b860aea08dd1ed65f40c0e4f72} 
+uint64\+\_\+t {\bfseries \+\_\+total}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a80c568872e3735972eac5f50ce1cae06}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a80c568872e3735972eac5f50ce1cae06} 
+uint64\+\_\+t {\bfseries \+\_\+hits}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a1c1291438a7f5ad7a8982ced860bb51c}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a1c1291438a7f5ad7a8982ced860bb51c} 
+uint64\+\_\+t {\bfseries \+\_\+misses}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a69f4bb6173fc740803bf48707ab92b10}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a69f4bb6173fc740803bf48707ab92b10} 
+uint64\+\_\+t {\bfseries \+\_\+lfb\+\_\+hits}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a34f747d7fff3d322031eaf33368e6135}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a34f747d7fff3d322031eaf33368e6135} 
+uint64\+\_\+t {\bfseries \+\_\+half\+\_\+misses}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_afe884bbe9bb1e01c34f6e6b9b9a80480}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_afe884bbe9bb1e01c34f6e6b9b9a80480} 
+uint64\+\_\+t {\bfseries \+\_\+bank\+\_\+conflicts}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a0d48aa8ebf2ff168c77586e6e7824e42}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a0d48aa8ebf2ff168c77586e6e7824e42} 
+uint64\+\_\+t {\bfseries \+\_\+lfb\+\_\+stalls}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_ab3cb7218271f2bb6c5e6320d728c54ba}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_ab3cb7218271f2bb6c5e6320d728c54ba} 
+uint64\+\_\+t {\bfseries \+\_\+data\+\_\+array\+\_\+reads}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_cache_1_1_log_a1863a5f8a9e6fd09e1a37aa235186a73}\label{class_arches_1_1_units_1_1_unit_cache_1_1_log_a1863a5f8a9e6fd09e1a37aa235186a73} 
+uint64\+\_\+t {\bfseries \+\_\+data\+\_\+array\+\_\+writes}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Logger class that logs debug info to track execution. 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/units/unit-\/cache.\+hpp\end{DoxyCompactItemize}

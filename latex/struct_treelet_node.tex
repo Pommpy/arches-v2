@@ -1,0 +1,28 @@
+\doxysection{Treelet\+Node Struct Reference}
+\hypertarget{struct_treelet_node}{}\label{struct_treelet_node}\index{TreeletNode@{TreeletNode}}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{struct_treelet_node_a9e11498b61baa49bb30d22a142799c42}\label{struct_treelet_node_a9e11498b61baa49bb30d22a142799c42} 
+\mbox{\hyperlink{class_a_a_b_b}{AABB}} {\bfseries aabb}
+\item 
+\Hypertarget{struct_treelet_node_a11c0ef3535945a33b5bf18e04ec2c13a}\label{struct_treelet_node_a11c0ef3535945a33b5bf18e04ec2c13a} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint32\_t {\bfseries data}\\
+\Hypertarget{union_treelet_node_1_1_0d31_a74eedff2d3877042e14ccdc75719d8be}\label{union_treelet_node_1_1_0d31_a74eedff2d3877042e14ccdc75719d8be} 
+\>struct \{\\
+\>\>uint32\_t {\bfseries is\_leaf}: 1\\
+\>\>uint32\_t {\bfseries is\_treelet\_leaf}: 1\\
+\>\>uint32\_t {\bfseries last\_tri\_offset}: 3\\
+\>\>uint32\_t {\bfseries child\_index}: 27\\
+\>\} \\
+\}; \\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/benchmarks/dual-\/streaming/src/treelet-\/bvh.\+hpp\end{DoxyCompactItemize}

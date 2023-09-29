@@ -1,0 +1,80 @@
+\doxysection{Arches\+::ELF\+::ELF\+\_\+\+Header\+::E\+\_\+\+IDENT Class Reference}
+\hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t}{}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t}\index{Arches::ELF::ELF\_Header::E\_IDENT@{Arches::ELF::ELF\_Header::E\_IDENT}}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_aeb0e099d045d2aa3b466f49e4b851cd9}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_aeb0e099d045d2aa3b466f49e4b851cd9} 
+enum class {\bfseries EI\+\_\+\+CLASS} \+: uint8\+\_\+t \{ {\bfseries ELFCLASSNONE} = 0
+, {\bfseries ELFCLASS32} = 1
+, {\bfseries ELFCLASS64} = 2
+ \}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a7b779f3aee405d1e760b2633e2f606a6}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a7b779f3aee405d1e760b2633e2f606a6} 
+enum class {\bfseries EI\+\_\+\+DATA} \+: uint8\+\_\+t \{ {\bfseries ELFDATANONE} = 0
+, {\bfseries ELFDATA2\+LSB} = 1
+, {\bfseries ELFDATA2\+MSB} = 2
+ \}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a5556be9a7dc23dfa47dd904b9e243da0}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a5556be9a7dc23dfa47dd904b9e243da0} 
+enum class {\bfseries EI\+\_\+\+VERSION} \+: uint8\+\_\+t \{ {\bfseries EV\+\_\+\+NONE} = 0
+, {\bfseries EV\+\_\+\+CURRENT} = 1
+ \}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_ab14042d9152966863fb51022d10fc7f7}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_ab14042d9152966863fb51022d10fc7f7} 
+enum class {\bfseries EI\+\_\+\+OSABI} \+: uint8\+\_\+t \{ \newline
+{\bfseries ELFOSABI\+\_\+\+NONE} = 0
+, {\bfseries ELFOSABI\+\_\+\+SYSV} = 0
+, {\bfseries ELFOSABI\+\_\+\+HPUX} = 1
+, {\bfseries ELFOSABI\+\_\+\+NETBSD} = 2
+, \newline
+{\bfseries ELFOSABI\+\_\+\+LINUX} = 3
+, {\bfseries ELFOSABI\+\_\+\+SOLARIS} = 6
+, {\bfseries ELFOSABI\+\_\+\+AIX} = 7
+, {\bfseries ELFOSABI\+\_\+\+IRIX} = 8
+, \newline
+{\bfseries ELFOSABI\+\_\+\+FREEBSD} = 9
+, {\bfseries ELFOSABI\+\_\+\+TRU64} = 10
+, {\bfseries ELFOSABI\+\_\+\+MODESTO} = 11
+, {\bfseries ELFOSABI\+\_\+\+OPENBSD} = 12
+, \newline
+{\bfseries ELFOSABI\+\_\+\+OPENVMS} = 13
+, {\bfseries ELFOSABI\+\_\+\+NSK} = 14
+, {\bfseries ELFOSABI\+\_\+\+ARM} = 97
+, {\bfseries ELFOSABI\+\_\+\+STANDALONE} = 255
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a3c683ab9e794da27c321d50eb2182775}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a3c683ab9e794da27c321d50eb2182775} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint8\_t {\bfseries u8} \mbox{[}4\mbox{]}\\
+\>uint32\_t {\bfseries u32}\\
+\} {\bfseries magic}\\
+
+\end{tabbing}\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a0953b4df3081899f6fa5c57a56c01495}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a0953b4df3081899f6fa5c57a56c01495} 
+enum Arches\+::\+ELF\+::\+ELF\+\_\+\+Header\+::\+E\+\_\+\+IDENT\+::\+EI\+\_\+\+CLASS {\bfseries ei\+\_\+class}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a0c042a6481aee258e3ca65eb035cfc08}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a0c042a6481aee258e3ca65eb035cfc08} 
+enum Arches\+::\+ELF\+::\+ELF\+\_\+\+Header\+::\+E\+\_\+\+IDENT\+::\+EI\+\_\+\+DATA {\bfseries ei\+\_\+data}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_aa6babc31594060bdc9926c7043e26c9c}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_aa6babc31594060bdc9926c7043e26c9c} 
+enum Arches\+::\+ELF\+::\+ELF\+\_\+\+Header\+::\+E\+\_\+\+IDENT\+::\+EI\+\_\+\+VERSION {\bfseries ei\+\_\+version}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_aaacf0f197696072f2b790af94c9a3517}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_aaacf0f197696072f2b790af94c9a3517} 
+enum Arches\+::\+ELF\+::\+ELF\+\_\+\+Header\+::\+E\+\_\+\+IDENT\+::\+EI\+\_\+\+OSABI {\bfseries ei\+\_\+osabi}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a3fd10ca56787a9affb8645e74227d4c6}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a3fd10ca56787a9affb8645e74227d4c6} 
+uint8\+\_\+t {\bfseries ei\+\_\+abiversion}
+\item 
+\Hypertarget{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a1677619ca08f88ff9eba767a5c79f057}\label{class_arches_1_1_e_l_f_1_1_e_l_f___header_1_1_e___i_d_e_n_t_a1677619ca08f88ff9eba767a5c79f057} 
+uint8\+\_\+t {\bfseries ei\+\_\+pad} \mbox{[}7\mbox{]}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/util/elf.\+hpp\end{DoxyCompactItemize}

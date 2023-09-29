@@ -1,0 +1,19 @@
+\doxysection{scheduler.\+h}
+\hypertarget{scheduler_8h_source}{}\label{scheduler_8h_source}\index{arches-\/v2/src/arches/units/usimm/scheduler.h@{arches-\/v2/src/arches/units/usimm/scheduler.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ \_\_SCHEDULER\_H\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ \_\_SCHEDULER\_H\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}../../../stdafx.hpp"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keywordtype}{void}\ init\_scheduler\_vars();\ \textcolor{comment}{//\ called\ from\ main}}
+\DoxyCodeLine{00007\ \textcolor{keywordtype}{void}\ scheduler\_stats();\ \ \ \ \ \textcolor{comment}{//\ called\ from\ main}}
+\DoxyCodeLine{00008\ \textcolor{keywordtype}{void}\ schedule(\textcolor{keywordtype}{int});\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ scheduler\ function\ called\ every\ cycle}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{keyword}{extern}\ Arches::cycles\_t\ CYCLE\_VAL;}
+\DoxyCodeLine{00011\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ schedule\_count;}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\_\_SCHEDULER\_H\_\_}}
+
+\end{DoxyCode}

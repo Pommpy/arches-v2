@@ -1,0 +1,410 @@
+\doxysection{dual-\/streaming.hpp}
+\hypertarget{dual-streaming_8hpp_source}{}\label{dual-streaming_8hpp_source}\index{arches-\/v2/src/dual-\/streaming.hpp@{arches-\/v2/src/dual-\/streaming.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}arches/simulator/simulator.hpp"{}}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/dram.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/cache.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/buffer.hpp"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/atomic-\/reg-\/file.hpp"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/tile-\/scheduler.hpp"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/sfu.hpp"{}}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}arches/units/unit-\/tp.hpp"{}}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}arches/units/dual-\/streaming/unit-\/stream-\/scheduler.hpp"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}arches/units/dual-\/streaming/unit-\/ray-\/staging-\/buffer.hpp"{}}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}arches/util/elf.hpp"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}arches/isa/riscv.hpp"{}}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}../benchmarks/dual-\/streaming/src/ray-\/tracing-\/include.hpp"{}}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{namespace\ }Arches\ \{}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{keyword}{namespace\ }ISA\ \{\ \textcolor{keyword}{namespace\ }RISCV\ \{}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{comment}{//see\ the\ opcode\ map\ for\ details}}
+\DoxyCodeLine{00027\ \textcolor{keyword}{const}\ \textcolor{keyword}{static}\ InstructionInfo\ isa\_custom0\_000\_imm[8]\ =}
+\DoxyCodeLine{00028\ \{}
+\DoxyCodeLine{00029\ \ \ \ \ InstructionInfo(0x0,\ \textcolor{stringliteral}{"{}fchthrd"{}},\ Type::FCHTHRD,\ Encoding::U,\ RegFile::INT,\ IMPL\_DECL}
+\DoxyCodeLine{00030\ \ \ \ \ \{}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.type\ =\ Units::MemoryRequest::Type::FCHTHRD;}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.dst.reg\_file\ =\ 0;}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.dst.reg\ =\ instr.i.rd;}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.dst.sign\_ext\ =\ 0;}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.size\ =\ 4;}
+\DoxyCodeLine{00036\ \ \ \ \ \}),}
+\DoxyCodeLine{00037\ \ \ \ \ InstructionInfo(0x1,\ \textcolor{stringliteral}{"{}boxisect"{}},\ Type::BOXISECT,\ Encoding::U,\ RegFile::FLOAT,\ IMPL\_DECL}
+\DoxyCodeLine{00038\ \ \ \ \ \{}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ Register32\ *\ fr\ =\ unit-\/>float\_regs-\/>registers;}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ inv\_d;}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_ray}{Ray}}\ ray;}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ ray.o.x\ =\ fr[0].f32;}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ ray.o.y\ =\ fr[1].f32;}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ ray.o.z\ =\ fr[2].f32;}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ inv\_d.x\ =\ fr[3].f32;}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ inv\_d.y\ =\ fr[4].f32;}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ inv\_d.z\ =\ fr[5].f32;}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb;}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ aabb.min.x\ =\ fr[6].f32;}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ aabb.min.y\ =\ fr[7].f32;}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ aabb.min.z\ =\ fr[8].f32;}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ aabb.max.x\ =\ fr[9].f32;}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ aabb.max.y\ =\ fr[10].f32;}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ aabb.max.z\ =\ fr[11].f32;}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ unit-\/>float\_regs-\/>registers[instr.u.rd].f32\ =\ intersect(aabb,\ ray,\ inv\_d);}
+\DoxyCodeLine{00060\ \ \ \ \ \}),}
+\DoxyCodeLine{00061\ \ \ \ \ InstructionInfo(0x2,\ \textcolor{stringliteral}{"{}triisect"{}},\ Type::TRIISECT,\ Encoding::U,\ RegFile::FLOAT,\ IMPL\_DECL}
+\DoxyCodeLine{00062\ \ \ \ \ \{}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ Register32\ *\ fr\ =\ unit-\/>float\_regs-\/>registers;}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_ray}{Ray}}\ ray;}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ ray.o.x\ =\ fr[0].f32;}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ ray.o.y\ =\ fr[1].f32;}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ ray.o.z\ =\ fr[2].f32;}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ ray.d.x\ =\ fr[3].f32;}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ ray.d.y\ =\ fr[4].f32;}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ ray.d.z\ =\ fr[5].f32;}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}\ tri;}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ tri.vrts[0].x\ =\ fr[6].f32;}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ tri.vrts[0].y\ =\ fr[7].f32;}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ tri.vrts[0].z\ =\ fr[8].f32;}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ tri.vrts[1].x\ =\ fr[9].f32;}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ tri.vrts[1].y\ =\ fr[10].f32;}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ tri.vrts[1].z\ =\ fr[11].f32;}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ tri.vrts[2].x\ =\ fr[12].f32;}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ tri.vrts[2].y\ =\ fr[13].f32;}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ tri.vrts[2].z\ =\ fr[14].f32;}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_hit}{Hit}}\ hit;}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ hit.t\ =\ fr[15].f32;}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ hit.bc[0]\ =\ fr[16].f32;}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ hit.bc[1]\ =\ fr[17].f32;}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ unit-\/>int\_regs-\/>registers[instr.u.rd].u32\ =\ intersect(tri,\ ray,\ hit);}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ fr[15].f32\ =\ hit.t;}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ fr[16].f32\ =\ hit.bc[0];}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ fr[17].f32\ =\ hit.bc[1];}
+\DoxyCodeLine{00094\ \ \ \ \ \}),}
+\DoxyCodeLine{00095\ \};}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{keyword}{const}\ \textcolor{keyword}{static}\ InstructionInfo\ isa\_custom0\_funct3[8]\ =}
+\DoxyCodeLine{00098\ \{}
+\DoxyCodeLine{00099\ \ \ \ \ InstructionInfo(0x0,\ META\_DECL\{\textcolor{keywordflow}{return}\ isa\_custom0\_000\_imm[instr.u.imm\_31\_12\ >>\ 3];\ \}),}
+\DoxyCodeLine{00100\ \ \ \ \ InstructionInfo(0x1,\ \textcolor{stringliteral}{"{}lbray"{}},\ Type::LBRAY,\ Encoding::I,\ RegFile::FLOAT,\ IMPL\_DECL}
+\DoxyCodeLine{00101\ \ \ \ \ \{\ \ \ }
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \textcolor{comment}{//load\ bucket\ ray\ into\ registers\ f0\ -\/\ f8}}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.type\ =\ Units::MemoryRequest::Type::LBRAY;}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.size\ =\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_bucket_ray}{BucketRay}});}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.dst.reg\ =\ 0;}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.dst.reg\_file\ =\ \textcolor{keyword}{static\_cast<}uint8\_t\textcolor{keyword}{>}(RegFile::FLOAT);}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.dst.sign\_ext\ =\ 0;}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.vaddr\ =\ unit-\/>int\_regs-\/>registers[instr.i.rs1].u64\ +\ i\_imm(instr);}
+\DoxyCodeLine{00111\ \ \ \ \ \}),}
+\DoxyCodeLine{00112\ \ \ \ \ InstructionInfo(0x2,\ \textcolor{stringliteral}{"{}sbray"{}},\ Type::SBRAY,\ Encoding::S,\ RegFile::INT,\ IMPL\_DECL}
+\DoxyCodeLine{00113\ \ \ \ \ \{}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \textcolor{comment}{//store\ bucket\ ray\ to\ hit\ record\ updater}}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ Register32*\ fr\ =\ unit-\/>float\_regs-\/>registers;}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.type\ =\ Units::MemoryRequest::Type::SBRAY;}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.size\ =\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_bucket_ray}{BucketRay}});}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ unit-\/>mem\_req.vaddr\ =\ unit-\/>int\_regs-\/>registers[instr.s.rs1].u64\ +\ s\_imm(instr);}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_ray}{Ray}}\ ray;}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ ray.o.x\ =\ fr[0].f32;}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ ray.o.y\ =\ fr[1].f32;}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ ray.o.z\ =\ fr[2].f32;}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ ray.d.x\ =\ fr[3].f32;}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ ray.d.y\ =\ fr[4].f32;}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ ray.d.z\ =\ fr[5].f32;}
+\DoxyCodeLine{00129\ \ \ \ \ \}),}
+\DoxyCodeLine{00130\ \ \ \ \ InstructionInfo(0x3,\ \textcolor{stringliteral}{"{}cshit"{}},\ Type::CSHIT,\ Encoding::S,\ RegFile::INT,\ IMPL\_DECL}
+\DoxyCodeLine{00131\ \ \ \ \ \{\ \ \ }
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ Register32*\ fr\ =\ unit-\/>float\_regs-\/>registers;}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_hit}{Hit}}\ hit;}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ hit.t\ \ \ \ \ \ \ =\ fr[15].f32;}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ hit.bc[0]\ \ \ =\ fr[16].f32;}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ hit.bc[1]\ \ \ =\ fr[17].f32;}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ hit.prim\_id\ =\ fr[18].u32;}
+\DoxyCodeLine{00139\ \ \ \ \ \}),}
+\DoxyCodeLine{00140\ \};}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \textcolor{keyword}{const}\ \textcolor{keyword}{static}\ InstructionInfo\ custom0(CUSTOM\_OPCODE0,\ META\_DECL\{\textcolor{keywordflow}{return}\ isa\_custom0\_funct3[instr.i.funct3];\ \});}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \}\}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \textcolor{keyword}{static}\ paddr\_t\ align\_to(\textcolor{keywordtype}{size\_t}\ alignment,\ paddr\_t\ paddr)}
+\DoxyCodeLine{00147\ \{}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keywordflow}{return}\ (paddr\ +\ alignment\ -\/\ 1)\ \&\ \string~(alignment\ -\/\ 1);}
+\DoxyCodeLine{00149\ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ initilize\_buffers(\mbox{\hyperlink{struct_global_data}{GlobalData}}\&\ global\_data,\ Units::UnitMainMemoryBase*\ main\_memory,\ paddr\_t\&\ heap\_address)}
+\DoxyCodeLine{00152\ \{}
+\DoxyCodeLine{00153\ \ \ \ \ \mbox{\hyperlink{class_mesh}{Mesh}}\ mesh(\textcolor{stringliteral}{"{}benchmarks/dual-\/streaming/res/sponza.obj"{}});}
+\DoxyCodeLine{00154\ \ \ \ \ \mbox{\hyperlink{class_b_v_h}{BVH}}\ \ bvh(mesh);}
+\DoxyCodeLine{00155\ \ \ \ \ TreeletBVH\ treelet\_bvh(bvh,\ mesh);}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \ \ global\_data.framebuffer\_width\ =\ 64;}
+\DoxyCodeLine{00159\ \ \ \ \ global\_data.framebuffer\_height\ =\ 64;}
+\DoxyCodeLine{00160\ \ \ \ \ global\_data.framebuffer\_size\ =\ global\_data.framebuffer\_width\ *\ global\_data.framebuffer\_height;}
+\DoxyCodeLine{00161\ \ \ \ \ heap\_address\ =\ align\_to(8\ *\ 1024,\ heap\_address);}
+\DoxyCodeLine{00162\ \ \ \ \ global\_data.hit\_records\ =\ \textcolor{keyword}{reinterpret\_cast<}\mbox{\hyperlink{struct_hit}{Hit}}*\textcolor{keyword}{>}(heap\_address);\ heap\_address\ +=\ global\_data.framebuffer\_size\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_hit}{Hit}});}
+\DoxyCodeLine{00163\ \ \ \ \ heap\_address\ =\ align\_to(8\ *\ 1024,\ heap\_address);}
+\DoxyCodeLine{00164\ \ \ \ \ global\_data.framebuffer\ =\ \textcolor{keyword}{reinterpret\_cast<}uint32\_t*\textcolor{keyword}{>}(heap\_address);\ heap\_address\ +=\ global\_data.framebuffer\_size\ *\ \textcolor{keyword}{sizeof}(uint32\_t);}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \ \ global\_data.samples\_per\_pixel\ =\ 1;}
+\DoxyCodeLine{00167\ \ \ \ \ global\_data.inverse\_samples\_per\_pixel\ =\ 1.0f\ /\ global\_data.samples\_per\_pixel;}
+\DoxyCodeLine{00168\ \ \ \ \ global\_data.max\_path\_depth\ =\ 1;}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{comment}{//global\_data.camera\ =\ Camera(global\_data.framebuffer\_width,\ global\_data.framebuffer\_height,\ 60.0f,\ rtm::vec3(0.0f,\ 0.0f,\ 2.0f),\ rtm::vec3(0.0,\ 0.0,\ 0.0));}}
+\DoxyCodeLine{00171\ \ \ \ \ global\_data.camera\ =\ \mbox{\hyperlink{class_camera}{Camera}}(global\_data.framebuffer\_width,\ global\_data.framebuffer\_height,\ 90.0f,\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(-\/900.6f,\ 150.8f,\ 120.74f),\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(79.7f,\ 14.0f,\ -\/17.4f));}
+\DoxyCodeLine{00172\ \ \ \ \ global\_data.light\_dir\ =\ rtm::normalize(\mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(4.5f,\ 42.5f,\ 5.0f));}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \ \ \ \ heap\_address\ =\ align\_to(CACHE\_BLOCK\_SIZE,\ heap\_address);}
+\DoxyCodeLine{00175\ \ \ \ \ main\_memory-\/>direct\_write(mesh.triangles,\ mesh.num\_triangles\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{class_triangle}{Triangle}}),\ heap\_address);}
+\DoxyCodeLine{00176\ \ \ \ \ global\_data.triangles\ =\ \textcolor{keyword}{reinterpret\_cast<}\mbox{\hyperlink{class_triangle}{Triangle}}*\textcolor{keyword}{>}(heap\_address);\ heap\_address\ +=\ mesh.num\_triangles\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{class_triangle}{Triangle}});}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \ \ \ \ heap\_address\ =\ align\_to(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet}{Treelet}}),\ heap\_address);\ heap\_address\ +=\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet}{Treelet}});}
+\DoxyCodeLine{00179\ \ \ \ \ main\_memory-\/>direct\_write(treelet\_bvh.treelets.data(),\ treelet\_bvh.treelets.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet}{Treelet}}),\ heap\_address);}
+\DoxyCodeLine{00180\ \ \ \ \ global\_data.treelets\ =\ \textcolor{keyword}{reinterpret\_cast<}\mbox{\hyperlink{struct_treelet}{Treelet}}*\textcolor{keyword}{>}(heap\_address);\ heap\_address\ +=\ treelet\_bvh.treelets.size()\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet}{Treelet}});}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \ \ \ \ main\_memory-\/>direct\_write(\&global\_data,\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_global_data}{GlobalData}}),\ GLOBAL\_DATA\_ADDRESS);}
+\DoxyCodeLine{00183\ \}}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ run\_sim\_dual\_streaming(\textcolor{keywordtype}{int}\ argc,\ \textcolor{keywordtype}{char}*\ argv[])}
+\DoxyCodeLine{00186\ \{}
+\DoxyCodeLine{00187\ \ \ \ \ uint64\_t\ num\_tps\_per\_tm\ =\ 1;}
+\DoxyCodeLine{00188\ \ \ \ \ uint64\_t\ num\_tms\ =\ 1;}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \ \ \ \ uint64\_t\ num\_tps\ =\ num\_tps\_per\_tm\ *\ num\_tms;}
+\DoxyCodeLine{00191\ \ \ \ \ uint64\_t\ num\_sfus\ =\ \textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::NUM\_TYPES)\ *\ num\_tms;}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{comment}{//hardware\ spec}}
+\DoxyCodeLine{00194\ \ \ \ \ uint64\_t\ mem\_size\ =\ 4ull\ *\ 1024ull\ *\ 1024ull\ *\ 1024ull;\ \textcolor{comment}{//4GB}}
+\DoxyCodeLine{00195\ \ \ \ \ }
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{comment}{//cached\ global\ data}}
+\DoxyCodeLine{00197\ \ \ \ \ uint64\_t\ stack\_size\ =\ 1024;\ \textcolor{comment}{//1KB}}
+\DoxyCodeLine{00198\ \ \ \ \ uint64\_t\ global\_data\_size\ =\ 64\ *\ 1024;\ \textcolor{comment}{//64KB\ for\ global\ data}}
+\DoxyCodeLine{00199\ \ \ \ \ uint64\_t\ binary\_size\ =\ 64\ *\ 1024;\ \textcolor{comment}{//64KB\ for\ executable\ data}}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \ \ \ \ \textcolor{comment}{//mem\ mapped\ buffers}}
+\DoxyCodeLine{00202\ \ \ \ \ uint64\_t\ ray\_stageing\_buffer\_size\ =\ 2\ *\ 1024;\ \textcolor{comment}{//2KB\ ray-\/staging\ buffers}}
+\DoxyCodeLine{00203\ \ \ \ \ uint64\_t\ scene\_buffer\_size\ =\ 4\ *\ 1024\ *\ 1024;\ \textcolor{comment}{//4MB\ scene\ buffer}}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{comment}{//glboal\ data}}
+\DoxyCodeLine{00206\ \ \ \ \ vaddr\_t\ dsmm\_null\_address\ \ \ \ \ \ \ \ \ \ =\ 0x0ull;}
+\DoxyCodeLine{00207\ \ \ \ \ vaddr\_t\ dsmm\_atomic\_reg\_file\_start\ =\ ATOMIC\_REG\_FILE\_ADDRESS;}
+\DoxyCodeLine{00208\ \ \ \ \ vaddr\_t\ dsmm\_global\_data\_start\ \ \ \ \ =\ GLOBAL\_DATA\_ADDRESS;}
+\DoxyCodeLine{00209\ \ \ \ \ vaddr\_t\ dsmm\_binary\_start\ \ \ \ \ \ \ \ \ \ =\ dsmm\_global\_data\_start\ +\ global\_data\_size;}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \ \ vaddr\_t\ dsmm\_ray\_staging\_buffer\_start\ =\ dsmm\_binary\_start\ +\ binary\_size;}
+\DoxyCodeLine{00212\ \ \ \ \ vaddr\_t\ dsmm\_scene\_buffer\_start\ \ \ \ \ \ \ =\ scene\_buffer\_size;}
+\DoxyCodeLine{00213\ \ \ \ \ vaddr\_t\ dsmm\_mem\_mapped\_buffers\_end\ \ \ =\ dsmm\_scene\_buffer\_start\ +\ scene\_buffer\_size;}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \ \ \ \ vaddr\_t\ dsmm\_heap\_start\ =\ dsmm\_mem\_mapped\_buffers\_end;}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ vaddr\_t\ dsmm\_stack\_start\ =\ mem\_size\ -\/\ stack\_size\ *\ num\_tps;}
+\DoxyCodeLine{00218\ \ \ \ \ vaddr\_t\ stack\_pointer\ =\ dsmm\_stack\_start;}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ ISA::RISCV::isa[ISA::RISCV::CUSTOM\_OPCODE0]\ =\ ISA::RISCV::custom0;}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \ \ \ \ Simulator\ simulator;}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \ \ std::vector<Units::UnitTP*>\ tps;}
+\DoxyCodeLine{00225\ \ \ \ \ std::vector<Units::UnitSFU*>\ sfus;}
+\DoxyCodeLine{00226\ \ \ \ \ std::vector<Units::DualStreaming::UnitRayStagingBuffer*>\ rsbs;}
+\DoxyCodeLine{00227\ \ \ \ \ std::vector<Units::UnitThreadScheduler*>\ thread\_schedulers;}
+\DoxyCodeLine{00228\ \ \ \ \ std::vector<Units::UnitCache*>\ l1s;}
+\DoxyCodeLine{00229\ \ \ \ \ std::vector<std::vector<Units::UnitSFU*>>\ sfus\_tables;}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \ \ \ \ Units::UnitDRAM\ mm(2,\ mem\_size,\ \&simulator);\ mm.clear();}
+\DoxyCodeLine{00232\ \ \ \ \ simulator.register\_unit(\&mm);}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \ \ simulator.start\_new\_unit\_group();}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \ \ \ \ ELF\ elf(\textcolor{stringliteral}{"{}benchmarks/dual-\/streaming/bin/riscv/path-\/tracer"{}});}
+\DoxyCodeLine{00237\ \ \ \ \ mm.write\_elf(elf);}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \ \ \ \ paddr\_t\ heap\_address\ =\ dsmm\_heap\_start;}
+\DoxyCodeLine{00240\ \ \ \ \ \mbox{\hyperlink{struct_global_data}{GlobalData}}\ global\_data;}
+\DoxyCodeLine{00241\ \ \ \ \ global\_data.scene\_buffer\ =\ *(\mbox{\hyperlink{struct_treelet}{Treelet}}**)\&dsmm\_scene\_buffer\_start;}
+\DoxyCodeLine{00242\ \ \ \ \ global\_data.ray\_staging\_buffer\ =\ *(\mbox{\hyperlink{struct_treelet}{Treelet}}**)\&dsmm\_ray\_staging\_buffer\_start;}
+\DoxyCodeLine{00243\ \ \ \ \ initilize\_buffers(global\_data,\ \&mm,\ heap\_address);}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \ \ \ \ Units::DualStreaming::UnitStreamScheduler::Configuration\ stream\_scheduler\_config;}
+\DoxyCodeLine{00246\ \ \ \ \ stream\_scheduler\_config.scene\_start\ =\ *(paddr\_t*)\&global\_data.scene\_buffer;}
+\DoxyCodeLine{00247\ \ \ \ \ stream\_scheduler\_config.bucket\_start\ =\ *(paddr\_t*)\&heap\_address;}
+\DoxyCodeLine{00248\ \ \ \ \ stream\_scheduler\_config.num\_tms\ =\ num\_tms;}
+\DoxyCodeLine{00249\ \ \ \ \ stream\_scheduler\_config.bucket\_size\ =\ 2\ *\ 1024;}
+\DoxyCodeLine{00250\ \ \ \ \ stream\_scheduler\_config.ray\_size\ =\ 32;}
+\DoxyCodeLine{00251\ \ \ \ \ stream\_scheduler\_config.segment\_size\ =\ 64\ *\ 1024;}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \ \ \ \ Units::DualStreaming::UnitStreamScheduler\ stream\_scheduler(stream\_scheduler\_config);}
+\DoxyCodeLine{00254\ \ \ \ \ simulator.register\_unit(\&stream\_scheduler);}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \ \ \ \ Units::UnitBuffer::Configuration\ scene\_buffer\_config;}
+\DoxyCodeLine{00257\ \ \ \ \ scene\_buffer\_config.size\ =\ scene\_buffer\_size;}
+\DoxyCodeLine{00258\ \ \ \ \ scene\_buffer\_config.num\_banks\ =\ 32;}
+\DoxyCodeLine{00259\ \ \ \ \ scene\_buffer\_config.num\_ports\ =\ num\_tms\ +\ 1;}
+\DoxyCodeLine{00260\ \ \ \ \ scene\_buffer\_config.penalty\ =\ 3;}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \ \ \ \ Units::UnitBuffer\ scene\_buffer(scene\_buffer\_config);}
+\DoxyCodeLine{00263\ \ \ \ \ simulator.register\_unit(\&scene\_buffer);}
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \ \ \ \ simulator.start\_new\_unit\_group();}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \ \ \ \ Units::UnitCache::Configuration\ l2\_config;}
+\DoxyCodeLine{00268\ \ \ \ \ l2\_config.size\ =\ 512\ *\ 1024;}
+\DoxyCodeLine{00269\ \ \ \ \ l2\_config.associativity\ =\ 1;}
+\DoxyCodeLine{00270\ \ \ \ \ l2\_config.num\_banks\ =\ 32;}
+\DoxyCodeLine{00271\ \ \ \ \ l2\_config.num\_ports\ =\ num\_tms;}
+\DoxyCodeLine{00272\ \ \ \ \ l2\_config.data\_array\_access\_cycles\ =\ 3;}
+\DoxyCodeLine{00273\ \ \ \ \ l2\_config.num\_lfb\ =\ 4;}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \ \ \ \ l2\_config.mem\_map.add\_unit(0x0ull,\ \&mm,\ 0,\ 1);}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \ \ \ \ Units::UnitCache\ l2(l2\_config);}
+\DoxyCodeLine{00278\ \ \ \ \ simulator.register\_unit(\&l2);}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \ \ \ \ Units::UnitAtomicRegfile\ atomic\_regs(num\_tms);}
+\DoxyCodeLine{00281\ \ \ \ \ simulator.register\_unit(\&atomic\_regs);}
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ \ \ \ \ \textcolor{keywordflow}{for}(uint\ tm\_index\ =\ 0;\ tm\_index\ <\ num\_tms;\ ++tm\_index)}
+\DoxyCodeLine{00284\ \ \ \ \ \{}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ simulator.start\_new\_unit\_group();}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ Units::UnitCache::Configuration\ l1\_config;}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ l1\_config.size\ =\ 16\ *\ 1024;}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ l1\_config.associativity\ =\ 1;}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ l1\_config.num\_banks\ =\ 8;}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ l1\_config.num\_ports\ =\ num\_tps\_per\_tm;}
+\DoxyCodeLine{00292\ \ \ \ \ \ \ \ \ l1\_config.data\_array\_access\_cycles\ =\ 1;}
+\DoxyCodeLine{00293\ \ \ \ \ \ \ \ \ l1\_config.num\_lfb\ =\ 4;}
+\DoxyCodeLine{00294\ }
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ l1\_config.mem\_map.add\_unit(dsmm\_null\_address,\ \&l2,\ tm\_index,\ 1);}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ l1\_config.mem\_map.add\_unit(dsmm\_scene\_buffer\_start,\ \&scene\_buffer,\ tm\_index,\ 1);}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ \ l1\_config.mem\_map.add\_unit(dsmm\_heap\_start,\ \&l2,\ tm\_index,\ 1);}
+\DoxyCodeLine{00298\ }
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \ \ Units::UnitCache*\ l1\ =\ \_new\ Units::UnitCache(l1\_config);}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ l1s.push\_back(l1);}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \ \ simulator.register\_unit(l1);}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \ \ \ \ \ \ \ \ Units::DualStreaming::UnitRayStagingBuffer*\ rsb\ =\ \_new\ Units::DualStreaming::UnitRayStagingBuffer(num\_tps,\ tm\_index,\ \&stream\_scheduler);}
+\DoxyCodeLine{00304\ \ \ \ \ \ \ \ \ rsbs.push\_back(rsb);}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \ \ simulator.register\_unit(rsb);}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ sfus\_tables.emplace\_back(\textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::NUM\_TYPES),\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ Units::UnitSFU**\ sfu\_table\ =\ sfus\_tables.back().data();}
+\DoxyCodeLine{00309\ }
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ sfus.push\_back(\_new\ Units::UnitSFU(16,\ 1,\ 2,\ num\_tps\_per\_tm));}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ sfu\_table[\textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::FADD)]\ =\ sfus.back();}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ sfu\_table[\textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::FMUL)]\ =\ sfus.back();}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ sfu\_table[\textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::FFMAD)]\ =\ sfus.back();}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ simulator.register\_unit(sfus.back());}
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \ \ sfus.push\_back(\_new\ Units::UnitSFU(2,\ 1,\ 1,\ num\_tps\_per\_tm));}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \ \ sfu\_table[\textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::IMUL)]\ =\ sfus.back();}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \ \ sfu\_table[\textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::IDIV)]\ =\ sfus.back();}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ simulator.register\_unit(sfus.back());}
+\DoxyCodeLine{00320\ }
+\DoxyCodeLine{00321\ \ \ \ \ \ \ \ \ sfus.push\_back(\_new\ Units::UnitSFU(1,\ 1,\ 20,\ num\_tps\_per\_tm));}
+\DoxyCodeLine{00322\ \ \ \ \ \ \ \ \ sfu\_table[\textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::FDIV)]\ =\ sfus.back();}
+\DoxyCodeLine{00323\ \ \ \ \ \ \ \ \ simulator.register\_unit(sfus.back());}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \ \ \ \ \ \ \ \ sfus.push\_back(\_new\ Units::UnitSFU(1,\ 1,\ 20,\ num\_tps\_per\_tm));}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \ \ sfu\_table[\textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::FSQRT)]\ =\ sfus.back();}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ \ \ simulator.register\_unit(sfus.back());}
+\DoxyCodeLine{00328\ }
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ sfus.push\_back(\_new\ Units::UnitSFU(1,\ 1,\ 8,\ num\_tps\_per\_tm));}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ \ sfu\_table[\textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::BOXISECT)]\ =\ sfus.back();}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \ \ simulator.register\_unit(sfus.back());}
+\DoxyCodeLine{00332\ }
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \ \ sfus.push\_back(\_new\ Units::UnitSFU(2,\ 18,\ 31,\ num\_tps\_per\_tm));}
+\DoxyCodeLine{00334\ \ \ \ \ \ \ \ \ sfu\_table[\textcolor{keyword}{static\_cast<}uint\textcolor{keyword}{>}(ISA::RISCV::Type::TRIISECT)]\ =\ sfus.back();}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ \ \ simulator.register\_unit(sfus.back());}
+\DoxyCodeLine{00336\ }
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ thread\_schedulers.push\_back(\_new\ \ Units::UnitThreadScheduler(num\_tps\_per\_tm,\ tm\_index,\ \&atomic\_regs));}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ simulator.register\_unit(thread\_schedulers.back());}
+\DoxyCodeLine{00339\ }
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ tp\_index\ =\ 0;\ tp\_index\ <\ num\_tps\_per\_tm;\ ++tp\_index)}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ \ \ \ \ Units::UnitTP::Configuration\ tp\_config;}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.tp\_index\ =\ tp\_index;}
+\DoxyCodeLine{00344\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.tm\_index\ =\ tm\_index;}
+\DoxyCodeLine{00345\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.pc\ =\ elf.elf\_header-\/>e\_entry.u64;}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.sp\ =\ stack\_pointer;}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.backing\_memory\ =\ mm.\_data\_u8;}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.sfu\_table\ =\ sfu\_table;}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.port\_size\ =\ 32;}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.mem\_map.add\_unit(dsmm\_null\_address,\ \textcolor{keyword}{nullptr},\ 0,\ 1);}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.mem\_map.add\_unit(dsmm\_atomic\_reg\_file\_start,\ thread\_schedulers.back(),\ tm\_index\ *\ num\_tps\_per\_tm\ +\ tp\_index,\ 1);}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.mem\_map.add\_unit(dsmm\_global\_data\_start,\ l1,\ tp\_index,\ 1);}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.mem\_map.add\_unit(dsmm\_ray\_staging\_buffer\_start,\ rsb,\ tp\_index,\ 1);}
+\DoxyCodeLine{00355\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.mem\_map.add\_unit(dsmm\_scene\_buffer\_start,\ l1,\ tp\_index,\ 1);\ \textcolor{comment}{//scene\ buffer\ data\ goes\ through\ l1\ \ }}
+\DoxyCodeLine{00356\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//tp\_config.mem\_map.add\_unit(dsmm\_heap\_start,\ l1,\ tp\_index);}}
+\DoxyCodeLine{00357\ \ \ \ \ \ \ \ \ \ \ \ \ tp\_config.mem\_map.add\_unit(dsmm\_stack\_start,\ \textcolor{keyword}{nullptr},\ 0,\ 1);}
+\DoxyCodeLine{00358\ }
+\DoxyCodeLine{00359\ \ \ \ \ \ \ \ \ \ \ \ \ Units::UnitTP*\ tp\ =\ \textcolor{keyword}{new}\ Units::UnitTP(tp\_config);}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ \ \ \ \ \ \ tps.push\_back(tp);}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \ \ \ \ \ \ simulator.register\_unit(tp);}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00364\ \ \ \ \ \}}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \ \ \ \ \{}
+\DoxyCodeLine{00367\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ start\ =\ std::chrono::high\_resolution\_clock::now();}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ simulator.execute();}
+\DoxyCodeLine{00369\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ stop\ =\ std::chrono::high\_resolution\_clock::now();}
+\DoxyCodeLine{00370\ }
+\DoxyCodeLine{00371\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ duration\ =\ std::chrono::duration\_cast<std::chrono::milliseconds>(stop\ -\/\ start);}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Runtime:\ "{}}\ <<\ duration.count()\ <<\ \textcolor{stringliteral}{"{}\ ms\(\backslash\)n"{}};}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Cycles:\ "{}}\ <<\ simulator.current\_cycle\ <<\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}};}
+\DoxyCodeLine{00374\ \ \ \ \ \}}
+\DoxyCodeLine{00375\ }
+\DoxyCodeLine{00376\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nTP\(\backslash\)n"{}});}
+\DoxyCodeLine{00377\ \ \ \ \ Units::UnitTP::Log\ tp\_log(0x10000);}
+\DoxyCodeLine{00378\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ tp\ :\ tps)}
+\DoxyCodeLine{00379\ \ \ \ \ \ \ \ \ tp\_log.accumulate(tp-\/>log);}
+\DoxyCodeLine{00380\ \ \ \ \ tp\_log.print\_log();}
+\DoxyCodeLine{00381\ }
+\DoxyCodeLine{00382\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nL1\(\backslash\)n"{}});}
+\DoxyCodeLine{00383\ \ \ \ \ Units::UnitCache::Log\ l1\_log;}
+\DoxyCodeLine{00384\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ l1\ :\ l1s)}
+\DoxyCodeLine{00385\ \ \ \ \ \ \ \ \ l1\_log.accumulate(l1-\/>log);}
+\DoxyCodeLine{00386\ \ \ \ \ l1\_log.print\_log();}
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nL2\(\backslash\)n"{}});}
+\DoxyCodeLine{00389\ \ \ \ \ l2.log.print\_log();}
+\DoxyCodeLine{00390\ }
+\DoxyCodeLine{00391\ \ \ \ \ mm.print\_usimm\_stats(CACHE\_BLOCK\_SIZE,\ 4,\ simulator.current\_cycle);}
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \ \ \ \ paddr\_t\ paddr\_frame\_buffer\ =\ \textcolor{keyword}{reinterpret\_cast<}paddr\_t\textcolor{keyword}{>}(global\_data.framebuffer);}
+\DoxyCodeLine{00394\ \ \ \ \ mm.dump\_as\_png\_uint8(paddr\_frame\_buffer,\ global\_data.framebuffer\_width,\ global\_data.framebuffer\_height,\ \textcolor{stringliteral}{"{}./out.png"{}});}
+\DoxyCodeLine{00395\ }
+\DoxyCodeLine{00396\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ tp\ :\ tps)\ delete\ tp;}
+\DoxyCodeLine{00397\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ sfu\ :\ sfus)\ delete\ sfu;}
+\DoxyCodeLine{00398\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ rsb\ :\ rsbs)\ delete\ rsb;}
+\DoxyCodeLine{00399\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ ts\ :\ thread\_schedulers)\ delete\ ts;}
+\DoxyCodeLine{00400\ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ l1\ :\ l1s)\ delete\ l1;}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \}}
+\DoxyCodeLine{00403\ }
+\DoxyCodeLine{00404\ \}}
+
+\end{DoxyCode}

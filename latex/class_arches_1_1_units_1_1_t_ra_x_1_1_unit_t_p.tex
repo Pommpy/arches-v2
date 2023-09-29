@@ -1,0 +1,102 @@
+\doxysection{Arches\+::Units\+::TRaX\+::Unit\+TP Class Reference}
+\hypertarget{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p}{}\label{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p}\index{Arches::Units::TRaX::UnitTP@{Arches::Units::TRaX::UnitTP}}
+Inheritance diagram for Arches\+::Units\+::TRaX\+::Unit\+TP\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_1_1_configuration}{Configuration}}
+\item 
+class \mbox{\hyperlink{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_1_1_log}{Log}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_a69e822a3fd69f43293cd39aec26fc64a}\label{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_a69e822a3fd69f43293cd39aec26fc64a} 
+{\bfseries Unit\+TP} (const \mbox{\hyperlink{struct_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_1_1_configuration}{Configuration}} \&config, \mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*}simulator)
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_aea24cc165715cb3dce745f80fcc26461}{clock\+\_\+rise}} () override
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_af14d082bc0542620b4d5a638880d0e88}{clock\+\_\+fall}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{Arches\+::\+ISA\+::\+RISCV\+::\+Execution\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Execution\+Base} (\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_integer_register_file}{Integer\+Register\+File}} \texorpdfstring{$\ast$}{*}int\+\_\+regs, \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_floating_point_register_file}{Floating\+Point\+Register\+File}} \texorpdfstring{$\ast$}{*}float\+\_\+regs)
+\item 
+void {\bfseries \+\_\+write\+\_\+register} (\mbox{\hyperlink{struct_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_reg_addr}{Reg\+Addr}} dst, const uint8\+\_\+t \texorpdfstring{$\ast$}{*}src, uint8\+\_\+t size)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_a19529c86289be2c7a54411bdec976966}\label{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_a19529c86289be2c7a54411bdec976966} 
+class \mbox{\hyperlink{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_1_1_log}{Arches\+::\+Units\+::\+TRa\+X\+::\+Unit\+TP\+::\+Log}} {\bfseries log}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_aa12b22441d75818513c6ae42127efe54}\label{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_aa12b22441d75818513c6ae42127efe54} 
+paddr\+\_\+t {\bfseries stack\+\_\+start}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{Arches\+::\+ISA\+::\+RISCV\+::\+Execution\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+uint8\+\_\+t \texorpdfstring{$\ast$}{*} {\bfseries backing\+\_\+memory} \{nullptr\}
+\item 
+\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_integer_register_file}{Integer\+Register\+File}} \texorpdfstring{$\ast$}{*} {\bfseries int\+\_\+regs} \{nullptr\}
+\item 
+\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_floating_point_register_file}{Floating\+Point\+Register\+File}} \texorpdfstring{$\ast$}{*} {\bfseries float\+\_\+regs} \{nullptr\}
+\item 
+Arches\+::vaddr\+\_\+t {\bfseries pc} \{0\}
+\item 
+bool {\bfseries branch\+\_\+taken} \{false\}
+\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Units::MemoryRequest::Type {\bfseries type}\\
+\>\mbox{\hyperlink{struct_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_reg_addr}{RegAddr}} {\bfseries dst}\\
+\>uint8\_t {\bfseries size}\\
+\>bool {\bfseries cached}\\
+\>paddr\_t {\bfseries vaddr}\\
+\>uint8\_t {\bfseries store\_data} \mbox{[}CACHE\_BLOCK\_SIZE\mbox{]}\\
+\} {\bfseries mem\_req}\\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_af14d082bc0542620b4d5a638880d0e88}\label{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_af14d082bc0542620b4d5a638880d0e88} 
+\index{Arches::Units::TRaX::UnitTP@{Arches::Units::TRaX::UnitTP}!clock\_fall@{clock\_fall}}
+\index{clock\_fall@{clock\_fall}!Arches::Units::TRaX::UnitTP@{Arches::Units::TRaX::UnitTP}}
+\doxysubsubsection{\texorpdfstring{clock\_fall()}{clock\_fall()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+TRa\+X\+::\+Unit\+TP\+::clock\+\_\+fall (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+\Hypertarget{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_aea24cc165715cb3dce745f80fcc26461}\label{class_arches_1_1_units_1_1_t_ra_x_1_1_unit_t_p_aea24cc165715cb3dce745f80fcc26461} 
+\index{Arches::Units::TRaX::UnitTP@{Arches::Units::TRaX::UnitTP}!clock\_rise@{clock\_rise}}
+\index{clock\_rise@{clock\_rise}!Arches::Units::TRaX::UnitTP@{Arches::Units::TRaX::UnitTP}}
+\doxysubsubsection{\texorpdfstring{clock\_rise()}{clock\_rise()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+TRa\+X\+::\+Unit\+TP\+::clock\+\_\+rise (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/units/trax/unit-\/trax-\/tp.\+hpp\item 
+arches-\/v2/src/arches/units/trax/unit-\/trax-\/tp.\+cpp\end{DoxyCompactItemize}

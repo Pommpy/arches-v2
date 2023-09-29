@@ -1,0 +1,28 @@
+\doxysection{ray.\+hpp}
+\hypertarget{trax_2src_2ray_8hpp_source}{}\label{trax_2src_2ray_8hpp_source}\index{arches-\/v2/benchmarks/trax/src/ray.hpp@{arches-\/v2/benchmarks/trax/src/ray.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}rtm.hpp"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_ray}{Ray}}}
+\DoxyCodeLine{00007\ \{}
+\DoxyCodeLine{00008\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ o;}
+\DoxyCodeLine{00009\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ t\_min;}
+\DoxyCodeLine{00010\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ d;}
+\DoxyCodeLine{00011\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ t\_max;}
+\DoxyCodeLine{00012\ \ \ \ \ }
+\DoxyCodeLine{00013\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ drdt;}
+\DoxyCodeLine{00014\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ radius;}
+\DoxyCodeLine{00015\ \};}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_hit}{Hit}}}
+\DoxyCodeLine{00018\ \{}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keywordtype}{float}\ t;}
+\DoxyCodeLine{00020\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}\ bc;}
+\DoxyCodeLine{00021\ \ \ \ \ uint32\_t\ id;}
+\DoxyCodeLine{00022\ \};}
+
+\end{DoxyCode}

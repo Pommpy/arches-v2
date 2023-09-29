@@ -1,0 +1,65 @@
+\doxysection{endian.\+hpp}
+\hypertarget{endian_8hpp_source}{}\label{endian_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/util/endian.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/util/endian.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }Util\ \{\ \textcolor{keyword}{namespace\ }Endian\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{comment}{//Reverse\ the\ endianness\ of\ the\ argument,\ whatever\ it\ may\ be.}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ \ http://stackoverflow.com/questions/2182002/convert-\/big-\/endian-\/to-\/little-\/endian-\/in-\/c-\/without-\/using-\/provided-\/func}}
+\DoxyCodeLine{00011\ \textcolor{keyword}{inline}\ uint16\_t\ reverse(uint16\_t\ val)\ \{}
+\DoxyCodeLine{00012\ \ \ \ \ uint32\_t\ temp\ =\ \textcolor{keyword}{static\_cast<}uint32\_t\textcolor{keyword}{>}(val);}
+\DoxyCodeLine{00013\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}uint16\_t\textcolor{keyword}{>}(\ (temp\ <<\ 8u)\ |\ (temp\ >>\ 8u)\ );}
+\DoxyCodeLine{00014\ \}}
+\DoxyCodeLine{00015\ \textcolor{keyword}{inline}\ \ int16\_t\ reverse(\ int16\_t\ val)\ \{}
+\DoxyCodeLine{00016\ \ \ \ \ uint16\_t\ swapped\ =\ reverse(\textcolor{keyword}{reinterpret\_cast<}uint16\_t\&\textcolor{keyword}{>}(val));}
+\DoxyCodeLine{00017\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{reinterpret\_cast<}int16\_t\&\textcolor{keyword}{>}(swapped);}
+\DoxyCodeLine{00018\ \}}
+\DoxyCodeLine{00019\ \textcolor{keyword}{inline}\ uint32\_t\ reverse(uint32\_t\ val)\ \{}
+\DoxyCodeLine{00020\ \ \ \ \ val\ =\ ((val<<8u)\&0xFF00FF00u)\ |\ ((val>>8u)\&0x00FF00FFu);}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keywordflow}{return}\ (val<<16u)\ |\ (val>>16u);}
+\DoxyCodeLine{00022\ \}}
+\DoxyCodeLine{00023\ \textcolor{keyword}{inline}\ \ int32\_t\ reverse(\ int32\_t\ val)\ \{}
+\DoxyCodeLine{00024\ \ \ \ \ uint32\_t\ swapped\ =\ reverse(\textcolor{keyword}{reinterpret\_cast<}uint32\_t\&\textcolor{keyword}{>}(val));}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{reinterpret\_cast<}int32\_t\&\textcolor{keyword}{>}(swapped);}
+\DoxyCodeLine{00026\ \}}
+\DoxyCodeLine{00027\ \textcolor{keyword}{inline}\ uint64\_t\ reverse(uint64\_t\ val)\ \{}
+\DoxyCodeLine{00028\ \ \ \ \ val\ =\ ((val<<\ 8ull)\&0xFF00FF00FF00FF00ull)\ |\ ((val>>\ 8ull)\&0x00FF00FF00FF00FFull);}
+\DoxyCodeLine{00029\ \ \ \ \ val\ =\ ((val<<16ull)\&0xFFFF0000FFFF0000ull)\ |\ ((val>>16ull)\&0x0000FFFF0000FFFFull);}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keywordflow}{return}\ (val<<32ull)\ |\ (val\ >>\ 32ull);}
+\DoxyCodeLine{00031\ \}}
+\DoxyCodeLine{00032\ \textcolor{keyword}{inline}\ \ int64\_t\ reverse(\ int64\_t\ val)\ \{}
+\DoxyCodeLine{00033\ \ \ \ \ uint64\_t\ swapped\ =\ reverse(\textcolor{keyword}{reinterpret\_cast<}uint64\_t\&\textcolor{keyword}{>}(val));}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{reinterpret\_cast<}int64\_t\&\textcolor{keyword}{>}(swapped);}
+\DoxyCodeLine{00035\ \}}
+\DoxyCodeLine{00036\ \textcolor{comment}{//We\ need\ to\ be\ careful\ with\ the\ floating\ point\ conversions.\ \ Unlike\ above,\ strict-\/aliasing\ factors}}
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ \ in\ since\ e.g.\ \`{}float`\ and\ \`{}uint32\_t`\ are\ not\ compatible\ types.\ \ The\ best\ solution\ is}}
+\DoxyCodeLine{00038\ \textcolor{comment}{//\ \ \`{}memcpy(...)`\ which,\ amazingly,\ compiles\ out\ into\ ideal\ machine\ code.}}
+\DoxyCodeLine{00039\ \textcolor{keyword}{inline}\ \ \ \ \textcolor{keywordtype}{float}\ reverse(\ \ \ \textcolor{keywordtype}{float}\ val)\ \{}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{static\_assert}(\textcolor{keyword}{sizeof}(float)==4,\textcolor{stringliteral}{"{}Float\ is\ not\ 4\ bytes!"{}});}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ uint32\_t\ temp0;\ memcpy(\&temp0,\&val,\ 4);}
+\DoxyCodeLine{00043\ \ \ \ \ uint32\_t\ swapped\ =\ reverse(temp0);}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{float}\ temp1;\ memcpy(\&temp1,\&swapped,\ 4);}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordflow}{return}\ temp1;}
+\DoxyCodeLine{00047\ \}}
+\DoxyCodeLine{00048\ \textcolor{keyword}{inline}\ \ \ \textcolor{keywordtype}{double}\ reverse(\ \ \textcolor{keywordtype}{double}\ val)\ \{}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{static\_assert}(\textcolor{keyword}{sizeof}(double)==8,\textcolor{stringliteral}{"{}Double\ is\ not\ 8\ bytes!"{}});}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ uint64\_t\ temp0;\ memcpy(\&temp0,\&val,\ 8);}
+\DoxyCodeLine{00052\ \ \ \ \ uint64\_t\ swapped\ =\ reverse(temp0);}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordtype}{double}\ temp1;\ memcpy(\&temp1,\&swapped,\ 8);}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordflow}{return}\ temp1;}
+\DoxyCodeLine{00056\ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \}\}\}}
+
+\end{DoxyCode}

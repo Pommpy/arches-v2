@@ -1,0 +1,473 @@
+\doxysection{riscv.\+hpp}
+\hypertarget{riscv_8hpp_source}{}\label{riscv_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/isa/riscv.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/isa/riscv.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }ISA\ \{\ \textcolor{keyword}{namespace\ }RISCV\ \{}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{keyword}{class\ }ExecutionBase;}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ enum\ :\ uint32\_t}
+\DoxyCodeLine{00010\ \{}
+\DoxyCodeLine{00011\ \ \ \ \ CUSTOM\_OPCODE0\ =\ 0b00010,}
+\DoxyCodeLine{00012\ \ \ \ \ CUSTOM\_OPCODE1\ =\ 0b01010,}
+\DoxyCodeLine{00013\ \ \ \ \ CUSTOM\_OPCODE2\ =\ 0b10110,}
+\DoxyCodeLine{00014\ \ \ \ \ CUSTOM\_OPCODE3\ =\ 0b11110,}
+\DoxyCodeLine{00015\ \};}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{size\_t}\ NUM\_OPCODES\ =\ 32;}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{const}\ std::string\ instr\_opcode\_names[NUM\_OPCODES]\ =}
+\DoxyCodeLine{00020\ \{}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{stringliteral}{"{}LOAD"{}},}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{stringliteral}{"{}LOAD-\/FP"{}},}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{stringliteral}{"{}custom-\/0"{}},}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{stringliteral}{"{}MISC-\/MEM"{}},}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{stringliteral}{"{}OP-\/IMM"{}},}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{stringliteral}{"{}AUIPC"{}},}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{stringliteral}{"{}OP-\/IMM-\/32"{}},}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{stringliteral}{"{}48b"{}},}
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{stringliteral}{"{}STORE"{}},}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{stringliteral}{"{}STORE-\/FP"{}},}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{stringliteral}{"{}custom-\/1"{}},}
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{stringliteral}{"{}AMO"{}},}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{stringliteral}{"{}OP"{}},}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{stringliteral}{"{}LUI"{}},}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{stringliteral}{"{}OP-\/32"{}},}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{stringliteral}{"{}64b"{}},}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{stringliteral}{"{}FMADD"{}},}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{stringliteral}{"{}FMSUB"{}},}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{stringliteral}{"{}FNMSUB"{}},}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{stringliteral}{"{}FNMADD"{}},}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{stringliteral}{"{}OP-\/FP"{}},}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{stringliteral}{"{}reserved"{}},}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{stringliteral}{"{}custom-\/2/rv128"{}},}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{stringliteral}{"{}48b"{}},}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{stringliteral}{"{}BRANCH"{}},}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{stringliteral}{"{}JALR"{}},}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{stringliteral}{"{}reserved"{}},}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{stringliteral}{"{}JAL"{}},}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{stringliteral}{"{}ECALL"{}},}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{stringliteral}{"{}reserved"{}},}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{stringliteral}{"{}custom-\/3/rv128"{}}}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{stringliteral}{"{}>=80b"{}}}
+\DoxyCodeLine{00053\ \};}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{comment}{//TODO\ make\ these\ class\ enums}}
+\DoxyCodeLine{00056\ \textcolor{keyword}{enum\ class}\ Type\ :\ uint8\_t}
+\DoxyCodeLine{00057\ \{}
+\DoxyCodeLine{00058\ \ \ \ \ NA,}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{comment}{//memory}}
+\DoxyCodeLine{00061\ \ \ \ \ LOAD,}
+\DoxyCodeLine{00062\ \ \ \ \ STORE,}
+\DoxyCodeLine{00063\ \ \ \ \ PREFETCH,}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ AMO\_ADD,}
+\DoxyCodeLine{00066\ \ \ \ \ AMO\_XOR,}
+\DoxyCodeLine{00067\ \ \ \ \ AMO\_OR,}
+\DoxyCodeLine{00068\ \ \ \ \ AMO\_AND,}
+\DoxyCodeLine{00069\ \ \ \ \ AMO\_MIN,}
+\DoxyCodeLine{00070\ \ \ \ \ AMO\_MAX,}
+\DoxyCodeLine{00071\ \ \ \ \ AMO\_MINU,}
+\DoxyCodeLine{00072\ \ \ \ \ AMO\_MAXU,}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ FCHTHRD,}
+\DoxyCodeLine{00075\ \ \ \ \ LBRAY,}
+\DoxyCodeLine{00076\ \ \ \ \ SBRAY,}
+\DoxyCodeLine{00077\ \ \ \ \ CSHIT,}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{comment}{//non-\/memory}}
+\DoxyCodeLine{00080\ \ \ \ \ SYS,}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \ \ JUMP,}
+\DoxyCodeLine{00083\ \ \ \ \ BRANCH,}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \ \ MOVE,}
+\DoxyCodeLine{00086\ \ \ \ \ CONVERT,}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ ILOGICAL,}
+\DoxyCodeLine{00089\ \ \ \ \ IADD,}
+\DoxyCodeLine{00090\ \ \ \ \ IMUL,}
+\DoxyCodeLine{00091\ \ \ \ \ IDIV,}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ FCMP,}
+\DoxyCodeLine{00094\ \ \ \ \ FSIGN,}
+\DoxyCodeLine{00095\ \ \ \ \ FMIN\_MAX,}
+\DoxyCodeLine{00096\ \ \ \ \ FADD,}
+\DoxyCodeLine{00097\ \ \ \ \ FMUL,}
+\DoxyCodeLine{00098\ \ \ \ \ FFMAD,}
+\DoxyCodeLine{00099\ \ \ \ \ FDIV,}
+\DoxyCodeLine{00100\ \ \ \ \ FSQRT,}
+\DoxyCodeLine{00101\ \ \ \ \ FRCP,}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ BOXISECT,}
+\DoxyCodeLine{00104\ \ \ \ \ TRIISECT,}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ NUM\_TYPES,}
+\DoxyCodeLine{00107\ \};}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{keyword}{const}\ std::string\ instr\_type\_names[]\ =}
+\DoxyCodeLine{00110\ \{}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{stringliteral}{"{}NA"{}},}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{stringliteral}{"{}LOAD"{}},}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{stringliteral}{"{}STORE"{}},}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{stringliteral}{"{}PREFETCH"{}},}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{stringliteral}{"{}AMO\_ADD"{}},}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{stringliteral}{"{}AMO\_XOR"{}},}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{stringliteral}{"{}AMO\_OR"{}},}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{stringliteral}{"{}AMO\_AND"{}},}
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{stringliteral}{"{}AMO\_MIN"{}},}
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{stringliteral}{"{}AMO\_MAX"{}},}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{stringliteral}{"{}AMO\_MINU"{}},}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{stringliteral}{"{}AMO\_MAXU"{}},}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{stringliteral}{"{}FCHTHRD"{}},}
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{stringliteral}{"{}LBRAY"{}},}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{stringliteral}{"{}SBRAY"{}},}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{stringliteral}{"{}CSHIT"{}},}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{stringliteral}{"{}SYS"{}},}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{stringliteral}{"{}JUMP"{}},}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{stringliteral}{"{}BRANCH"{}},}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{stringliteral}{"{}MOVE"{}},}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{stringliteral}{"{}CONVERT"{}},}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{stringliteral}{"{}ILOGICAL"{}},}
+\DoxyCodeLine{00140\ \ \ \ \ \textcolor{stringliteral}{"{}IADD"{}},}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{stringliteral}{"{}IMUL"{}},}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{stringliteral}{"{}IDIV"{}},}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{stringliteral}{"{}FCMP"{}},}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{stringliteral}{"{}FSIGN"{}},}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{stringliteral}{"{}FMIN\_MAX"{}},}
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{stringliteral}{"{}FADD"{}},}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{stringliteral}{"{}FMUL"{}},}
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{stringliteral}{"{}FFMAD"{}},}
+\DoxyCodeLine{00150\ \ \ \ \ \textcolor{stringliteral}{"{}FDIV"{}},}
+\DoxyCodeLine{00151\ \ \ \ \ \textcolor{stringliteral}{"{}FSQRT"{}},}
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{stringliteral}{"{}FRCP"{}},}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \ \ \ \ \textcolor{stringliteral}{"{}BOXISECT"{}},}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{stringliteral}{"{}TRIISECT"{}},}
+\DoxyCodeLine{00156\ \};}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \textcolor{keyword}{enum\ class}\ Encoding\ :\ uint8\_t}
+\DoxyCodeLine{00159\ \{}
+\DoxyCodeLine{00160\ \ \ \ \ NA,}
+\DoxyCodeLine{00161\ \ \ \ \ R,}
+\DoxyCodeLine{00162\ \ \ \ \ R4,}
+\DoxyCodeLine{00163\ \ \ \ \ I,}
+\DoxyCodeLine{00164\ \ \ \ \ S,}
+\DoxyCodeLine{00165\ \ \ \ \ B,}
+\DoxyCodeLine{00166\ \ \ \ \ U,}
+\DoxyCodeLine{00167\ \ \ \ \ J}
+\DoxyCodeLine{00168\ \};}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{keyword}{enum\ class}\ RegFile\ :\ uint8\_t}
+\DoxyCodeLine{00171\ \{}
+\DoxyCodeLine{00172\ \ \ \ \ INT,}
+\DoxyCodeLine{00173\ \ \ \ \ FLOAT,}
+\DoxyCodeLine{00174\ \};}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{keyword}{class\ }InstructionInfo;}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ final\ }
+\DoxyCodeLine{00179\ \{}
+\DoxyCodeLine{00180\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keyword}{union\ }\{}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \textcolor{comment}{//common\ instruction\ bit\ range\ names}}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ opcode\ \ :\ 7;}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rd\ \ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct3\ \ :\ 3;}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs1\ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs2\ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct2\ \ :\ 2;}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs3\ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ :\ 7;}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rd\ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct3\ :\ 3;}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs1\ \ \ \ :\ 5;}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs2\ \ \ \ :\ 5;}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct7\ :\ 7;}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ :\ 12;}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rm\ \ \ \ \ :\ 3;}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ :\ 10;}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ fmt\ \ \ \ :\ 2;}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct5\ :\ 5;}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ :\ 25;}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rl\ :\ 1;}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ aq\ :\ 1;}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ :\ 5;}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \}r;}
+\DoxyCodeLine{00221\ \ \ \ \ }
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ :\ 7;}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rd\ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct3\ :\ 3;}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs1\ \ \ \ :\ 5;}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs2\ \ \ \ :\ 5;}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct2\ :\ 2;}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs3\ \ \ \ :\ 5;}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \}r4;}
+\DoxyCodeLine{00232\ \ \ \ \ }
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \textcolor{keyword}{union\ }}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ :\ 7;}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rd\ \ \ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct3\ \ \ :\ 3;}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs1\ \ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_11\_0\ :\ 12;}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \ \ }
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ :\ 20;}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ shamt5\ \ \ :\ 5;}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_11\_5\ :\ 7;}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ :\ 20;}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ shamt6\ \ \ :\ 6;}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_11\_6\ :\ 6;}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ :\ 20;}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct12\ :\ 12;}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ \}i;}
+\DoxyCodeLine{00261\ \ \ \ \ }
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ :\ 7;}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_4\_0\ \ \ \ :\ 5;}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct3\ \ \ \ \ :\ 3;}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs1\ \ \ \ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs2\ \ \ \ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_11\_5\ \ \ :\ 7;}
+\DoxyCodeLine{00270\ \ \ \ \ }
+\DoxyCodeLine{00271\ \ \ \ \ \ \ \ \ \}s;}
+\DoxyCodeLine{00272\ \ \ \ \ }
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ :\ 7;}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_11\ \ \ \ \ :\ 1;}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_4\_1\ \ \ \ :\ 4;}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ funct3\ \ \ \ \ :\ 3;}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs1\ \ \ \ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rs2\ \ \ \ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_10\_5\ \ \ :\ 6;}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_12\ \ \ \ \ :\ 1;}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \}b;}
+\DoxyCodeLine{00284\ \ \ \ \ }
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ :\ 7;}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rd\ \ \ \ \ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_31\_12\ \ :\ 20;}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \}u;}
+\DoxyCodeLine{00291\ \ \ \ \ }
+\DoxyCodeLine{00292\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }}
+\DoxyCodeLine{00293\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ :\ 7;}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ rd\ \ \ \ \ \ \ \ \ :\ 5;}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_19\_12\ \ :\ 8;}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_11\ \ \ \ \ :\ 1;}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_10\_1\ \ \ :\ 10;}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ imm\_20\ \ \ \ \ :\ 1;}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ \}j;}
+\DoxyCodeLine{00301\ \ \ \ \ }
+\DoxyCodeLine{00302\ \ \ \ \ \ \ \ \ uint32\_t\ data;}
+\DoxyCodeLine{00303\ \ \ \ \ \};}
+\DoxyCodeLine{00304\ \ \ \ \ }
+\DoxyCodeLine{00305\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}(uint32\_t\ data)\ :\ data(data)\ \{\}}
+\DoxyCodeLine{00306\ \ \ \ \ }
+\DoxyCodeLine{00307\ \ \ \ \ \textcolor{comment}{//use\ this\ to\ get\ the\ info\ for\ a\ given\ instruction}}
+\DoxyCodeLine{00308\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ get\_info();}
+\DoxyCodeLine{00309\ \};}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ int64\_t\ i\_imm(\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ instr);}
+\DoxyCodeLine{00312\ int64\_t\ s\_imm(\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ instr);}
+\DoxyCodeLine{00313\ int64\_t\ b\_imm(\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ instr);}
+\DoxyCodeLine{00314\ int64\_t\ u\_imm(\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ instr);}
+\DoxyCodeLine{00315\ int64\_t\ j\_imm(\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ instr);}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ final\ }
+\DoxyCodeLine{00318\ \{}
+\DoxyCodeLine{00319\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00320\ \ \ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\&\ (*FunctionGetSubOp)(\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ \textcolor{keyword}{const}\&);}
+\DoxyCodeLine{00321\ \ \ \ \ \textcolor{keyword}{typedef}\ void(*FunctionProcessor)(\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ \textcolor{keyword}{const}\&,\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\&,\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{ExecutionBase}}*);}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00324\ \ \ \ \ \{}
+\DoxyCodeLine{00325\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ mnemonic;}
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ op\_code;}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ \ \ \ \ Type\ \ \ \ \ \ \ \ type;}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ \ \ \ \ \ Encoding\ \ \ \ encoding;}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \ \ \ \ \ \ RegFile\ \ \ \ \ dst\_reg\_file;}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ \ \ \ \ \ \ RegFile\ \ \ \ \ src\_reg\_file;}
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00334\ }
+\DoxyCodeLine{00335\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00336\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ \ \ \ \ FunctionGetSubOp\ \_resolve\_fn;}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \_func\_code;}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \ \ \}\ \_meta;}
+\DoxyCodeLine{00340\ \ \ \ \ \};}
+\DoxyCodeLine{00341\ }
+\DoxyCodeLine{00342\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00343\ \ \ \ \ FunctionProcessor\ \_impl\_fn;}
+\DoxyCodeLine{00344\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \_is\_meta;}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00347\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00348\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}(uint32\_t\ opcode,\ FunctionProcessor\ impl\_fn)\ :\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}(opcode,\ \textcolor{keyword}{nullptr},\ Type::NA,\ Encoding::NA,\ RegFile::INT,\ RegFile::INT,\ impl\_fn)\ \{\}}
+\DoxyCodeLine{00349\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}(uint32\_t\ opcode,\ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ mnemonic,\ FunctionProcessor\ impl\_fn)\ :\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}(opcode,\ mnemonic,\ Type::NA,\ Encoding::NA,\ RegFile::INT,\ RegFile::INT,\ impl\_fn)\ \{\}}
+\DoxyCodeLine{00350\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}(uint32\_t\ opcode,\ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ mnemonic,\ Type\ type,\ Encoding\ encoding,\ RegFile\ reg\_file,\ FunctionProcessor\ impl\_fn)\ :\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}(opcode,\ mnemonic,\ type,\ encoding,\ reg\_file,\ reg\_file,\ impl\_fn)\ \{\}}
+\DoxyCodeLine{00351\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}(uint32\_t\ opcode,\ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ mnemonic,\ Type\ type,\ Encoding\ encoding,\ RegFile\ dst\_reg\_file,\ RegFile\ src\_reg\_file,\ FunctionProcessor\ impl\_fn)\ :}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \ \ \_impl\_fn(impl\_fn),\ \_is\_meta(\textcolor{keyword}{false}),\ op\_code(opcode),\ type(type),\ encoding(encoding),\ dst\_reg\_file(dst\_reg\_file),\ src\_reg\_file(src\_reg\_file),\ mnemonic(mnemonic)}
+\DoxyCodeLine{00353\ \ \ \ \ \{}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00355\ \ \ \ \ \}}
+\DoxyCodeLine{00356\ }
+\DoxyCodeLine{00357\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}(uint32\_t\ func\_code,\ FunctionGetSubOp\ resolve\_fn)\ :}
+\DoxyCodeLine{00358\ \ \ \ \ \ \ \ \ \_is\_meta(\textcolor{keyword}{true})}
+\DoxyCodeLine{00359\ \ \ \ \ \{}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ \ \ \_impl\_fn\ =\ [](\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ \textcolor{keyword}{const}\&\ instr,\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\&\ instr\_info,\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{ExecutionBase}}*\ unit\ )\ -\/>\ \textcolor{keywordtype}{void}\ \{}
+\DoxyCodeLine{00361\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\&\ sub\_instr\ =\ instr\_info.\_meta.\_resolve\_fn(instr);}
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \ \ \ \ \ \ sub\_instr.execute(unit,instr);}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00364\ }
+\DoxyCodeLine{00365\ \ \ \ \ \ \ \ \ \_meta.\_func\_code\ =\ func\_code;}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \ \ \_meta.\_resolve\_fn\ =\ resolve\_fn;}
+\DoxyCodeLine{00367\ \ \ \ \ \}}
+\DoxyCodeLine{00368\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{\string~InstructionInfo}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ get\_direct\_instr\_info(\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ \textcolor{keyword}{const}\&\ instr)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00371\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!\_is\_meta)\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \_meta.\_resolve\_fn(instr).get\_direct\_instr\_info(instr);}
+\DoxyCodeLine{00374\ \ \ \ \ \}}
+\DoxyCodeLine{00375\ }
+\DoxyCodeLine{00376\ \ \ \ \ \textcolor{keywordtype}{void}\ print\_instr(\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ \textcolor{keyword}{const}\&\ instr,\ FILE*\ stream\ =\ stdout)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00377\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ drfc\ =\ dst\_reg\_file\ ==\ RegFile::INT\ ?\ \textcolor{charliteral}{'x'}\ :\ \textcolor{charliteral}{'f'};}
+\DoxyCodeLine{00379\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ srfc\ =\ src\_reg\_file\ ==\ RegFile::INT\ ?\ \textcolor{charliteral}{'x'}\ :\ \textcolor{charliteral}{'f'};}
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(encoding)}
+\DoxyCodeLine{00382\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ISA::RISCV::Encoding::R:}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\%s\(\backslash\)t\%c\%d,\%c\%d,\%c\%d"{}},\ mnemonic,\ drfc,\ instr.rd,\ srfc,\ instr.rs1,\ srfc,\ instr.rs2);}
+\DoxyCodeLine{00385\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00386\ }
+\DoxyCodeLine{00387\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ISA::RISCV::Encoding::R4:}
+\DoxyCodeLine{00388\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\%s\(\backslash\)t\%c\%d,\%c\%d,\%c\%d,\%c\%d"{}},\ mnemonic,\ drfc,\ instr.rd,\ srfc,\ instr.rs1,\ srfc,\ instr.rs2,\ srfc,\ instr.rs3);}
+\DoxyCodeLine{00389\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00390\ }
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ISA::RISCV::Encoding::I:}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\%s\(\backslash\)t\%c\%d,\%c\%d,\%d"{}},\ mnemonic,\ drfc,\ instr.rd,\ srfc,\ instr.rs1,\ (int32\_t)i\_imm(instr));}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00394\ }
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ISA::RISCV::Encoding::S:}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\%s\(\backslash\)t\%c\%d,\%c\%d,\%d"{}},\ mnemonic,\ drfc,\ instr.rs2,\ srfc,\ instr.rs1,\ (int32\_t)s\_imm(instr));}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ISA::RISCV::Encoding::B:}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\%s\(\backslash\)t\%c\%d,\%c\%d,\%d"{}},\ mnemonic,\ srfc,\ instr.rs1,\ srfc,\ instr.rs2,\ (int32\_t)b\_imm(instr));}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ISA::RISCV::Encoding::U:}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\%s\(\backslash\)t\%c\%d,\%d"{}},\ mnemonic,\ drfc,\ instr.rd,\ (int32\_t)u\_imm(instr));}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00406\ }
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ISA::RISCV::Encoding::J:}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\%s\(\backslash\)t\%c\%d,\%d"{}},\ mnemonic,\ drfc,\ instr.rd,\ (int32\_t)j\_imm(instr));}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00411\ \ \ \ \ \}}
+\DoxyCodeLine{00412\ }
+\DoxyCodeLine{00413\ \ \ \ \ \textcolor{keywordtype}{void}\ execute(\mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{ExecutionBase}}*\ unit,\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{Instruction}}\ \textcolor{keyword}{const}\&\ instr)\textcolor{keyword}{\ const\ }\{\ \_impl\_fn(instr,\ *\textcolor{keyword}{this},\ unit);\ \}}
+\DoxyCodeLine{00414\ \};}
+\DoxyCodeLine{00415\ }
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ \textcolor{comment}{//RV64C}}
+\DoxyCodeLine{00418\ \textcolor{comment}{//extern\ InstructionInfo\ const\ compressed\_isa[4];\ //TODO\ this}}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ \textcolor{comment}{//RV64I}}
+\DoxyCodeLine{00421\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ isa[32];}
+\DoxyCodeLine{00422\ }
+\DoxyCodeLine{00423\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_SYSTEM[2];}
+\DoxyCodeLine{00424\ }
+\DoxyCodeLine{00425\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_LOAD[7];}
+\DoxyCodeLine{00426\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_STORE[4];}
+\DoxyCodeLine{00427\ }
+\DoxyCodeLine{00428\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_BRANCH[8];}
+\DoxyCodeLine{00429\ }
+\DoxyCodeLine{00430\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP[3];}
+\DoxyCodeLine{00431\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_0x00[8];}
+\DoxyCodeLine{00432\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_0x30[8];}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_IMM[8];}
+\DoxyCodeLine{00435\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_IMM\_SR[2];}
+\DoxyCodeLine{00436\ }
+\DoxyCodeLine{00437\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_32[3];}
+\DoxyCodeLine{00438\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_32\_0x00[8];}
+\DoxyCodeLine{00439\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_32\_0x30[8];}
+\DoxyCodeLine{00440\ }
+\DoxyCodeLine{00441\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_IMM\_32[8];}
+\DoxyCodeLine{00442\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_IMM\_32\_SR[2];}
+\DoxyCodeLine{00443\ }
+\DoxyCodeLine{00444\ \textcolor{comment}{//RV64M}}
+\DoxyCodeLine{00445\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_MULDIV[8];}
+\DoxyCodeLine{00446\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_32\_MULDIV[8];}
+\DoxyCodeLine{00447\ }
+\DoxyCodeLine{00448\ \textcolor{comment}{//RV64A}}
+\DoxyCodeLine{00449\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_AMO[2];}
+\DoxyCodeLine{00450\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_AMO\_32[8];}
+\DoxyCodeLine{00451\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_AMO\_64[8];}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ \textcolor{comment}{//RV64F}}
+\DoxyCodeLine{00454\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_LOAD\_FP[4];}
+\DoxyCodeLine{00455\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_STORE\_FP[4];}
+\DoxyCodeLine{00456\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_FP[32];}
+\DoxyCodeLine{00457\ }
+\DoxyCodeLine{00458\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_FSGNJ\_FP[3];}
+\DoxyCodeLine{00459\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_0x14\_FP[2];}
+\DoxyCodeLine{00460\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_FCMP\_FP[3];}
+\DoxyCodeLine{00461\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_0x60\_FP[4];}
+\DoxyCodeLine{00462\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{InstructionInfo}}\ \textcolor{keyword}{const}\ isa\_OP\_0x68\_FP[4];}
+\DoxyCodeLine{00463\ }
+\DoxyCodeLine{00464\ \textcolor{preprocessor}{\#define\ META\_DECL\ [](Instruction\ const\&\ instr)\ -\/>\ InstructionInfo\ const\&}}
+\DoxyCodeLine{00465\ \textcolor{preprocessor}{\#define\ IMPL\_DECL\ [](Instruction\ const\&\ instr,\ InstructionInfo\ const\&\ }\textcolor{comment}{/*instr\_info*/}\textcolor{preprocessor}{,\ ExecutionBase*\ unit)\ -\/>\ void}}
+\DoxyCodeLine{00466\ }
+\DoxyCodeLine{00467\ \}\}\}}
+
+\end{DoxyCode}

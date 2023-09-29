@@ -1,0 +1,54 @@
+\doxysection{ray-\/tracing-\/include.hpp}
+\hypertarget{dual-streaming_2src_2ray-tracing-include_8hpp_source}{}\label{dual-streaming_2src_2ray-tracing-include_8hpp_source}\index{arches-\/v2/benchmarks/dual-\/streaming/src/ray-\/tracing-\/include.hpp@{arches-\/v2/benchmarks/dual-\/streaming/src/ray-\/tracing-\/include.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}rtm.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}random-\/number-\/generator.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}sampling.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}bvh.hpp"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}camera.hpp"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}intersect.hpp"{}}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#define\ GLOBAL\_DATA\_ADDRESS\ 256ull}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#define\ ATOMIC\_REG\_FILE\_ADDRESS\ 128ull}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_ray_write_buffer}{RayWriteBuffer}}}
+\DoxyCodeLine{00015\ \{}
+\DoxyCodeLine{00016\ \ \ \ \ uint\ treelet;}
+\DoxyCodeLine{00017\ \ \ \ \ uint\ ray\_id;}
+\DoxyCodeLine{00018\ \ \ \ \ \mbox{\hyperlink{struct_ray}{Ray}}\ ray;}
+\DoxyCodeLine{00019\ \};}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_atomic_reg_file}{AtomicRegFile}}}
+\DoxyCodeLine{00022\ \{}
+\DoxyCodeLine{00023\ \ \ \ \ std::atomic\_uint32\_t\ regs[32];}
+\DoxyCodeLine{00024\ \};}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_global_data}{GlobalData}}}
+\DoxyCodeLine{00027\ \{}
+\DoxyCodeLine{00028\ \ \ \ \ uint32\_t\ framebuffer\_width;}
+\DoxyCodeLine{00029\ \ \ \ \ uint32\_t\ framebuffer\_height;}
+\DoxyCodeLine{00030\ \ \ \ \ uint32\_t\ framebuffer\_size;}
+\DoxyCodeLine{00031\ \ \ \ \ uint32\_t*\ framebuffer;}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ uint32\_t\ samples\_per\_pixel;}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{float}\ inverse\_samples\_per\_pixel;}
+\DoxyCodeLine{00035\ \ \ \ \ uint32\_t\ max\_path\_depth;}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ \mbox{\hyperlink{class_camera}{Camera}}\ camera;}
+\DoxyCodeLine{00038\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ light\_dir;}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{comment}{//heap\ data\ pointers}}
+\DoxyCodeLine{00041\ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}*\ triangles;}
+\DoxyCodeLine{00042\ \ \ \ \ \mbox{\hyperlink{struct_treelet}{Treelet}}*\ treelets;}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{comment}{//mem\ mapped\ address\ used\ to\ issue\ mem\ instr}}
+\DoxyCodeLine{00045\ \ \ \ \ \mbox{\hyperlink{struct_hit}{Hit}}*\ hit\_records;}
+\DoxyCodeLine{00046\ \ \ \ \ \mbox{\hyperlink{struct_treelet}{Treelet}}*\ scene\_buffer;}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordtype}{void}*\ ray\_staging\_buffer;}
+\DoxyCodeLine{00048\ \};}
+
+\end{DoxyCode}

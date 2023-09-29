@@ -1,0 +1,202 @@
+\doxysection{intersect.\+hpp}
+\hypertarget{trax_2src_2intersect_8hpp_source}{}\label{trax_2src_2intersect_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/trax/src/intersect.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/trax/src/intersect.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}ray.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}aabb.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}triangle.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}bvh.hpp"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#ifdef\ ARCH\_RISCV}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\#define\ HARDWARE\_INTERSECT}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_mesh_pointers}{MeshPointers}}}
+\DoxyCodeLine{00014\ \{}
+\DoxyCodeLine{00015\ \ \ \ \ \mbox{\hyperlink{struct_b_v_h_1_1_node}{BVH::Node}}*\ blas;}
+\DoxyCodeLine{00016\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1uvec3}{rtm::uvec3}}*\ vertex\_indices;}
+\DoxyCodeLine{00017\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}*\ vertices;}
+\DoxyCodeLine{00018\ \};}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keywordtype}{float}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \_rcp(\textcolor{keywordtype}{float}\ in)}
+\DoxyCodeLine{00021\ \{}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_RISCV}}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keywordtype}{float}\ out;}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}frcp.s\ \%0,\%1\(\backslash\)n\(\backslash\)t"{}}\ }
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (out)\ }
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (in));}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keywordflow}{return}\ out;}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keywordflow}{return}\ 1.0f\ /\ in;}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00031\ \}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ intersect(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ ray,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\&\ inv\_d)}
+\DoxyCodeLine{00034\ \{}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#ifdef\ HARDWARE\_INTERSECT}}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f3\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f3"{}})\ =\ ray.o.x;}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f4\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f4"{}})\ =\ ray.o.y;}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f5\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f5"{}})\ =\ ray.o.z;}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f6\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f6"{}})\ =\ ray.t\_min;}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f7\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f7"{}})\ =\ inv\_d.x;}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f8\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f8"{}})\ =\ inv\_d.y;}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f9\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f9"{}})\ =\ inv\_d.z;}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f10\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f10"{}})\ =\ ray.t\_max;}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f11\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f11"{}})\ =\ aabb.min.x;}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f12\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f12"{}})\ =\ aabb.min.y;}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f13\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f13"{}})\ =\ aabb.min.z;}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f14\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f14"{}})\ =\ aabb.max.x;}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f15\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f15"{}})\ =\ aabb.max.y;}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f16\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f16"{}})\ =\ aabb.max.z;}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordtype}{float}\ t;}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}}
+\DoxyCodeLine{00053\ \ \ \ \ (}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}boxisect\ \%0"{}}}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (t)}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (f3),\ \textcolor{stringliteral}{"{}f"{}}\ (f4),\ \textcolor{stringliteral}{"{}f"{}}\ (f5),\ \textcolor{stringliteral}{"{}f"{}}\ (f6),\ \textcolor{stringliteral}{"{}f"{}}\ (f7),\ \textcolor{stringliteral}{"{}f"{}}\ (f8),\ \textcolor{stringliteral}{"{}f"{}}\ (f9),\ \textcolor{stringliteral}{"{}f"{}}\ (f10),\ \ \textcolor{stringliteral}{"{}f"{}}\ (f11),\ \textcolor{stringliteral}{"{}f"{}}\ (f12),\ \textcolor{stringliteral}{"{}f"{}}\ (f13),\ \textcolor{stringliteral}{"{}f"{}}\ (f14),\ \ \textcolor{stringliteral}{"{}f"{}}\ (f15),\ \textcolor{stringliteral}{"{}f"{}}\ (f16)}
+\DoxyCodeLine{00057\ \ \ \ \ );}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordflow}{return}\ t;}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00061\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ t0\ =\ (aabb.min\ -\/\ ray.o)\ *\ inv\_d;}
+\DoxyCodeLine{00062\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ t1\ =\ (aabb.max\ -\/\ ray.o)\ *\ inv\_d;}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ tminv\ =\ rtm::min(t0,\ t1);}
+\DoxyCodeLine{00065\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ tmaxv\ =\ rtm::max(t0,\ t1);}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{float}\ tmin\ =\ std::max(std::max(tminv.x,\ tminv.y),\ std::max(tminv.z,\ ray.t\_min));}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{float}\ tmax\ =\ std::min(std::min(tmaxv.x,\ tmaxv.y),\ std::min(tmaxv.z,\ ray.t\_max));}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keywordflow}{if}\ (tmin\ >\ tmax)\ \textcolor{keywordflow}{return}\ ray.t\_max;\textcolor{comment}{//no\ hit\ ||\ behind}}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keywordflow}{return}\ tmin;}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00073\ \}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ intersect(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_triangle}{Triangle}}\ tri,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ ray,\ \mbox{\hyperlink{struct_hit}{Hit}}\&\ hit)}
+\DoxyCodeLine{00076\ \{}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#ifdef\ HARDWARE\_INTERSECT}}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f0\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f0"{}})\ =\ hit.t;}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f1\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f1"{}})\ =\ hit.bc.x;}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f2\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f2"{}})\ =\ hit.bc.y;}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f3\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f3"{}})\ =\ ray.o.x;}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f4\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f4"{}})\ =\ ray.o.y;}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f5\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f5"{}})\ =\ ray.o.z;}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f6\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f6"{}})\ =\ ray.t\_min;}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f7\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f7"{}})\ =\ ray.d.x;}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f8\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f8"{}})\ =\ ray.d.y;}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f9\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f9"{}})\ =\ ray.d.z;}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f10\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f10"{}})\ =\ ray.t\_max;}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f11\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f11"{}})\ =\ tri.vrts[0].x;}
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f12\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f12"{}})\ =\ tri.vrts[0].y;}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f13\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f13"{}})\ =\ tri.vrts[0].z;}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f14\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f14"{}})\ =\ tri.vrts[1].x;}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f15\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f15"{}})\ =\ tri.vrts[1].y;}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f16\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f16"{}})\ =\ tri.vrts[1].z;}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f17\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f17"{}})\ =\ tri.vrts[2].x;}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f18\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f18"{}})\ =\ tri.vrts[2].y;}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keyword}{register}\ \textcolor{keywordtype}{float}\ f19\ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}f19"{}})\ =\ tri.vrts[2].z;}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ uint32\_t\ is\_hit;}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}}
+\DoxyCodeLine{00101\ \ \ \ \ (}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}triisect\ \%0"{}}}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=r"{}}\ (is\_hit),\ \textcolor{stringliteral}{"{}+f"{}}\ (f0),\ \textcolor{stringliteral}{"{}+f"{}}\ (f1),\ \textcolor{stringliteral}{"{}+f"{}}\ (f2)}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (f3),\ \textcolor{stringliteral}{"{}f"{}}\ (f4),\ \textcolor{stringliteral}{"{}f"{}}\ (f5),\ \textcolor{stringliteral}{"{}f"{}}\ (f6),\ \textcolor{stringliteral}{"{}f"{}}\ (f7),\ \textcolor{stringliteral}{"{}f"{}}\ (f8),\ \textcolor{stringliteral}{"{}f"{}}\ (f9),\ \textcolor{stringliteral}{"{}f"{}}\ (f10),\ \ \textcolor{stringliteral}{"{}f"{}}\ (f11),\ \textcolor{stringliteral}{"{}f"{}}\ (f12),\ \textcolor{stringliteral}{"{}f"{}}\ (f13),\ \textcolor{stringliteral}{"{}f"{}}\ (f14),\ \ \textcolor{stringliteral}{"{}f"{}}\ (f15),\ \textcolor{stringliteral}{"{}f"{}}\ (f16),\ \textcolor{stringliteral}{"{}f"{}}\ (f17),\ \textcolor{stringliteral}{"{}f"{}}\ (f18),\ \textcolor{stringliteral}{"{}f"{}}\ (f19)}
+\DoxyCodeLine{00105\ \ \ \ \ );}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \ \ hit.t\ =\ f0;}
+\DoxyCodeLine{00108\ \ \ \ \ hit.bc.x\ =\ f1;}
+\DoxyCodeLine{00109\ \ \ \ \ hit.bc.y\ =\ f2;}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordflow}{return}\ is\_hit;}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00113\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ bc;}
+\DoxyCodeLine{00114\ \ \ \ \ bc[0]\ =\ rtm::dot(rtm::cross(tri.vrts[2]\ -\/\ tri.vrts[1],\ tri.vrts[1]\ -\/\ ray.o),\ ray.d);}
+\DoxyCodeLine{00115\ \ \ \ \ bc[1]\ =\ rtm::dot(rtm::cross(tri.vrts[0]\ -\/\ tri.vrts[2],\ tri.vrts[2]\ -\/\ ray.o),\ ray.d);}
+\DoxyCodeLine{00116\ \ \ \ \ bc[2]\ =\ rtm::dot(rtm::cross(tri.vrts[1]\ -\/\ tri.vrts[0],\ tri.vrts[0]\ -\/\ ray.o),\ ray.d);}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00118\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ gn\ =\ rtm::cross(tri.vrts[1]\ -\/\ tri.vrts[0],\ tri.vrts[2]\ -\/\ tri.vrts[0]);}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordtype}{float}\ gn\_dot\_d\ =\ rtm::dot(gn,\ ray.d);}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordflow}{if}(gn\_dot\_d\ >\ 0.0f)\ bc\ =\ -\/bc;}
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{keywordflow}{if}(bc[0]\ <\ 0.0f\ ||\ bc[1]\ <\ 0.0f\ ||\ bc[2]\ <\ 0.0f)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keywordtype}{float}\ t\ =\ rtm::dot(gn,\ tri.vrts[0]\ -\/\ ray.o)\ /\ gn\_dot\_d;}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keywordflow}{if}(t\ <\ ray.t\_min\ ||\ t\ >\ hit.t)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ hit.bc\ =\ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}(bc.x,\ bc.y)\ /\ (bc[0]\ +\ bc[1]\ +\ bc[2]);}
+\DoxyCodeLine{00128\ \ \ \ \ hit.t\ =\ t\ ;}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00131\ \}}
+\DoxyCodeLine{00132\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ intersect(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_mesh_pointers}{MeshPointers}}\&\ mesh,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ ray,\ \mbox{\hyperlink{struct_hit}{Hit}}\&\ hit)}
+\DoxyCodeLine{00133\ \{}
+\DoxyCodeLine{00134\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ inv\_d\ =\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(1.0f)\ /\ ray.d;}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keyword}{struct\ }NodeStackEntry}
+\DoxyCodeLine{00137\ \ \ \ \ \{}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ t;}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{union_b_v_h_1_1_node_data}{BVH::NodeData}}\ data;}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ \_u64;}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00147\ \ \ \ \ \};}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \ \ NodeStackEntry\ node\_stack[96];}
+\DoxyCodeLine{00150\ \ \ \ \ uint32\_t\ node\_stack\_size\ =\ 1u;}
+\DoxyCodeLine{00151\ \ \ \ \ node\_stack[0].t\ =\ intersect(mesh.blas[0].aabb,\ ray,\ inv\_d);}
+\DoxyCodeLine{00152\ \ \ \ \ node\_stack[0].data\ =\ mesh.blas[0].data;}
+\DoxyCodeLine{00153\ \ \ \ \ }
+\DoxyCodeLine{00154\ \ \ \ \ \textcolor{keywordtype}{bool}\ found\_hit\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{keywordflow}{do}}
+\DoxyCodeLine{00156\ \ \ \ \ \{}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ NodeStackEntry\ current\_entry\ =\ node\_stack[-\/-\/node\_stack\_size];}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(current\_entry.t\ >=\ hit.t)\ \textcolor{keywordflow}{return}\ found\_hit;}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!current\_entry.data.is\_leaf)}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint32\_t\ i\ =\ 0;\ i\ <=\ current\_entry.data.lst\_chld\_ofst;\ ++i)}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ node\_index\ =\ current\_entry.data.fst\_chld\_ind\ +\ i;}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ t\ =\ intersect(mesh.blas[node\_index].aabb,\ ray,\ inv\_d);}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(t\ <\ hit.t)}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ j\ =\ node\_stack\_size++;}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(;\ j\ !=\ 0;\ -\/-\/j)}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(node\_stack[j\ -\/\ 1].t\ >=\ t)\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ node\_stack[j].\_u64\ =\ node\_stack[j\ -\/\ 1].\_u64;}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ node\_stack[j].t\ =\ t;}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ node\_stack[j].data\ =\ mesh.blas[node\_index].data;}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint32\_t\ i\ =\ 0;\ i\ <=\ current\_entry.data.lst\_chld\_ofst;\ ++i)}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \textcolor{keywordtype}{id}\ =\ current\_entry.data.fst\_chld\_ind\ +\ i;}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1uvec3}{rtm::uvec3}}\ vi\ =\ mesh.vertex\_indices[id];}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(intersect(\mbox{\hyperlink{class_triangle}{Triangle}}(mesh.vertices[vi[0]],\ mesh.vertices[vi[1]],\ mesh.vertices[vi[2]]),\ ray,\ hit))}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hit.id\ =\ id;}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ found\_hit\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00193\ \ \ \ \ \}\ \textcolor{keywordflow}{while}(node\_stack\_size);}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{keywordflow}{return}\ found\_hit;}
+\DoxyCodeLine{00196\ \}}
+
+\end{DoxyCode}

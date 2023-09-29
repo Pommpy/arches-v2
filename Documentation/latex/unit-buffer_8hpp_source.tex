@@ -1,0 +1,142 @@
+\doxysection{unit-\/buffer.hpp}
+\hypertarget{unit-buffer_8hpp_source}{}\label{unit-buffer_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/buffer.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/buffer.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once\ }}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}../util/bit-\/manipulation.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}unit-\/base.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}unit-\/memory-\/base.hpp"{}}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }Units\ \{}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_buffer}{UnitBuffer}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{UnitMemoryBase}}}
+\DoxyCodeLine{00016\ \{}
+\DoxyCodeLine{00017\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration}{Configuration}}}
+\DoxyCodeLine{00024\ \ \ \ \ \{}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration_a5442af912f2c31d916f729719e8c376d}{uint64\_t}}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration_a5442af912f2c31d916f729719e8c376d}{size}}\{1024\};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ uint\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration_a56b9ee558206f8c39c28aee252994a81}{port\_width}}\{CACHE\_BLOCK\_SIZE\};\ \ \ \ }
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ uint\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration_afdcf8e5aa9374d42af2b97488aed8e69}{num\_banks}}\{1\};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ uint\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration_ad8b259b3a54d40bad9af1adf0a55974f}{num\_ports}}\{1\};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ uint\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration_ab1bb45dd27650d12c5009b72ab1c5076}{penalty}}\{1\};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration_a0b372e61e8e18d8738b00bf3445443b1}{dynamic\_read\_energy}};\ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_buffer_1_1_configuration_a3db0f1286e6a545437f2d920fdfbf913}{bank\_leakge\_power}};\ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00033\ \ \ \ \ \};}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{struct\ }\_Bank}
+\DoxyCodeLine{00042\ \ \ \ \ \{}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ uint\ cycles\_remaining\{0u\};}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ uint64\_t\ request\_mask\{0x0ull\};}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ MemoryRequest\ request;}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ uint8\_t\ return\_reg[CACHE\_BLOCK\_SIZE];}
+\DoxyCodeLine{00049\ \ \ \ \ \};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ Configuration\ \_configuration;\ \textcolor{comment}{//nice\ for\ debugging}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ uint\ \_bank\_index\_offset;}
+\DoxyCodeLine{00054\ \ \ \ \ uint64\_t\ \_buffer\_address\_mask,\ \_bank\_index\_mask;}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ uint\ \_penalty,\ \_port\_width;}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ uint8\_t*\ data\_u8;}
+\DoxyCodeLine{00059\ \ \ \ \ std::vector<\_Bank>\ \_banks;}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00062\ \ \ \ \ UnitBuffer(Configuration\ config)\ :\ UnitMemoryBase(config.num\_ports,\ config.num\_banks)}
+\DoxyCodeLine{00063\ \ \ \ \ \{}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ data\_u8\ =\ (uint8\_t*)malloc(config.size);}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \_port\_width\ =\ config.port\_width;}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \_bank\_index\_mask\ =\ generate\_nbit\_mask(log2i(config.num\_banks));}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \_bank\_index\_offset\ =\ log2i(config.port\_width);\ \textcolor{comment}{//stride\ in\ terms\ of\ port\ width}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \_buffer\_address\_mask\ =\ generate\_nbit\_mask(log2i(config.size));}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \_penalty\ =\ config.penalty;}
+\DoxyCodeLine{00073\ \ \ \ \ \}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \string~UnitBuffer()}
+\DoxyCodeLine{00076\ \ \ \ \ \{}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ free(data\_u8);}
+\DoxyCodeLine{00078\ \ \ \ \ \}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_rise()\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00081\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ interconnect.propagate\_requests([](\textcolor{keyword}{const}\ MemoryRequest\&\ \mbox{\hyperlink{structreq}{req}},\ uint\ client,\ uint\ num\_clients,\ uint\ num\_servers)-\/>uint}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structreq}{req}}.paddr\ >>\ log2i(CACHE\_BLOCK\_SIZE))\ \%\ num\_servers;}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \textcolor{comment}{//select\ next\ request}}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ bank\_index\ =\ 0;\ bank\_index\ <\ \_banks.size();\ ++bank\_index)}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ \_Bank\&\ bank\ =\ \_banks[bank\_index];}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(bank.request\_mask)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ port\_index;}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ MemoryRequest*\ \mbox{\hyperlink{structreq}{req}}\ =\ interconnect.get\_request(bank\_index,\ port\_index);}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!\mbox{\hyperlink{structreq}{req}})\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//merge\ identical\ requests}}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ bank.request\ =\ *\mbox{\hyperlink{structreq}{req}};}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ request\_mask\ =\ interconnect.merge\_requests(bank.request);}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ interconnect.acknowlege\_requests(bank\_index,\ request\_mask);}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ bank.request\_mask\ |=\ request\_mask;}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00103\ \ \ \ \ \}}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_fall()\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00106\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ interconnect.propagate\_ack();}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ bank\_index\ =\ 0;\ bank\_index\ <\ \_banks.size();\ ++bank\_index)}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \_Bank\&\ bank\ =\ \_banks[bank\_index];}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(bank.cycles\_remaining\ ==\ 0\ ||\ -\/-\/bank.cycles\_remaining\ !=\ 0)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ paddr\_t\ buffer\_addr\ =\ \_get\_buffer\_addr(bank.request.paddr);}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(bank.request.type\ ==\ MemoryRequest::Type::LOAD)}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(interconnect.return\_pending(bank\_index))}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//cant\ return\ because\ of\ network\ trafic\ we\ must\ stall\ and\ try\ again\ next\ cycle}}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bank.cycles\_remaining\ =\ 1;}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MemoryReturn\ ret;}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ret.type\ =\ MemoryReturn::Type::LOAD\_RETURN;}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ret.size\ =\ bank.request.size;}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ret.paddr\ =\ bank.request.paddr;}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::memcpy(bank.return\_reg,\ \&data\_u8[buffer\_addr],\ bank.request.size);}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ret.data\ =\ bank.return\_reg;}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ interconnect.add\_returns(ret,\ bank\_index,\ bank.request\_mask);}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bank.request\_mask\ =\ 0x0ull;\textcolor{comment}{//we\ are\ ready\ for\ the\ next\ request}}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(bank.request.type\ ==\ MemoryRequest::Type::STORE)}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::memcpy(\&data\_u8[buffer\_addr],\ bank.request.data,\ bank.request.size);}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bank.request\_mask\ =\ 0x0ull;}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ interconnect.propagate\_returns();}
+\DoxyCodeLine{00143\ \ \ \ \ \}}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00146\ \ \ \ \ paddr\_t\ \_get\_bank\_index(paddr\_t\ paddr)\ \{\ \textcolor{keywordflow}{return}\ (paddr\ >>\ \_bank\_index\_offset)\ \&\ \_bank\_index\_mask;\ \}}
+\DoxyCodeLine{00147\ \ \ \ \ paddr\_t\ \_get\_buffer\_addr(paddr\_t\ paddr)\ \{\ \textcolor{keywordflow}{return}\ paddr\ \&\ \_buffer\_address\_mask;\ \}}
+\DoxyCodeLine{00148\ \};}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \}\}}
+
+\end{DoxyCode}

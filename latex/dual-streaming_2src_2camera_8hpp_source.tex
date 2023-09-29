@@ -1,0 +1,67 @@
+\doxysection{camera.\+hpp}
+\hypertarget{dual-streaming_2src_2camera_8hpp_source}{}\label{dual-streaming_2src_2camera_8hpp_source}\index{arches-\/v2/benchmarks/dual-\/streaming/src/camera.hpp@{arches-\/v2/benchmarks/dual-\/streaming/src/camera.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}ray.hpp"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_camera}{Camera}}}
+\DoxyCodeLine{00007\ \{}
+\DoxyCodeLine{00008\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00009\ \ \ \ \ uint\ \_height,\ \_width;}
+\DoxyCodeLine{00010\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}\ \_recip\_size;}
+\DoxyCodeLine{00011\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ \_position;}
+\DoxyCodeLine{00012\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ \_x,\ \_y,\ \_z;}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00015\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_camera_1_1_camera_config}{CameraConfig}}}
+\DoxyCodeLine{00016\ \ \ \ \ \{}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ uint\ img\_width;}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ uint\ img\_height;}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ fov\{60.0f\};}
+\DoxyCodeLine{00020\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ position\ \{0.0f,\ 0.0f,\ 0.0f\};}
+\DoxyCodeLine{00021\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ look\_at\ \{0.0f,\ 0.0f,\ 0.0f\};}
+\DoxyCodeLine{00022\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ up\ \{0.0f,\ 1.0f,\ 0.0f\};}
+\DoxyCodeLine{00023\ \ \ \ \ \};}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00026\ \ \ \ \ \mbox{\hyperlink{class_camera}{Camera}}(uint\ width\ =\ 1,\ uint\ height\ =\ 1,\ \textcolor{keywordtype}{float}\ fov\ =\ 60.0f,}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \textcolor{comment}{//float\ aperture\ =\ 0.0f,\ float\ focal\_length\ =\ 3.0f,}}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ position\ =\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(0.0f,\ 0.0f,\ 1.0f),}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ target\ =\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(0.0f,\ 0.0f,\ 0.0f),}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ up\ =\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(0.0f,\ 1.0f,\ 0.0f))}
+\DoxyCodeLine{00031\ \ \ \ \ \{}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \_position\ =\ position;}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ direction\ =\ target\ -\/\ position;}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \_z\ =\ -\/rtm::normalize(direction);}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \_x\ =\ rtm::normalize(cross(up,\ \_z));}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \_y\ =\ rtm::cross(\_z,\ \_x);}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ image\_plane\_height\ =\ std::tan(fov\ *\ PI\ /\ 180.0f\ /\ 2.0f);}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ image\_plane\_width\ =\ image\_plane\_height\ *\ float(width)\ /\ float(height);}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \_x\ *=\ image\_plane\_width;}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \_y\ *=\ -\/image\_plane\_height;}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \textcolor{comment}{//this-\/>focal\_length\ =\ focal\_length;}}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \textcolor{comment}{//this-\/>aperture\ =\ aperture;}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \_height\ =\ height;}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \_width\ =\ width;}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \_recip\_size\ =\ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}(2.0f)\ /\ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{float}\textcolor{keyword}{>}(width,\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{float}\textcolor{keyword}{>}(height)));}
+\DoxyCodeLine{00049\ \ \ \ \ \}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \ \ uint\ get\_width()\ \{\textcolor{keywordflow}{return}\ \_width;\}}
+\DoxyCodeLine{00053\ \ \ \ \ uint\ get\_height()\ \{\textcolor{keywordflow}{return}\ \_height;\}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordtype}{void}\ generate\_ray\_through\_pixel(uint\ i,\ uint\ j,\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ ray,\ \mbox{\hyperlink{class_r_n_g}{RNG}}\&\ rng)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00056\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}\ uv\ =\ (\mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{float}\textcolor{keyword}{>}(i),\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{float}\textcolor{keyword}{>}(j))\ +\ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}(0.5f))\ *\ \_recip\_size\ -\/\ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}(1.0f);}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ ray.d\ =\ rtm::normalize(\_x\ *\ uv.x\ +\ \_y\ *\ uv.y\ -\/\ \_z);}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ ray.o\ =\ \_position;}
+\DoxyCodeLine{00060\ \ \ \ \ \}}
+\DoxyCodeLine{00061\ \};}
+
+\end{DoxyCode}

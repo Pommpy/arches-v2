@@ -1,0 +1,65 @@
+\doxysection{unit-\/dram.hpp}
+\hypertarget{unit-dram_8hpp_source}{}\label{unit-dram_8hpp_source}\index{arches-\/v2/src/arches/units/unit-\/dram.hpp@{arches-\/v2/src/arches/units/unit-\/dram.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once\ }}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}USIMM/memory\_controller.h"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}unit-\/base.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}unit-\/main-\/memory-\/base.hpp"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}../util/arbitration.hpp"{}}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }Units\ \{}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_d_r_a_m}{UnitDRAM}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_main_memory_base}{UnitMainMemoryBase}},\ \textcolor{keyword}{public}\ \mbox{\hyperlink{struct_usimm_listener}{UsimmListener}}}
+\DoxyCodeLine{00018\ \{}
+\DoxyCodeLine{00019\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{struct\ }ReturnItem}
+\DoxyCodeLine{00026\ \ \ \ \ \{}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ paddr\_t\ \ paddr;}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ uint\ \ \ \ \ port;}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ cycles\_t\ return\_cycle;}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ ReturnItem(paddr\_t\ paddr,\ uint\ port,\ cycles\_t\ return\_cycle)\ :\ port(port),\ paddr(paddr),\ return\_cycle(return\_cycle)\ \{\}}
+\DoxyCodeLine{00032\ \ \ \ \ }
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keywordtype}{bool}\ operator<(\textcolor{keyword}{const}\ ReturnItem\&\ l,\ \textcolor{keyword}{const}\ ReturnItem\&\ r)}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ l.return\_cycle\ >\ r.return\_cycle;}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00037\ \ \ \ \ \};}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keywordtype}{bool}\ \_busy\{\textcolor{keyword}{false}\};}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keyword}{struct\ }Channel}
+\DoxyCodeLine{00047\ \ \ \ \ \{}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ std::priority\_queue<ReturnItem>\ return\_queue;}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ return\_pending;}
+\DoxyCodeLine{00050\ \ \ \ \ \};}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \ \ std::vector<Channel>\ \_channels;}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \ \ cycles\_t\ \_current\_cycle\{\ 0\ \};}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00057\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_d_r_a_m}{UnitDRAM}}(uint\ num\_clients,\ uint64\_t\ size,\ \mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}}*\ simulator);}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_d_r_a_m}{\string~UnitDRAM}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_rise()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_fall()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keywordtype}{bool}\ usimm\_busy();}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordtype}{void}\ print\_usimm\_stats(uint32\_t\ \textcolor{keyword}{const}\ L2\_line\_size,\ uint32\_t\ \textcolor{keyword}{const}\ word\_size,\ cycles\_t\ cycle\_count);}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordtype}{float}\ total\_power\_in\_watts();}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ UsimmNotifyEvent(paddr\_t\ \textcolor{keyword}{const}\ address,\ cycles\_t\ write\_cycle,\ uint32\_t\ request\_id);}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keywordtype}{bool}\ \_load(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}\&\ request\_item,\ uint\ request\_index);}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keywordtype}{bool}\ \_store(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}\&\ request\_item,\ uint\ request\_index);}
+\DoxyCodeLine{00072\ \};}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \}\}}
+
+\end{DoxyCode}

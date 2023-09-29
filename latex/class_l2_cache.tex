@@ -1,0 +1,178 @@
+\doxysection{L2\+Cache Class Reference}
+\hypertarget{class_l2_cache}{}\label{class_l2_cache}\index{L2Cache@{L2Cache}}
+Inheritance diagram for L2\+Cache\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_l2_cache}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_l2_cache_ac8925f8d94d7bd4b228967f0eeb2c56d}\label{class_l2_cache_ac8925f8d94d7bd4b228967f0eeb2c56d} 
+{\bfseries L2\+Cache} (Main\+Memory \texorpdfstring{$\ast$}{*}mem, int const cache\+\_\+size, int const hit\+\_\+latency, bool const \+\_\+disable\+\_\+usimm, float const \+\_\+area, float const \+\_\+energy, int const \+\_\+num\+\_\+banks=4, int const \+\_\+line\+\_\+size=2, bool const \+\_\+memory\+\_\+trace=false, bool const \+\_\+l2\+\_\+off=false, bool const l1\+\_\+off=false)
+\item 
+\Hypertarget{class_l2_cache_a3b94d9a2bda301b29e33c90e3bb0d07c}\label{class_l2_cache_a3b94d9a2bda301b29e33c90e3bb0d07c} 
+virtual bool {\bfseries Supports\+Op} (Instruction\+::\+Opcode const op) const
+\item 
+\Hypertarget{class_l2_cache_a38a48cb0765b90966f75262b7aa048ae}\label{class_l2_cache_a38a48cb0765b90966f75262b7aa048ae} 
+virtual bool {\bfseries Accept\+Instruction} (Instruction \&ins, Issue\+Unit \texorpdfstring{$\ast$}{*}const issuer, Thread\+State \texorpdfstring{$\ast$}{*}const thread)
+\item 
+\Hypertarget{class_l2_cache_a45a68b528d43f85308ceb829e4a3ebb8}\label{class_l2_cache_a45a68b528d43f85308ceb829e4a3ebb8} 
+virtual void {\bfseries Usimm\+Notify\+Event} (int const address, long long int const write\+\_\+cycle, Instruction\+::\+Opcode const op)
+\item 
+\Hypertarget{class_l2_cache_aaa3148802a5755dd914a5dccbf281819}\label{class_l2_cache_aaa3148802a5755dd914a5dccbf281819} 
+virtual void {\bfseries Clock\+Rise} ()
+\item 
+\Hypertarget{class_l2_cache_a26bdcfaeabf39cd77e30245ed471f47b}\label{class_l2_cache_a26bdcfaeabf39cd77e30245ed471f47b} 
+virtual void {\bfseries Clock\+Fall} ()
+\item 
+\Hypertarget{class_l2_cache_a779b9b01555a1932082ec12aab97e6ba}\label{class_l2_cache_a779b9b01555a1932082ec12aab97e6ba} 
+virtual void {\bfseries Print} () const
+\item 
+\Hypertarget{class_l2_cache_ae003fb6e9dd54181ded9a074fe6a00e3}\label{class_l2_cache_ae003fb6e9dd54181ded9a074fe6a00e3} 
+virtual void {\bfseries Print\+Stats} () const
+\item 
+\Hypertarget{class_l2_cache_ad8195582d651a1f6f50db99121302992}\label{class_l2_cache_ad8195582d651a1f6f50db99121302992} 
+virtual double {\bfseries Utilization} () const
+\item 
+\Hypertarget{class_l2_cache_a40bc28c1d7d3f9ce99800f359721d1d0}\label{class_l2_cache_a40bc28c1d7d3f9ce99800f359721d1d0} 
+bool {\bfseries Issue\+Instruction} (const Instruction \texorpdfstring{$\ast$}{*}const ins, L1\+Cache \texorpdfstring{$\ast$}{*}const L1, Thread\+State \texorpdfstring{$\ast$}{*}const thread, long long int \&ret\+\_\+latency, long long int const current\+\_\+cycle, int const address, int \&unroll\+\_\+type)
+\item 
+\Hypertarget{class_l2_cache_a9372617cb7d2c5676ea62ce8a9294044}\label{class_l2_cache_a9372617cb7d2c5676ea62ce8a9294044} 
+void {\bfseries Reset} ()
+\item 
+\Hypertarget{class_l2_cache_a48652fb0737c5d46f0db2e02e30eea35}\label{class_l2_cache_a48652fb0737c5d46f0db2e02e30eea35} 
+void {\bfseries Clear} ()
+\item 
+\Hypertarget{class_l2_cache_afb7535632032c0f29924386363a9f72f}\label{class_l2_cache_afb7535632032c0f29924386363a9f72f} 
+bool {\bfseries Update\+Cache} (int address, long long int update\+\_\+cycle)
+\item 
+\Hypertarget{class_l2_cache_a10cd5c272db5866cf81b7b061678d7c0}\label{class_l2_cache_a10cd5c272db5866cf81b7b061678d7c0} 
+bool {\bfseries Pending\+Update} (int address, long long int \&temp\+\_\+latency)
+\item 
+\Hypertarget{class_l2_cache_a029b36a607972fa253e148538b09c334}\label{class_l2_cache_a029b36a607972fa253e148538b09c334} 
+bool {\bfseries Bank\+Conflict} (int address, long long int cycle)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{struct_usimm_listener}{Usimm\+Listener}}}
+\begin{DoxyCompactItemize}
+\item 
+virtual void {\bfseries Usimm\+Notify\+Event} (Arches\+::paddr\+\_\+t const address, Arches\+::cycles\+\_\+t write\+\_\+cycle, uint32\+\_\+t request\+\_\+id)=0
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_l2_cache_a399dbe7758b2a4b56a7d38d2ef80d240}\label{class_l2_cache_a399dbe7758b2a4b56a7d38d2ef80d240} 
+float {\bfseries area}
+\item 
+\Hypertarget{class_l2_cache_a89d9d8c818774fa2409416f681285683}\label{class_l2_cache_a89d9d8c818774fa2409416f681285683} 
+float {\bfseries energy}
+\item 
+\Hypertarget{class_l2_cache_af2882d85666e28cdf1ff6d6511ba7455}\label{class_l2_cache_af2882d85666e28cdf1ff6d6511ba7455} 
+int {\bfseries outstanding\+\_\+data}
+\item 
+\Hypertarget{class_l2_cache_aac86d75f3b041810b9c1115ef0896965}\label{class_l2_cache_aac86d75f3b041810b9c1115ef0896965} 
+int {\bfseries max\+\_\+outstanding\+\_\+data}
+\item 
+\Hypertarget{class_l2_cache_ae876238ddf53d5cdd145c545532e2294}\label{class_l2_cache_ae876238ddf53d5cdd145c545532e2294} 
+int {\bfseries max\+\_\+data\+\_\+per\+\_\+cycle}
+\item 
+\Hypertarget{class_l2_cache_a1532170f96759d738e108048fe92e646}\label{class_l2_cache_a1532170f96759d738e108048fe92e646} 
+int {\bfseries line\+\_\+fill\+\_\+size}
+\item 
+\Hypertarget{class_l2_cache_a45cc72bd691689967eabde4abac9e32e}\label{class_l2_cache_a45cc72bd691689967eabde4abac9e32e} 
+pthread\+\_\+mutex\+\_\+t {\bfseries cache\+\_\+mutex}
+\item 
+\Hypertarget{class_l2_cache_aa2b676a442a531ff77f7089f818d103b}\label{class_l2_cache_aa2b676a442a531ff77f7089f818d103b} 
+bool {\bfseries unit\+\_\+off}
+\item 
+\Hypertarget{class_l2_cache_af3e29ab704615cd0dafa34b38bb6102c}\label{class_l2_cache_af3e29ab704615cd0dafa34b38bb6102c} 
+bool {\bfseries disable\+\_\+usimm}
+\item 
+\Hypertarget{class_l2_cache_a8524b6b7f2d0968840da1d9b6add31d4}\label{class_l2_cache_a8524b6b7f2d0968840da1d9b6add31d4} 
+int {\bfseries hit\+\_\+latency}
+\item 
+\Hypertarget{class_l2_cache_ac0e5d31204bc46769ca33637aeb5c9b2}\label{class_l2_cache_ac0e5d31204bc46769ca33637aeb5c9b2} 
+int {\bfseries cache\+\_\+size}
+\item 
+\Hypertarget{class_l2_cache_a80c4eb38d3dafa5b04efea37d10ca07d}\label{class_l2_cache_a80c4eb38d3dafa5b04efea37d10ca07d} 
+int {\bfseries num\+\_\+banks}
+\item 
+\Hypertarget{class_l2_cache_abd19fd38935d8bf76ee66853e66a1660}\label{class_l2_cache_abd19fd38935d8bf76ee66853e66a1660} 
+long long int \texorpdfstring{$\ast$}{*} {\bfseries last\+\_\+issued}
+\item 
+\Hypertarget{class_l2_cache_ad8ada0e0ffda1d1b15c87f93162c073e}\label{class_l2_cache_ad8ada0e0ffda1d1b15c87f93162c073e} 
+int {\bfseries line\+\_\+size}
+\item 
+\Hypertarget{class_l2_cache_a4da28de334e672fa4553f5964c5af46c}\label{class_l2_cache_a4da28de334e672fa4553f5964c5af46c} 
+int {\bfseries processed\+\_\+this\+\_\+cycle}
+\item 
+\Hypertarget{class_l2_cache_a6ce3707310a2598105ccd97c2311db33}\label{class_l2_cache_a6ce3707310a2598105ccd97c2311db33} 
+Main\+Memory \texorpdfstring{$\ast$}{*} {\bfseries mem}
+\item 
+\Hypertarget{class_l2_cache_a4d48fd79977dca795481a2ca9a782144}\label{class_l2_cache_a4d48fd79977dca795481a2ca9a782144} 
+long long int {\bfseries current\+\_\+cycle}
+\item 
+\Hypertarget{class_l2_cache_af9b74ecaa8b0cf3da976f48f26a00ed6}\label{class_l2_cache_af9b74ecaa8b0cf3da976f48f26a00ed6} 
+std\+::vector$<$ Cache\+Update $>$ {\bfseries update\+\_\+list}
+\item 
+\Hypertarget{class_l2_cache_aebfe5f1708a97f926bfe63c147c4eef3}\label{class_l2_cache_aebfe5f1708a97f926bfe63c147c4eef3} 
+int {\bfseries offset\+\_\+mask}
+\item 
+\Hypertarget{class_l2_cache_a99d092fc972d9523216b07ec445d7ada}\label{class_l2_cache_a99d092fc972d9523216b07ec445d7ada} 
+int {\bfseries index\+\_\+mask}
+\item 
+\Hypertarget{class_l2_cache_ae20b07128b7a86f6e0940fbd7cba942e}\label{class_l2_cache_ae20b07128b7a86f6e0940fbd7cba942e} 
+int {\bfseries tag\+\_\+mask}
+\item 
+\Hypertarget{class_l2_cache_aebb6bb7f54d1017fe82d44b70addeac6}\label{class_l2_cache_aebb6bb7f54d1017fe82d44b70addeac6} 
+int {\bfseries index\+\_\+tag\+\_\+mask}
+\item 
+\Hypertarget{class_l2_cache_a4ffbe19968210b5de0a66d7ac981e072}\label{class_l2_cache_a4ffbe19968210b5de0a66d7ac981e072} 
+int {\bfseries index\+\_\+shift}
+\item 
+\Hypertarget{class_l2_cache_a3c04df076102f4afa9553446fa1bad64}\label{class_l2_cache_a3c04df076102f4afa9553446fa1bad64} 
+int \texorpdfstring{$\ast$}{*} {\bfseries tags}
+\item 
+\Hypertarget{class_l2_cache_ae16d62b2938d837aeae12167e12f10a3}\label{class_l2_cache_ae16d62b2938d837aeae12167e12f10a3} 
+bool \texorpdfstring{$\ast$}{*} {\bfseries valid}
+\item 
+\Hypertarget{class_l2_cache_aef2aa48e0ec102bc524ae8006a17c27f}\label{class_l2_cache_aef2aa48e0ec102bc524ae8006a17c27f} 
+int {\bfseries issued\+\_\+this\+\_\+cycle}
+\item 
+\Hypertarget{class_l2_cache_ad9f3bf0012a1926cc99a92f4064c17a0}\label{class_l2_cache_ad9f3bf0012a1926cc99a92f4064c17a0} 
+long long int {\bfseries bandwidth\+\_\+stalls}
+\item 
+\Hypertarget{class_l2_cache_a2cd28123d427eae9cc096d5224ff6d7a}\label{class_l2_cache_a2cd28123d427eae9cc096d5224ff6d7a} 
+long long int {\bfseries memory\+\_\+faults}
+\item 
+\Hypertarget{class_l2_cache_aafeb3e0d84998e300c6af3cd8fedf459}\label{class_l2_cache_aafeb3e0d84998e300c6af3cd8fedf459} 
+long long int {\bfseries hits}
+\item 
+\Hypertarget{class_l2_cache_ad7bd60ada4e10e0c4da1bd8811e05cec}\label{class_l2_cache_ad7bd60ada4e10e0c4da1bd8811e05cec} 
+long long int {\bfseries stores}
+\item 
+\Hypertarget{class_l2_cache_a04fa1f4eb507491a9559219b6bda3d4e}\label{class_l2_cache_a04fa1f4eb507491a9559219b6bda3d4e} 
+long long int {\bfseries accesses}
+\item 
+\Hypertarget{class_l2_cache_a7c549182003366ede65ecba5197ed1b4}\label{class_l2_cache_a7c549182003366ede65ecba5197ed1b4} 
+long long int {\bfseries misses}
+\item 
+\Hypertarget{class_l2_cache_aed04e69be91d7b6f4a59fdaaf0aedb96}\label{class_l2_cache_aed04e69be91d7b6f4a59fdaaf0aedb96} 
+long long int {\bfseries bank\+\_\+conflicts}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_l2_cache_a3d82458902888c2d3112c133ecbeebb4}\label{class_l2_cache_a3d82458902888c2d3112c133ecbeebb4} 
+static const int {\bfseries UNROLL\+\_\+\+HIT} = 1
+\item 
+\Hypertarget{class_l2_cache_a40b51642ee197e73f7efd9fe7e93324c}\label{class_l2_cache_a40b51642ee197e73f7efd9fe7e93324c} 
+static const int {\bfseries UNROLL\+\_\+\+MISS} = 2
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/units/usimm/L2\+Cache.\+h\item 
+arches-\/v2/src/arches/units/usimm/L2\+Cache.\+cc\end{DoxyCompactItemize}

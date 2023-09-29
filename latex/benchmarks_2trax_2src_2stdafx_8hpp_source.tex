@@ -1,0 +1,98 @@
+\doxysection{stdafx.\+hpp}
+\hypertarget{benchmarks_2trax_2src_2stdafx_8hpp_source}{}\label{benchmarks_2trax_2src_2stdafx_8hpp_source}\index{arches-\/v2/benchmarks/trax/src/stdafx.hpp@{arches-\/v2/benchmarks/trax/src/stdafx.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#if\ defined\ \_\_x86\_64\_\_\ ||\ defined\ \_M\_X64}}
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#define\ ARCH\_X86}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#define\ ARCH\_RISCV}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#ifdef\ ARCH\_RISCV}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#define\ INLINE\ \_\_attribute\_\_((always\_inline))}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//\#define\ INLINE\ inline}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ INLINE\ inline}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <cassert>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <cmath>}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <cstring>}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <cstdio>}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ <fstream>}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <iostream>}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <sstream>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <thread>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ <cfloat>}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ uint;}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{comment}{//Courtesy\ of\ Cem\ Yuksel}}
+\DoxyCodeLine{00036\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{bool}\ ascending\ =\ true,\ \textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00037\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ \_fast\_sort4(T\ \textcolor{keyword}{const}\ in[4],\ T\ out[4])}
+\DoxyCodeLine{00038\ \{}
+\DoxyCodeLine{00039\ \ \ \ \ T\ n01\ =\ std::min(in[1],\ in[0]);}
+\DoxyCodeLine{00040\ \ \ \ \ T\ x01\ =\ std::max(in[0],\ in[1]);}
+\DoxyCodeLine{00041\ \ \ \ \ T\ n23\ =\ std::min(in[2],\ in[3]);}
+\DoxyCodeLine{00042\ \ \ \ \ T\ x23\ =\ std::max(in[3],\ in[2]);}
+\DoxyCodeLine{00043\ \ \ \ \ T\ r0\ =\ std::min(n01,\ n23);}
+\DoxyCodeLine{00044\ \ \ \ \ T\ x02\ =\ std::max(n23,\ n01);}
+\DoxyCodeLine{00045\ \ \ \ \ T\ n13\ =\ std::min(x01,\ x23);}
+\DoxyCodeLine{00046\ \ \ \ \ T\ r3\ =\ std::max(x23,\ x01);}
+\DoxyCodeLine{00047\ \ \ \ \ T\ r1\ =\ std::min(x02,\ n13);}
+\DoxyCodeLine{00048\ \ \ \ \ T\ r2\ =\ std::max(n13,\ x02);}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keywordflow}{if}(ascending)\ \{\ out[0]\ =\ r0;\ out[1]\ =\ r1;\ out[2]\ =\ r2;\ out[3]\ =\ r3;\ \}}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordflow}{else}\ \{\ out[0]\ =\ r3;\ out[1]\ =\ r2;\ out[2]\ =\ r1;\ out[3]\ =\ r0;\ \}}
+\DoxyCodeLine{00051\ \}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{keywordtype}{float}\ \textcolor{keyword}{inline}\ fast\_sqrtf(\textcolor{keywordtype}{float}\ input)}
+\DoxyCodeLine{00054\ \{}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordflow}{return}\ sqrtf(input);}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_RISCV}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{float}\ output\ =\ 0.0f;}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}\ (\textcolor{stringliteral}{"{}fsqrt.s\ \%[rd],\ \%[rs1]\(\backslash\)n\(\backslash\)t"{}}\ :\ [rd]\ \textcolor{stringliteral}{"{}=f"{}}\ (output)\ :\ [rs1]\ \textcolor{stringliteral}{"{}f"{}}\ (input));}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keywordflow}{return}\ output;}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00066\ \}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{keywordtype}{float}\ \textcolor{keyword}{inline}\ fast\_inv\_sqrtf(\textcolor{keywordtype}{float}\ input)}
+\DoxyCodeLine{00069\ \{}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keywordflow}{return}\ 1.0f\ /\ fast\_sqrtf(input);}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_RISCV}}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keywordtype}{float}\ output\ =\ 0.0f;}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}\ (\textcolor{stringliteral}{"{}traxinvsqrt\ \%[rd],\ \%[rs1]\(\backslash\)n\(\backslash\)t"{}}\ :\ [rd]\ \textcolor{stringliteral}{"{}=f"{}}\ (output)\ :\ [rs1]\ \textcolor{stringliteral}{"{}f"{}}\ (input));}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordflow}{return}\ output;}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00081\ \}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ \_\_ebreak()}
+\DoxyCodeLine{00084\ \{}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_RISCV}}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}}
+\DoxyCodeLine{00087\ \ \ \ \ (}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ebreak\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00089\ \ \ \ \ );}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00092\ \}}
+
+\end{DoxyCode}

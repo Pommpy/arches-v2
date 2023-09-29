@@ -1,0 +1,268 @@
+\doxysection{unit-\/tp.hpp}
+\hypertarget{unit-tp_8hpp_source}{}\label{unit-tp_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/tp.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/tp.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}unit-\/base.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}unit-\/memory-\/base.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}unit-\/main-\/memory-\/base.hpp"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}unit-\/atomic-\/reg-\/file.hpp"{}}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}../isa/execution-\/base.hpp"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}../isa/registers.hpp"{}}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}../util/bit-\/manipulation.hpp"{}}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}unit-\/sfu.hpp"{}}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }Units\ \{}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00024\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_t_p}{UnitTP}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{UnitBase}},\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_execution_base}{ISA::RISCV::ExecutionBase}}}
+\DoxyCodeLine{00025\ \{}
+\DoxyCodeLine{00026\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_t_p_1_1_configuration}{Configuration}}}
+\DoxyCodeLine{00031\ \ \ \ \ \{}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ vaddr\_t\ pc\{0x0\};}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ vaddr\_t\ sp\{0x0\};}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ uint8\_t*\ backing\_memory\{\textcolor{keyword}{nullptr}\};}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ uint\ tp\_index\{0\};}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ uint\ tm\_index\{0\};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ uint\ stack\_size\{512\};}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ uint\ port\_size\{16\};}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_memory_map}{MemoryMap}}\ mem\_map\{\};}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_s_f_u}{UnitSFU}}**\ \ \ \ \ sfu\_table\{\textcolor{keyword}{nullptr}\};}
+\DoxyCodeLine{00047\ \ \ \ \ \};}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keyword}{struct\ }\_LSE}
+\DoxyCodeLine{00054\ \ \ \ \ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ State\ :\ uint8\_t}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ FREE,}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ VALID,}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ ISSUED,}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ COMMITED,}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ paddr\_t\ vaddr\{0x0ull\};}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ uint8\_t\ size;}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ uint8\_t\ offset;}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ State\ state\{State::FREE\};}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ MemoryRequest::Type\ type;}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ ISA::RISCV::RegAddr\ dst;}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ uint8\_t\ unit\_index;}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ uint8\_t\ data[CACHE\_BLOCK\_SIZE];}
+\DoxyCodeLine{00073\ \ \ \ \ \};}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ ISA::RISCV::IntegerRegisterFile\ \ \ \ \ \ \ \_int\_regs\{\};}
+\DoxyCodeLine{00076\ \ \ \ \ ISA::RISCV::FloatingPointRegisterFile\ \_float\_regs\{\};}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ uint8\_t\ \_float\_regs\_pending[32];}
+\DoxyCodeLine{00079\ \ \ \ \ uint8\_t\ \_int\_regs\_pending[32];}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ std::vector<\_LSE>\ \_lsq\{12\};}
+\DoxyCodeLine{00082\ \ \ \ \ uint\ \_oldest\_lse\{0\};}
+\DoxyCodeLine{00083\ \ \ \ \ uint\ \_next\_lse\{0\};}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordtype}{bool}\ \_stalled\_for\_lsq\{\textcolor{keyword}{false}\};}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \ \ uint\ \_tp\_index;}
+\DoxyCodeLine{00087\ \ \ \ \ uint\ \_tm\_index;}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ ISA::RISCV::Instruction\ \_last\_instr\{0\};}
+\DoxyCodeLine{00090\ \ \ \ \ ISA::RISCV::InstructionInfo\ \_last\_instr\_info;}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \ \ \mbox{\hyperlink{class_memory_map}{MemoryMap}}\ mem\_map;}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \ \ UnitSFU*\ \_last\_issue\_sfu\{\textcolor{keyword}{nullptr}\};}
+\DoxyCodeLine{00095\ \ \ \ \ UnitSFU**\ sfu\_table;}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ std::map<UnitSFU*,\ uint>\ \_issued\_sfus;}
+\DoxyCodeLine{00098\ \ \ \ \ std::map<uint,\ uint>\ \_issued\_mus\_indices;}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ std::vector<uint8\_t>\ \_stack\_mem;}
+\DoxyCodeLine{00101\ \ \ \ \ uint64\_t\ \_stack\_mask;}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ uint\ \ \ \ \ \_port\_size;}
+\DoxyCodeLine{00104\ \ \ \ \ uint64\_t\ \_port\_mask;}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00107\ \ \ \ \ UnitTP(\textcolor{keyword}{const}\ Configuration\&\ config);}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_rise()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_fall()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordtype}{void}\ \_process\_load\_return(\textcolor{keyword}{const}\ MemoryReturn\&\ ret);}
+\DoxyCodeLine{00114\ \ \ \ \ uint8\_t\ \_check\_dependancies(\textcolor{keyword}{const}\ ISA::RISCV::Instruction\ instr,\ ISA::RISCV::InstructionInfo\ \textcolor{keyword}{const}\&\ instr\_info);}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordtype}{void}\ \_clear\_register\_pending(\textcolor{keyword}{const}\ ISA::RISCV::RegAddr\&\ dst);}
+\DoxyCodeLine{00116\ \ \ \ \ paddr\_t\ \_get\_load\_port\_address(paddr\_t\ paddr)\ \{\ \textcolor{keywordflow}{return}\ paddr\ \&\ \_port\_mask;\ \};}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordtype}{void}\ \_drain\_lsq();}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_t_p_1_1_log}{Log}}}
+\DoxyCodeLine{00124\ \ \ \ \ \{}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ vaddr\_t\ \_elf\_start\_addr;}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ std::vector<uint64\_t>\ \_profile\_counters;}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ uint\ \_instr\_index\{0\};}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ uint64\_t\ \_instruction\_counters[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(ISA::RISCV::Type::NUM\_TYPES)];}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ uint64\_t\ \_resource\_stall\_counters[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(ISA::RISCV::Type::NUM\_TYPES)];}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ uint64\_t\ \_data\_stall\_counters[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(ISA::RISCV::Type::NUM\_TYPES)];}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_t_p_1_1_log}{Log}}(uint64\_t\ elf\_start\_addr)\ :\ \_elf\_start\_addr(elf\_start\_addr)\ \{\ reset();\ \}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ reset()}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ static\_cast<size\_t>(ISA::RISCV::Type::NUM\_TYPES);\ ++i)}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_instruction\_counters[i]\ =\ 0;}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_resource\_stall\_counters[i]\ =\ 0;}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_data\_stall\_counters[i]\ =\ 0;}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_profile\_counters.clear();}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ accumulate(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_t_p_1_1_log}{Log}}\&\ other)}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ static\_cast<size\_t>(ISA::RISCV::Type::NUM\_TYPES);\ ++i)}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_instruction\_counters[i]\ +=\ other.\_instruction\_counters[i];}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_resource\_stall\_counters[i]\ +=\ other.\_resource\_stall\_counters[i];}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_data\_stall\_counters[i]\ +=\ other.\_data\_stall\_counters[i];}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \ \ \ \ \_profile\_counters.resize(std::max(\_profile\_counters.size(),\ other.\_profile\_counters.size()),\ 0ull);}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ other.\_profile\_counters.size();\ ++i)}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_profile\_counters[i]\ +=\ other.\_profile\_counters[i];}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_cycle()}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \ \ \ \ \_profile\_counters[\_instr\_index]++;}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_instruction\_issue(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{ISA::RISCV::InstructionInfo}}\&\ info,\ vaddr\_t\ pc)}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \ \ \_instruction\_counters[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(info.type)]++;}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(pc\ >=\ \_elf\_start\_addr)}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_instr\_index\ =\ (pc\ -\/\ \_elf\_start\_addr)\ /\ 4;}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\_instr\_index\ >=\ \_profile\_counters.size())\ \_profile\_counters.resize(\_instr\_index\ +\ 1,\ 0ull);}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \ \ \ \ log\_cycle();}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_resource\_stall(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{ISA::RISCV::InstructionInfo}}\&\ info)}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \ \ \_resource\_stall\_counters[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(info.type)]++;}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ log\_cycle();}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_data\_stall(uint8\_t\ type)}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \ \ \ \ \_data\_stall\_counters[type]++;}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \ \ \ \ log\_cycle();}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ print\_log(FILE*\ stream\ =\ stdout,\ uint\ num\_units\ =\ 1)}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ total\ =\ 0;}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \ \ \ \ std::vector<std::pair<const\ char*,\ uint64\_t>>\ \_instruction\_counter\_pairs;}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ static\_cast<size\_t>(ISA::RISCV::Type::NUM\_TYPES);\ ++i)}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total\ +=\ \_instruction\_counters[i];}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_instruction\_counter\_pairs.push\_back(\{ISA::RISCV::instr\_type\_names[i].c\_str(),\ \_instruction\_counters[i]\});}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ std::sort(\_instruction\_counter\_pairs.begin(),\ \_instruction\_counter\_pairs.end(),}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [](\textcolor{keyword}{const}\ std::pair<const\ char*,\ uint64\_t>\&\ a,\ \textcolor{keyword}{const}\ std::pair<const\ char*,\ uint64\_t>\&\ b)\ -\/>\ \textcolor{keywordtype}{bool}\ \{\ return\ a.second\ >\ b.second;\ \});}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Instruction\ mix\(\backslash\)n"{}});}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\(\backslash\)tTotal:\ \%lld\(\backslash\)n"{}},\ total\ /\ num\_units);}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ \_instruction\_counter\_pairs.size();\ ++i)}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\_instruction\_counter\_pairs[i].second)\ fprintf(stream,\ \textcolor{stringliteral}{"{}\(\backslash\)t\%s:\ \%lld\ (\%.2f\%\%)\(\backslash\)n"{}},\ \_instruction\_counter\_pairs[i].first,\ \_instruction\_counter\_pairs[i].second\ /\ num\_units,\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{float}\textcolor{keyword}{>}(\_instruction\_counter\_pairs[i].second)\ /\ total\ *\ 100.0f);}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ total\ =\ 0;}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ std::vector<std::pair<const\ char*,\ uint64\_t>>\ \_resource\_stall\_counter\_pairs;}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ static\_cast<size\_t>(ISA::RISCV::Type::NUM\_TYPES);\ ++i)}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total\ +=\ \_resource\_stall\_counters[i];}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_resource\_stall\_counter\_pairs.push\_back(\{ISA::RISCV::instr\_type\_names[i].c\_str(),\ \_resource\_stall\_counters[i]\});}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \ \ \ \ std::sort(\_resource\_stall\_counter\_pairs.begin(),\ \_resource\_stall\_counter\_pairs.end(),}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [](\textcolor{keyword}{const}\ std::pair<const\ char*,\ uint64\_t>\&\ a,\ \textcolor{keyword}{const}\ std::pair<const\ char*,\ uint64\_t>\&\ b)\ -\/>\ \textcolor{keywordtype}{bool}\ \{\ return\ a.second\ >\ b.second;\ \});}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Resoruce\ Stalls\(\backslash\)n"{}});}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\(\backslash\)tTotal:\ \%lld\(\backslash\)n"{}},\ total\ /\ num\_units);}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ \_resource\_stall\_counter\_pairs.size();\ ++i)}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\_resource\_stall\_counter\_pairs[i].second)\ fprintf(stream,\ \textcolor{stringliteral}{"{}\(\backslash\)t\%s:\ \%lld\ (\%.2f\%\%)\(\backslash\)n"{}},\ \_resource\_stall\_counter\_pairs[i].first,\ \_resource\_stall\_counter\_pairs[i].second\ /\ num\_units,\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{float}\textcolor{keyword}{>}(\_resource\_stall\_counter\_pairs[i].second)\ /\ total\ *\ 100.0f);}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \ \ \ \ total\ =\ 0;}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \ \ \ \ std::vector<std::pair<const\ char*,\ uint64\_t>>\ \_data\_stall\_counter\_pairs;}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ static\_cast<size\_t>(ISA::RISCV::Type::NUM\_TYPES);\ ++i)}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total\ +=\ \_data\_stall\_counters[i];}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_data\_stall\_counter\_pairs.push\_back(\{ISA::RISCV::instr\_type\_names[i].c\_str(),\ \_data\_stall\_counters[i]\});}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ \ std::sort(\_data\_stall\_counter\_pairs.begin(),\ \_data\_stall\_counter\_pairs.end(),}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [](\textcolor{keyword}{const}\ std::pair<const\ char*,\ uint64\_t>\&\ a,\ \textcolor{keyword}{const}\ std::pair<const\ char*,\ uint64\_t>\&\ b)\ -\/>\ \textcolor{keywordtype}{bool}\ \{\ return\ a.second\ >\ b.second;\ \});}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Data\ Stalls\(\backslash\)n"{}});}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\(\backslash\)tTotal:\ \%lld\(\backslash\)n"{}},\ total\ /\ num\_units);}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ \_data\_stall\_counter\_pairs.size();\ ++i)}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\_data\_stall\_counter\_pairs[i].second)\ fprintf(stream,\ \textcolor{stringliteral}{"{}\(\backslash\)t\%s:\ \%lld\ (\%.2f\%\%)\(\backslash\)n"{}},\ \_data\_stall\_counter\_pairs[i].first,\ \_data\_stall\_counter\_pairs[i].second\ /\ num\_units,\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{float}\textcolor{keyword}{>}(\_data\_stall\_counter\_pairs[i].second)\ /\ total\ *\ 100.0f);}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ print\_profile(uint8\_t*\ backing\_memory,\ FILE*\ stream\ =\ stdout)}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ total\ =\ 0;}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Profile\(\backslash\)n"{}});}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ \_profile\_counters.size();\ ++i)\ total\ +=\ \_profile\_counters[i];}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ \_profile\_counters.size();\ ++i)}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//fetch}}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\_profile\_counters[i]\ >\ 0)}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ vaddr\_t\ pc\ =\ i\ *\ 4\ +\ \_elf\_start\_addr;}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{ISA::RISCV::Instruction}}\ instr(\textcolor{keyword}{reinterpret\_cast<}uint32\_t*\textcolor{keyword}{>}(backing\_memory)[pc\ /\ 4]);}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{ISA::RISCV::InstructionInfo}}\ instr\_info\ =\ instr.get\_info();}
+\DoxyCodeLine{00262\ }
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ precent\ =\ 100.0f\ *\ (float)\_profile\_counters[i]\ /\ total;}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(precent\ >\ 1.0f)\ fprintf(stream,\ \textcolor{stringliteral}{"{}*\(\backslash\)t"{}});}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ fprintf(stream,\ \textcolor{stringliteral}{"{}\ \(\backslash\)t"{}});}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\%05I64x(\%05.02f\%\%):\ \ \ \ \ \ \ \ \ \ \(\backslash\)t"{}},\ pc,\ precent);}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ instr\_info.print\_instr(instr,\ stream);}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00273\ \ \ \ \ \}log;}
+\DoxyCodeLine{00274\ \};}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ \}\}}
+
+\end{DoxyCode}

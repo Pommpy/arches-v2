@@ -1,0 +1,36 @@
+\doxysection{string.\+hpp}
+\hypertarget{string_8hpp_source}{}\label{string_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/util/string.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/util/string.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }Util\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{comment}{//size\_t\ normalize\_newlines(char*\ source);}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ std::deque<std::string>\ get\_split(std::string\ \textcolor{keyword}{const}\&\ main\_string,\ std::string\ \textcolor{keyword}{const}\&\ test\_string);}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#if\ 0}}
+\DoxyCodeLine{00014\ \textcolor{keywordtype}{bool}\ \ \ contains(\ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ main\_string,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ test\_char\ \ );}
+\DoxyCodeLine{00015\ \textcolor{keywordtype}{bool}\ \ \ contains(std::string\ \textcolor{keyword}{const}\&\ main\_string,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ test\_char\ \ );}
+\DoxyCodeLine{00016\ \textcolor{keywordtype}{bool}\ \ \ contains(\ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ main\_string,\ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ test\_string);}
+\DoxyCodeLine{00017\ \textcolor{keywordtype}{bool}\ \ \ contains(std::string\ \textcolor{keyword}{const}\&\ main\_string,\ std::string\ \textcolor{keyword}{const}\&\ test\_string);}
+\DoxyCodeLine{00018\ \textcolor{keywordtype}{bool}\ startswith(\ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ main\_string,\ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ test\_string);}
+\DoxyCodeLine{00019\ \textcolor{keywordtype}{bool}\ startswith(std::string\ \textcolor{keyword}{const}\&\ main\_string,\ std::string\ \textcolor{keyword}{const}\&\ test\_string);}
+\DoxyCodeLine{00020\ \textcolor{keywordtype}{bool}\ \ \ endswith(\ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ main\_string,\ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ test\_string);}
+\DoxyCodeLine{00021\ \textcolor{keywordtype}{bool}\ \ \ endswith(std::string\ \textcolor{keyword}{const}\&\ main\_string,\ std::string\ \textcolor{keyword}{const}\&\ test\_string);}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keywordtype}{size\_t}\ find\_last\_of(std::string\ \textcolor{keyword}{const}\&\ main\_string,\ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}*\ search\_chars,\ \textcolor{keywordtype}{size\_t}\ min\_i,\textcolor{keywordtype}{size\_t}\ max\_i);}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ std::string\ get\_replaced(std::string\ \textcolor{keyword}{const}\&\ str\_input,\ std::string\ \textcolor{keyword}{const}\&\ str\_to\_find,\ std::string\ \textcolor{keyword}{const}\&\ str\_to\_replace\_with);}
+\DoxyCodeLine{00027\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ replace(std::string*\ \ \ \ \ \ \ str\_input,\ std::string\ \textcolor{keyword}{const}\&\ str\_to\_find,\ std::string\ \textcolor{keyword}{const}\&\ str\_to\_replace\_with);}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \}\}}
+
+\end{DoxyCode}

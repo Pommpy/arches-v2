@@ -1,0 +1,131 @@
+\doxysection{Arches\+::ISA\+::RISCV\+::Instruction Class Reference}
+\hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}{}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction}\index{Arches::ISA::RISCV::Instruction@{Arches::ISA::RISCV::Instruction}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_a0d23f1ba02288749ba38ed376fc4d444}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_a0d23f1ba02288749ba38ed376fc4d444} 
+{\bfseries Instruction} (uint32\+\_\+t data)
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_ad2a35689e59101cce9b13d24db0a05c8}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_ad2a35689e59101cce9b13d24db0a05c8} 
+const \mbox{\hyperlink{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_info}{Instruction\+Info}} {\bfseries get\+\_\+info} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_a0c73af12fe1d30358fae7513dc336ac0}\label{class_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_a0c73af12fe1d30358fae7513dc336ac0} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\Hypertarget{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_a1d99022a6fa325ca54ded0fa75801f75}\label{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_a1d99022a6fa325ca54ded0fa75801f75} 
+\>struct \{\\
+\>\>uint32\_t {\bfseries opcode}: 7\\
+\>\>uint32\_t {\bfseries rd}: 5\\
+\>\>uint32\_t {\bfseries funct3}: 3\\
+\>\>uint32\_t {\bfseries rs1}: 5\\
+\>\>uint32\_t {\bfseries rs2}: 5\\
+\>\>uint32\_t {\bfseries funct2}: 2\\
+\>\>uint32\_t {\bfseries rs3}: 5\\
+\>\} \\
+\>union \{\\
+\Hypertarget{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d99_afdafc151aa8decbbe3f7550e26f4c423}\label{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d99_afdafc151aa8decbbe3f7550e26f4c423} 
+\>\>struct \{\\
+\>\>\>uint32\_t : 7\\
+\>\>\>uint32\_t {\bfseries rd}: 5\\
+\>\>\>uint32\_t {\bfseries funct3}: 3\\
+\>\>\>uint32\_t {\bfseries rs1}: 5\\
+\>\>\>uint32\_t {\bfseries rs2}: 5\\
+\>\>\>uint32\_t {\bfseries funct7}: 7\\
+\>\>\} \\
+\Hypertarget{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d99_a8ddf6f8af174bd9e2cb762d7ff4c1328}\label{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d99_a8ddf6f8af174bd9e2cb762d7ff4c1328} 
+\>\>struct \{\\
+\>\>\>uint32\_t : 12\\
+\>\>\>uint32\_t {\bfseries rm}: 3\\
+\>\>\>uint32\_t : 10\\
+\>\>\>uint32\_t {\bfseries fmt}: 2\\
+\>\>\>uint32\_t {\bfseries funct5}: 5\\
+\>\>\} \\
+\Hypertarget{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d99_a4c90cd9f9acea10e09d2d3b9e8d6a72e}\label{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d99_a4c90cd9f9acea10e09d2d3b9e8d6a72e} 
+\>\>struct \{\\
+\>\>\>uint32\_t : 25\\
+\>\>\>uint32\_t {\bfseries rl}: 1\\
+\>\>\>uint32\_t {\bfseries aq}: 1\\
+\>\>\>uint32\_t : 5\\
+\>\>\} \\
+\>\} {\bfseries r}\\
+\>struct \{\\
+\>\>uint32\_t : 7\\
+\>\>uint32\_t {\bfseries rd}: 5\\
+\>\>uint32\_t {\bfseries funct3}: 3\\
+\>\>uint32\_t {\bfseries rs1}: 5\\
+\>\>uint32\_t {\bfseries rs2}: 5\\
+\>\>uint32\_t {\bfseries funct2}: 2\\
+\>\>uint32\_t {\bfseries rs3}: 5\\
+\>\} {\bfseries r4}\\
+\>union \{\\
+\Hypertarget{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d101_a80c3411040e35ccaa4f46131b1025a98}\label{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d101_a80c3411040e35ccaa4f46131b1025a98} 
+\>\>struct \{\\
+\>\>\>uint32\_t : 7\\
+\>\>\>uint32\_t {\bfseries rd}: 5\\
+\>\>\>uint32\_t {\bfseries funct3}: 3\\
+\>\>\>uint32\_t {\bfseries rs1}: 5\\
+\>\>\>uint32\_t {\bfseries imm\_11\_0}: 12\\
+\>\>\} \\
+\Hypertarget{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d101_adc083696afbdb7be5281d06b7c7c9095}\label{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d101_adc083696afbdb7be5281d06b7c7c9095} 
+\>\>struct \{\\
+\>\>\>uint32\_t : 20\\
+\>\>\>uint32\_t {\bfseries shamt5}: 5\\
+\>\>\>uint32\_t {\bfseries imm\_11\_5}: 7\\
+\>\>\} \\
+\Hypertarget{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d101_a2dadb3351d953eccd1a8a5679f033c06}\label{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d101_a2dadb3351d953eccd1a8a5679f033c06} 
+\>\>struct \{\\
+\>\>\>uint32\_t : 20\\
+\>\>\>uint32\_t {\bfseries shamt6}: 6\\
+\>\>\>uint32\_t {\bfseries imm\_11\_6}: 6\\
+\>\>\} \\
+\Hypertarget{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d101_a43025f6eae806ba60503e136f0cf342b}\label{union_arches_1_1_i_s_a_1_1_r_i_s_c_v_1_1_instruction_1_1_0d95_1_1_0d101_a43025f6eae806ba60503e136f0cf342b} 
+\>\>struct \{\\
+\>\>\>uint32\_t : 20\\
+\>\>\>uint32\_t {\bfseries funct12}: 12\\
+\>\>\} \\
+\>\} {\bfseries i}\\
+\>struct \{\\
+\>\>uint32\_t : 7\\
+\>\>uint32\_t {\bfseries imm\_4\_0}: 5\\
+\>\>uint32\_t {\bfseries funct3}: 3\\
+\>\>uint32\_t {\bfseries rs1}: 5\\
+\>\>uint32\_t {\bfseries rs2}: 5\\
+\>\>uint32\_t {\bfseries imm\_11\_5}: 7\\
+\>\} {\bfseries s}\\
+\>struct \{\\
+\>\>uint32\_t : 7\\
+\>\>uint32\_t {\bfseries imm\_11}: 1\\
+\>\>uint32\_t {\bfseries imm\_4\_1}: 4\\
+\>\>uint32\_t {\bfseries funct3}: 3\\
+\>\>uint32\_t {\bfseries rs1}: 5\\
+\>\>uint32\_t {\bfseries rs2}: 5\\
+\>\>uint32\_t {\bfseries imm\_10\_5}: 6\\
+\>\>uint32\_t {\bfseries imm\_12}: 1\\
+\>\} {\bfseries b}\\
+\>struct \{\\
+\>\>uint32\_t : 7\\
+\>\>uint32\_t {\bfseries rd}: 5\\
+\>\>uint32\_t {\bfseries imm\_31\_12}: 20\\
+\>\} {\bfseries u}\\
+\>struct \{\\
+\>\>uint32\_t : 7\\
+\>\>uint32\_t {\bfseries rd}: 5\\
+\>\>uint32\_t {\bfseries imm\_19\_12}: 8\\
+\>\>uint32\_t {\bfseries imm\_11}: 1\\
+\>\>uint32\_t {\bfseries imm\_10\_1}: 10\\
+\>\>uint32\_t {\bfseries imm\_20}: 1\\
+\>\} {\bfseries j}\\
+\>uint32\_t {\bfseries data}\\
+\}; \\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/isa/riscv.\+hpp\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/isa/riscv.\+cpp\end{DoxyCompactItemize}

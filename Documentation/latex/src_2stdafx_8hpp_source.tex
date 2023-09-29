@@ -1,0 +1,186 @@
+\doxysection{stdafx.\+hpp}
+\hypertarget{src_2stdafx_8hpp_source}{}\label{src_2stdafx_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/stdafx.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/stdafx.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{comment}{//Determine\ debug/release}}
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#if\ defined\ \_WIN16\ ||\ defined\ WIN32\ ||\ defined\ \_WIN32\ ||\ defined\ WIN64\ ||\ defined\ \_WIN64\ ||\ defined\ \_\_WIN32\_\_\ ||\ defined\ \_\_TOS\_WIN\_\_\ ||\ defined\ \_\_WINDOWS\_\_}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_PLATFORM\_WINDOWS}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined\ \_DEBUG\ ||\ defined\ DEBUG}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ BUILD\_DEBUG}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ BUILD\_RELEASE}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \ \ \ \ \textcolor{comment}{//\#define\ \_CRT\_SECURE\_NO\_WARNINGS\ //The\ std\ library\ is\ not\ deprecated}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\ \ \ \ \#define\ unreachable\ \_\_assume(0)}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ NDEBUG}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ BUILD\_RELEASE}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ BUILD\_DEBUG}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\ \ \ \ \#define\ unreachable\ \_\_builtin\_unreachable()}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{comment}{//Detect\ Memmory\ Leaks}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifdef\ \_DEBUG}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \ \ \#define\ \_CRTDBG\_MAP\_ALLOC}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\ \ \ \ \#define\ \_new\ new\ (\ \_NORMAL\_BLOCK\ ,\ \_\_FILE\_\_\ ,\ \_\_LINE\_\_\ )}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\ \ \ \ \#define\ \_new\ new}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{comment}{//Determine\ architecture}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#if\ defined\ \_\_amd64\_\_\ ||\ defined\ \_\_amd64\ ||\ defined\ \_\_x86\_64\_\_\ ||\ defined\ \_\_x86\_64\ ||\ defined\ \_M\_X64\ ||\ defined\ \_M\_AMD64}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_ARCH\_64}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_ARCH\_x86\_64}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_ARCH\_ENDIAN\_LITTLE}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#elif\ defined\ i386\ ||\ defined\ \_\_i386\ ||\ defined\ \_\_i386\_\_\ ||\ defined\ \_\_i486\_\_\ ||\ defined\ \_\_i586\_\_\ ||\ defined\ \_\_i686\_\_\ ||\ defined\ \_M\_IX86\ ||\ defined\ \_X86\_\ ||\ defined\ \_\_X86\_\_}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_ARCH\_32}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_ARCH\_x86}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_ARCH\_ENDIAN\_LITTLE}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\ \ \ \ \#error\ "{}Define\ Endianness"{}}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{comment}{//Determine\ compiler}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#if\ \ \ defined\ \_\_INTEL\_COMPILER\ ||\ defined\ \_\_ICC\ }\textcolor{comment}{//Note:\ "{}\_\_ICC"{}\ symbol\ deprecated}}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{comment}{//Note\ that\ check\ for\ ICC\ comes\ before\ the\ check\ for\ MSVC;\ ICC\ still\ defines\ "{}\_MSC\_VER"{}.}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_INTEL}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_MAJOR\ (\_\_INTEL\_COMPILER/100)}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_MINOR\ (\_\_INTEL\_COMPILER\%100)}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\ \ \ \ \#define\ MESSAGE(TEXT)\ \_\_pragma(message(\_\_FILE\_\_\ "{}("{}\ STRINGIFY\_VALUE(\_\_LINE\_\_)\ "{}):\ "{}\ TEXT))\ }\textcolor{comment}{//TODO:\ correct?}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\ \ \ \ \#define\ WARNING(TEXT)\ MESSAGE(TEXT)}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#elif\ defined\ \_MSC\_VER}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_MSVC}}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{comment}{//major=11,\ minor=\ 0\ \ \ =>\ \ \ MSVC++\ 5.0}}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{comment}{//major=12,\ minor=\ 0\ \ \ =>\ \ \ MSVC++\ 6.0}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{comment}{//major=13,\ minor=\ 0\ \ \ =>\ \ \ MSVC++\ 7.0}}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{comment}{//major=13,\ minor=10\ \ \ =>\ \ \ MSVC++\ 7.1\ \ (VS\ 2003)}}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{comment}{//major=14,\ minor=\ 0\ \ \ =>\ \ \ MSVC++\ 8.0\ \ (VS\ 2005)}}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//major=15,\ minor=\ 0\ \ \ =>\ \ \ MSVC++\ 9.0\ \ (VS\ 2008)}}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{comment}{//major=16,\ minor=\ 0\ \ \ =>\ \ \ MSVC++\ 10.0\ (VS\ 2010)}}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{comment}{//major=17,\ minor=\ 0\ \ \ =>\ \ \ MSVC++\ 11.0\ (VS\ 2012)}}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{comment}{//major=18,\ minor=\ 0\ \ \ =>\ \ \ MSVC++\ 12.0\ (VS\ 2013)}}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{comment}{//major=19,\ minor=\ 0\ \ \ =>\ \ \ MSVC++\ 14.0\ (VS\ 2015)}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_MAJOR\ (\_MSC\_VER/100)}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_MINOR\ (\_MSC\_VER\%100)}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_MSC\_FULL\_VER}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_PATCH\ (\_MSC\_FULL\_VER\%100000)}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\ \ \ \ \#define\ MESSAGE(TEXT)\ \_\_pragma(message(\_\_FILE\_\_\ "{}("{}\ STRINGIFY\_VALUE(\_\_LINE\_\_)\ "{}):\ "{}\ TEXT))}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\ \ \ \ \#define\ WARNING(TEXT)\ MESSAGE(TEXT)}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#elif\ defined\ \_\_clang\_\_}}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{comment}{//Note\ that\ check\ for\ Clang\ comes\ before\ check\ for\ GNU;\ Clang\ defines\ "{}\_\_GUNC\_\_"{}\ at\ least\ some\ of\ the\ time.}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_CLANG}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_MAJOR\ \_\_clang\_major\_\_}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_MINOR\ \_\_clang\_minor\_\_}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_PATCH\ \_\_clang\_patchlevel\_\_}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\ \ \ \ \#define\ IB\_PRAGMA(x)\ \_Pragma(\#x)}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\ \ \ \ \#define\ MESSAGE(TEXT)\ IB\_PRAGMA(message\ TEXT)}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\ \ \ \ \#define\ WARNING(TEXT)\ IB\_PRAGMA(GCC\ warning\ TEXT)\ }\textcolor{comment}{//Yes,\ "{}GCC"{}.\ \ It\ ignores\ e.g.\ "{}clang"{}.}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#elif\ defined\ \_\_GNUC\_\_}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_GNU}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_MAJOR\ \_\_GNUC\_\_}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_MINOR\ \_\_GNUC\_MINOR\_\_}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_\_GNUC\_PATCHLEVEL\_\_}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ BUILD\_COMPILER\_VERSION\_PATCH\ \_\_GNUC\_PATCHLEVEL\_\_}}
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\ \ \ \ \#define\ IB\_PRAGMA(x)\ \_Pragma(\#x)}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\ \ \ \ \#define\ MESSAGE(TEXT)\ IB\_PRAGMA(message\ TEXT)}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\ \ \ \ \#define\ WARNING(TEXT)\ IB\_PRAGMA(GCC\ warning\ TEXT)}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\ \ \ \ \#warning\ "{}No\ supported\ compiler\ detected!"{}}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{comment}{//Useful\ error\ macros}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#ifdef\ BUILD\_DEBUG}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\ \ \ \ \#define\ implerr\ assert(false);\ throw\ -\/1}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\ \ \ \ \#define\ nodefault\ default:\ implerr;}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\ \ \ \ \#define\ implerr\ unreachable}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\ \ \ \ \#define\ nodefault\ default:\ unreachable}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#define\ notimpl\ implerr}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \textcolor{comment}{//Language\ facts}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#if\ -\/2>>1\ ==\ -\/1}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\ \ \ \ \#define\ SHIFTRIGHT\_ARITHMETIC\ }\textcolor{comment}{//Pads\ with\ sign\ bit}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\ \ \ \ \#define\ SHIFTRIGHT\_LOGICAL\ \ \ \ }\textcolor{comment}{//Pads\ with\ 0}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#define\ NOMINMAX}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#ifndef\ \_DEBUG}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#include\ "{}oneapi/tbb.h"{}}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#include\ <cassert>}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#include\ <cstring>}}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#include\ <thread>}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#include\ <deque>}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\#include\ <map>}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#include\ <queue>}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#include\ <set>}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\#include\ <unordered\_map>}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#include\ <queue>}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\#include\ <stack>}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#include\ <iostream>}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#include\ <new>}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#include\ <intrin.h>}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\#include\ <xmmintrin.h>}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \textcolor{keyword}{namespace\ }Arches\ \{}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{keyword}{typedef}\ uint64\_t\ paddr\_t;}
+\DoxyCodeLine{00150\ \textcolor{keyword}{typedef}\ uint64\_t\ vaddr\_t;}
+\DoxyCodeLine{00151\ \textcolor{keyword}{typedef}\ uint64\_t\ addr\_t;}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \textcolor{keyword}{typedef}\ uint16\_t\ buffer\_id\_t;}
+\DoxyCodeLine{00154\ \textcolor{keyword}{typedef}\ uint16\_t\ port\_id\_t;}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1buffer__address__t}{buffer\_address\_t}}}
+\DoxyCodeLine{00157\ \{}
+\DoxyCodeLine{00158\ \ \ \ \ buffer\_id\_t\ buffer\_id;}
+\DoxyCodeLine{00159\ \ \ \ \ port\_id\_t\ port\_id;}
+\DoxyCodeLine{00160\ \};}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{keyword}{typedef}\ uint64\_t\ frame\_number\_t;}
+\DoxyCodeLine{00163\ \textcolor{keyword}{typedef}\ uint64\_t\ page\_number\_t;}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \textcolor{keyword}{typedef}\ uint64\_t\ cycles\_t;}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \textcolor{keyword}{typedef}\ uint32\_t\ uint18\_t;}
+\DoxyCodeLine{00168\ \textcolor{keyword}{typedef}\ \ int32\_t\ \ int18\_t;}
+\DoxyCodeLine{00169\ \textcolor{keyword}{typedef}\ uint32\_t\ uint28\_t;}
+\DoxyCodeLine{00170\ \textcolor{keyword}{typedef}\ \ int32\_t\ \ int28\_t;}
+\DoxyCodeLine{00171\ \textcolor{keyword}{typedef}\ uint64\_t\ uint48\_t;}
+\DoxyCodeLine{00172\ \textcolor{keyword}{typedef}\ \ uint64\_t\ \ int48\_t;}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{keyword}{static\_assert}(\textcolor{keyword}{sizeof}(float)==4\&\&\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{double})==8,\textcolor{stringliteral}{"{}Not\ Implemented!"{}});}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#define\ ARCHES\_LOGGING}}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \}}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ uint;}
+
+\end{DoxyCode}

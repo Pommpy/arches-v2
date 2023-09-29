@@ -1,0 +1,106 @@
+\doxysection{Arches\+::Util\+::File Class Reference}
+\hypertarget{class_arches_1_1_util_1_1_file}{}\label{class_arches_1_1_util_1_1_file}\index{Arches::Util::File@{Arches::Util::File}}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a3325c1092eae4135d387945be781a23a}\label{class_arches_1_1_util_1_1_file_a3325c1092eae4135d387945be781a23a} 
+enum class {\bfseries MODE} \{ \newline
+{\bfseries R}
+, {\bfseries W\+\_\+\+SAFE}
+, {\bfseries W\+\_\+\+NUKE}
+, {\bfseries RW\+\_\+\+SAFE}
+, \newline
+{\bfseries RW\+\_\+\+NUKE}
+, {\bfseries A}
+, {\bfseries AR}
+ \}
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_ab7f2f732f0ff04cee5697bca4526b565}\label{class_arches_1_1_util_1_1_file_ab7f2f732f0ff04cee5697bca4526b565} 
+enum class {\bfseries OP} \{ \newline
+{\bfseries OPEN}
+, {\bfseries CLOSE}
+, {\bfseries READ}
+, {\bfseries WRITE}
+, \newline
+{\bfseries GETOFFSET}
+, {\bfseries SETOFFSET}
+, {\bfseries GETMODE}
+, {\bfseries FLUSH}
+, \newline
+{\bfseries GETLENGTH}
+, {\bfseries RENAME}
+, {\bfseries REMOVE}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a2b0e68bd11f59e541c63f6db2dbc20be}\label{class_arches_1_1_util_1_1_file_a2b0e68bd11f59e541c63f6db2dbc20be} 
+{\bfseries File} (std\+::string const \&dir, std\+::string const \&name, MODE mode)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a573c25f8fb7b667c59c483ec0ba5b46f}\label{class_arches_1_1_util_1_1_file_a573c25f8fb7b667c59c483ec0ba5b46f} 
+{\bfseries File} (std\+::string const \&path, MODE mode)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_aa96f06cfea68994d511927f2042a6ec0}\label{class_arches_1_1_util_1_1_file_aa96f06cfea68994d511927f2042a6ec0} 
+void {\bfseries flush} (void)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a24f92efb17b1e1c31a5c59f6fd388495}\label{class_arches_1_1_util_1_1_file_a24f92efb17b1e1c31a5c59f6fd388495} 
+{\footnotesize template$<$typename type $>$ }\\type {\bfseries read\+\_\+bin} (void)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_afda2066464f138e301ce1ab9ffecb570}\label{class_arches_1_1_util_1_1_file_afda2066464f138e301ce1ab9ffecb570} 
+{\footnotesize template$<$typename type $>$ }\\void {\bfseries read\+\_\+bin} (type result\mbox{[}$\,$\mbox{]}, size\+\_\+t N)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a4d5c8f4ce0d2152618b28b6d8ea2b11f}\label{class_arches_1_1_util_1_1_file_a4d5c8f4ce0d2152618b28b6d8ea2b11f} 
+std\+::vector$<$ uint8\+\_\+t $>$ {\bfseries read\+\_\+bin} (size\+\_\+t N)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_ac2478da870aa4c67eda4a7879e2d0501}\label{class_arches_1_1_util_1_1_file_ac2478da870aa4c67eda4a7879e2d0501} 
+{\footnotesize template$<$typename type , size\+\_\+t N$>$ }\\void {\bfseries read\+\_\+bin} (std\+::array$<$ type, N $>$ \&result)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_ae200e36606cece371b15d7edf2b8aa68}\label{class_arches_1_1_util_1_1_file_ae200e36606cece371b15d7edf2b8aa68} 
+{\footnotesize template$<$typename type $>$ }\\void {\bfseries write\+\_\+bin} (type const \&value)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a50f807f42af4c5ab042b409e5b9a1eb0}\label{class_arches_1_1_util_1_1_file_a50f807f42af4c5ab042b409e5b9a1eb0} 
+{\footnotesize template$<$typename type $>$ }\\void {\bfseries write\+\_\+bin} (type const values\mbox{[}$\,$\mbox{]}, size\+\_\+t N)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_aec0fe612346fd971ad925bcfca2824fd}\label{class_arches_1_1_util_1_1_file_aec0fe612346fd971ad925bcfca2824fd} 
+{\footnotesize template$<$typename type , size\+\_\+t N$>$ }\\void {\bfseries write\+\_\+bin} (std\+::array$<$ type, N $>$ const \&values)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a929c13efd4220f01e1e08b2bcdd94321}\label{class_arches_1_1_util_1_1_file_a929c13efd4220f01e1e08b2bcdd94321} 
+void {\bfseries write\+\_\+asciif} (char const \texorpdfstring{$\ast$}{*}format,...)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a4780b84497951662baa4f685c7d52e5f}\label{class_arches_1_1_util_1_1_file_a4780b84497951662baa4f685c7d52e5f} 
+static bool {\bfseries can\+\_\+open} (std\+::string const \&path)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a09b5353d86ca6814c2acb377633aeb45}\label{class_arches_1_1_util_1_1_file_a09b5353d86ca6814c2acb377633aeb45} 
+static void {\bfseries remove} (std\+::string const \&path)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_ae76897d29db8174ed58bf278402431ac}\label{class_arches_1_1_util_1_1_file_ae76897d29db8174ed58bf278402431ac} 
+static void {\bfseries rename\+\_\+nuke} (std\+::string const \&path\+\_\+old, std\+::string const \&path\+\_\+new)
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a7de7cc81ac80c5ba01a69800d57a11b3}\label{class_arches_1_1_util_1_1_file_a7de7cc81ac80c5ba01a69800d57a11b3} 
+static void {\bfseries rename\+\_\+safe} (std\+::string const \&path\+\_\+old, std\+::string const \&path\+\_\+new)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_ac6e04c28f400d1da12e2ebbc5df2f13b}\label{class_arches_1_1_util_1_1_file_ac6e04c28f400d1da12e2ebbc5df2f13b} 
+std\+::string {\bfseries dir}
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_ae94eb8c18183bf7eada99a1c92b76a1f}\label{class_arches_1_1_util_1_1_file_ae94eb8c18183bf7eada99a1c92b76a1f} 
+std\+::string {\bfseries name}
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a80f61ad862fd832ece84322ac710fcf6}\label{class_arches_1_1_util_1_1_file_a80f61ad862fd832ece84322ac710fcf6} 
+MODE {\bfseries mode}
+\item 
+\Hypertarget{class_arches_1_1_util_1_1_file_a0f03c0487b46735046a32e7ebfa33937}\label{class_arches_1_1_util_1_1_file_a0f03c0487b46735046a32e7ebfa33937} 
+FILE \texorpdfstring{$\ast$}{*} {\bfseries backing}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/util/file.\+hpp\item 
+arches-\/v2/src/arches/util/file.\+cpp\end{DoxyCompactItemize}

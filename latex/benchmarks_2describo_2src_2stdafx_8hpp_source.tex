@@ -1,0 +1,154 @@
+\doxysection{stdafx.\+hpp}
+\hypertarget{benchmarks_2describo_2src_2stdafx_8hpp_source}{}\label{benchmarks_2describo_2src_2stdafx_8hpp_source}\index{arches-\/v2/benchmarks/describo/src/stdafx.hpp@{arches-\/v2/benchmarks/describo/src/stdafx.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#if\ defined\ \_\_x86\_64\_\_\ ||\ defined\ \_M\_X64}}
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#define\ ARCH\_X86}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#define\ ARCH\_RISCV}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#ifdef\ ARCH\_RISCV}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#define\ INLINE\ \_\_attribute\_\_((always\_inline))}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//\#define\ INLINE\ inline}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ INLINE\ inline}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <cassert>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <cmath>}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <cstring>}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <cstdio>}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ <fstream>}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <iostream>}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <sstream>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <thread>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ RTM\_POW}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ <cfloat>}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ uint;}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{//Courtesy\ of\ Cem\ Yuksel}}
+\DoxyCodeLine{00038\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{bool}\ ascending\ =\ true,\ \textcolor{keyword}{typename}\ RET>}
+\DoxyCodeLine{00039\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ \_fast\_sort4(RET\ \textcolor{keyword}{const}\ in[4],\ RET\ out[4])}
+\DoxyCodeLine{00040\ \{}
+\DoxyCodeLine{00041\ \ \ \ \ RET\ n01\ =\ std::min(in[1],\ in[0]);}
+\DoxyCodeLine{00042\ \ \ \ \ RET\ x01\ =\ std::max(in[0],\ in[1]);}
+\DoxyCodeLine{00043\ \ \ \ \ RET\ n23\ =\ std::min(in[2],\ in[3]);}
+\DoxyCodeLine{00044\ \ \ \ \ RET\ x23\ =\ std::max(in[3],\ in[2]);}
+\DoxyCodeLine{00045\ \ \ \ \ RET\ r0\ =\ std::min(n01,\ n23);}
+\DoxyCodeLine{00046\ \ \ \ \ RET\ x02\ =\ std::max(n23,\ n01);}
+\DoxyCodeLine{00047\ \ \ \ \ RET\ n13\ =\ std::min(x01,\ x23);}
+\DoxyCodeLine{00048\ \ \ \ \ RET\ r3\ =\ std::max(x23,\ x01);}
+\DoxyCodeLine{00049\ \ \ \ \ RET\ r1\ =\ std::min(x02,\ n13);}
+\DoxyCodeLine{00050\ \ \ \ \ RET\ r2\ =\ std::max(n13,\ x02);}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordflow}{if}(ascending)\ \{\ out[0]\ =\ r0;\ out[1]\ =\ r1;\ out[2]\ =\ r2;\ out[3]\ =\ r3;\ \}}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keywordflow}{else}\ \{\ out[0]\ =\ r3;\ out[1]\ =\ r2;\ out[2]\ =\ r1;\ out[3]\ =\ r0;\ \}}
+\DoxyCodeLine{00053\ \}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ fast\_sqrtf(\textcolor{keywordtype}{float}\ input)}
+\DoxyCodeLine{00056\ \{}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordflow}{return}\ sqrtf(input);}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_RISCV}}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keywordtype}{float}\ output\ =\ 0.0f;}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}\ (\textcolor{stringliteral}{"{}fsqrt.s\ \%[rd],\ \%[rs1]\(\backslash\)n\(\backslash\)t"{}}\ :\ [rd]\ \textcolor{stringliteral}{"{}=f"{}}\ (output)\ :\ [rs1]\ \textcolor{stringliteral}{"{}f"{}}\ (input));}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordflow}{return}\ output;}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00068\ \}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ fast\_inv\_sqrtf(\textcolor{keywordtype}{float}\ input)}
+\DoxyCodeLine{00071\ \{}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordflow}{return}\ 1.0f\ /\ fast\_sqrtf(input);}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_RISCV}}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordtype}{float}\ output\ =\ 0.0f;}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}\ (\textcolor{stringliteral}{"{}traxinvsqrt\ \%[rd],\ \%[rs1]\(\backslash\)n\(\backslash\)t"{}}\ :\ [rd]\ \textcolor{stringliteral}{"{}=f"{}}\ (output)\ :\ [rs1]\ \textcolor{stringliteral}{"{}f"{}}\ (input));}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordflow}{return}\ output;}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00083\ \}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{keyword}{inline}\ uint32\_t\ as\_u32(\textcolor{keywordtype}{float}\ f)}
+\DoxyCodeLine{00086\ \{}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordflow}{return}\ *((uint32\_t*)\&f);}
+\DoxyCodeLine{00088\ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ as\_f32(uint32\_t\ u)}
+\DoxyCodeLine{00091\ \{}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordflow}{return}\ *((\textcolor{keywordtype}{float}*)\&u);}
+\DoxyCodeLine{00093\ \}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{comment}{//https://martinfullerblog.wordpress.com/2023/01/15/fast-\/near-\/lossless-\/compression-\/of-\/normal-\/floats/}}
+\DoxyCodeLine{00096\ \textcolor{comment}{//careful\ to\ ensure\ correct\ behaviour\ for\ normal\ numbers\ <\ 1.0\ which\ roundup\ to\ 2.0\ when\ one\ is\ added}}
+\DoxyCodeLine{00097\ \textcolor{keyword}{inline}\ uint32\_t\ f32\_to\_u24(\textcolor{keywordtype}{float}\ f)}
+\DoxyCodeLine{00098\ \{}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{comment}{//f\ +=\ 1.0;}}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{comment}{//return\ (f\ >=\ 2.0)\ ?\ (1\ <<\ 23)\ :\ as\_u32(f)\ \&\ ((1\ <<\ 23)\ -\/\ 1);}}
+\DoxyCodeLine{00101\ \ \ \ \ f\ =\ f\ *\ 0.5f\ +\ 1.5f;}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keywordflow}{return}\ (f\ >=\ 2.0)\ ?\ (1\ <<\ 23)\ :\ as\_u32(f)\ \&\ ((1\ <<\ 23)\ -\/\ 1);}
+\DoxyCodeLine{00103\ \}}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \textcolor{comment}{//input\ needs\ to\ be\ low\ 24\ bits,\ with\ 0\ in\ the\ top\ 8\ bits}}
+\DoxyCodeLine{00106\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}\ u24\_to\_f32(uint32\_t\ u)}
+\DoxyCodeLine{00107\ \{}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keywordflow}{return}\ (u\ \&\ (1\ <<\ 23))\ ?\ 1.0\ :\ as\_f32(u\ |\ 0x3f800000)\ *\ 2.0f\ -\/\ 3.0f;}
+\DoxyCodeLine{00109\ \}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \textcolor{keyword}{inline}\ uint32\_t\ f32\_to\_u16\_rd(\textcolor{keywordtype}{float}\ f)}
+\DoxyCodeLine{00112\ \{}
+\DoxyCodeLine{00113\ \ \ \ \ f\ +=\ 1.0f;}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordflow}{return}\ f\ >=\ 2.0f\ ?\ 0x8000u\ :\ (((as\_u32(f)\ \ \ \ \ \ \ \ )\ >>\ 8)\ \&\ 0x7fffu);}
+\DoxyCodeLine{00115\ \}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{keyword}{inline}\ uint32\_t\ f32\_to\_u16\_ru(\textcolor{keywordtype}{float}\ f)}
+\DoxyCodeLine{00118\ \{}
+\DoxyCodeLine{00119\ \ \ \ \ f\ +=\ 1.0f;}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keywordflow}{return}\ f\ >=\ 2.0f\ ?\ 0x8000u\ :\ (((as\_u32(f)\ +\ 0xffu)\ >>\ 8)\ \&\ 0x7fffu);}
+\DoxyCodeLine{00121\ \}}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{float}\ u16\_to\_f32(uint16\_t\ u16)}
+\DoxyCodeLine{00124\ \{}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keywordflow}{return}\ u16\ \&\ 0x8000u\ ?\ 1.0f\ :\ as\_f32(((uint32\_t)u16\ <<\ 8)\ |\ 0x3f800000u)\ -\/\ 1.0f;}
+\DoxyCodeLine{00126\ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ \_\_ebreak()}
+\DoxyCodeLine{00129\ \{}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ ARCH\_RISCV}}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}}
+\DoxyCodeLine{00132\ \ \ \ \ (}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ebreak\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00134\ \ \ \ \ );}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00137\ \}}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \textcolor{comment}{//copy\ data\ 8\ bytes\ at\ a\ time}}
+\DoxyCodeLine{00140\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00141\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ move\_to\_stack(T\&\ dst,\ \textcolor{keyword}{const}\ T\&\ src)}
+\DoxyCodeLine{00142\ \{}
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ \textcolor{keyword}{sizeof}(T)\ /\ \textcolor{keyword}{sizeof}(uint64\_t);\ ++i)}
+\DoxyCodeLine{00144\ \ \ \ \ \{}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ uint64\_t\ r\ =\ ((uint64\_t*)\&src)[i];}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ ((uint64\_t*)\&dst)[i]\ =\ r;}
+\DoxyCodeLine{00147\ \ \ \ \ \}}
+\DoxyCodeLine{00148\ \}}
+
+\end{DoxyCode}

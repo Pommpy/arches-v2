@@ -1,0 +1,441 @@
+\doxysection{memory\+\_\+controller.\+h}
+\hypertarget{memory__controller_8h_source}{}\label{memory__controller_8h_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/usimm/memory\_controller.h@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/usimm/memory\_controller.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ \_\_MEMORY\_CONTROLLER\_H\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ \_\_MEMORY\_CONTROLLER\_H\_\_}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//TODO:\ Implement\ arches\ instructions\ to\ memory\_Controller}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{comment}{//These\ includes\ will\ have\ to\ change\ for\ arches\ implementation}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\#include\ "{}ThreadState.h"{}}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\#include\ "{}SimpleRegisterFile.h"{}}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//\#include\ "{}Instruction.h"{}}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\#include\ "{}StatsCollector.h"{}}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <list>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}../../isa/riscv.hpp"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}../../isa/registers.hpp"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}../../../stdafx.hpp"{}}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#define\ MAX\_QUEUE\_LENGTH\ 80}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ MAX\_NUM\_CHANNELS\ 16}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#define\ MAX\_NUM\_RANKS\ \ \ \ 16}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#define\ MAX\_NUM\_BANKS\ \ \ \ 32}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#define\ BIG\_ACTIVATION\_WINDOW\ 1000000}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#define\ UNKNOWN\_LATENCY\ \ \ \ \ \ \ 10000000000}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#define\ DRAM\_CLOCK\_MULTIPLIER\ 2}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ Moved\ here\ from\ main.c\ }}
+\DoxyCodeLine{00031\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ *committed;\ \textcolor{comment}{//\ total\ committed\ instructions\ in\ each\ core}}
+\DoxyCodeLine{00032\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ *fetched;\ \ \ \textcolor{comment}{//\ total\ fetched\ instructions\ in\ each\ core}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ max\_write\_queue\_length\ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00035\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ max\_read\_queue\_length\ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00036\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ accumulated\_read\_queue\_length\ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ update\_mem\_count;}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{comment}{//\ General\ stats}}
+\DoxyCodeLine{00041\ \textcolor{comment}{//Not\ sure\ this\ is\ needed\ for\ our\ current\ implementation}}
+\DoxyCodeLine{00042\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_usimm_usage_stats__t}{UsimmUsageStats\_t}}}
+\DoxyCodeLine{00043\ \{}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ Initialize()}
+\DoxyCodeLine{00045\ \ \ \ \ \{}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \textcolor{comment}{//statsCacheLineLoads.Clear();}}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \textcolor{comment}{//statsCacheLineStores.Clear();}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ numCacheLineLoadsDups\ \ =\ 0;}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ numCacheLineStoresDups\ =\ 0;}
+\DoxyCodeLine{00051\ \ \ \ \ \}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{comment}{//\ Distribution\ of\ cache\ lines\ that\ were\ requested\ by\ different\ ops}}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{comment}{//\ Note:\ these\ will\ duplicate,\ so\ if\ multiple\ ops\ use\ the\ same\ cache\ line}}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ \ numCacheLine\{Loads,\ Stores\}Dups\ will\ be\ incremented}}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{comment}{//StatDistribution<uint32\_t\ op\_code,\ unsigned\ long\ long\ int>\ statsCacheLineLoads;}}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{comment}{//StatDistribution<uint32\_t\ op\_code,\ unsigned\ long\ long\ int>\ statsCacheLineStores;}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ numCacheLineLoadsDups;}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ numCacheLineStoresDups;}
+\DoxyCodeLine{00061\ \};}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00064\ \textcolor{comment}{//\ \ \ \ \ \ Memory\ Controller\ Data\ Structures\ \ \ \ \ \ \ //}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{comment}{//\ Call-\/back\ for\ TRaX\ from\ USIMM}}
+\DoxyCodeLine{00068\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_usimm_listener}{UsimmListener}}}
+\DoxyCodeLine{00069\ \{}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ UsimmNotifyEvent(Arches::paddr\_t\ \textcolor{keyword}{const}\ address,\ Arches::cycles\_t\ write\_cycle,\ uint32\_t\ request\_id)\ =\ 0;}
+\DoxyCodeLine{00071\ \};}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{comment}{//\ DRAM\ Address\ Structure}}
+\DoxyCodeLine{00074\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdraddr}{draddr}}}
+\DoxyCodeLine{00075\ \{}
+\DoxyCodeLine{00076\ \ \ \ \ Arches::paddr\_t\ actual\_address;\ \textcolor{comment}{//\ physical\_address\ being\ accessed}}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordtype}{int}\ channel;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ channel\ id}}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordtype}{int}\ rank;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ rank\ id}}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{int}\ bank;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ bank\ id}}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ row;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ row/page\ id}}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{int}\ column;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ column\ id}}
+\DoxyCodeLine{00082\ \}\ \mbox{\hyperlink{structdraddr}{dram\_address\_t}};}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{comment}{//\ DRAM\ Commands}}
+\DoxyCodeLine{00085\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00086\ \{}
+\DoxyCodeLine{00087\ \ \ \ \ ACT\_CMD,}
+\DoxyCodeLine{00088\ \ \ \ \ COL\_READ\_CMD,}
+\DoxyCodeLine{00089\ \ \ \ \ PRE\_CMD,}
+\DoxyCodeLine{00090\ \ \ \ \ COL\_WRITE\_CMD,}
+\DoxyCodeLine{00091\ \ \ \ \ PWR\_DN\_SLOW\_CMD,}
+\DoxyCodeLine{00092\ \ \ \ \ PWR\_DN\_FAST\_CMD,}
+\DoxyCodeLine{00093\ \ \ \ \ PWR\_UP\_CMD,}
+\DoxyCodeLine{00094\ \ \ \ \ REF\_CMD,}
+\DoxyCodeLine{00095\ \ \ \ \ NOP}
+\DoxyCodeLine{00096\ \}\ command\_t;}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \textcolor{comment}{//\ Request\ Types}}
+\DoxyCodeLine{00099\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00100\ \{}
+\DoxyCodeLine{00101\ \ \ \ \ READ,}
+\DoxyCodeLine{00102\ \ \ \ \ WRITE}
+\DoxyCodeLine{00103\ \}\ optype\_t;}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \textcolor{comment}{//\ Single\ request\ structure\ self-\/explanatory}}
+\DoxyCodeLine{00106\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarches__request__t}{arches\_request\_t}}}
+\DoxyCodeLine{00107\ \{}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{comment}{//Arches::Units::RISCV::Register64\ result;}}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{comment}{//uint8\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ which\_reg;}}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{comment}{//uint32\_t\ op;}}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{comment}{//not\ sure\ how\ to\ represent\ the\ thread\ state\ for\ Arches}}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{comment}{//ThreadState\ \ \ \ \ \ \ \ *thread;}}
+\DoxyCodeLine{00113\ \ \ \ \ Arches::paddr\_t\ arches\_addr;}
+\DoxyCodeLine{00114\ \ \ \ \ \mbox{\hyperlink{struct_usimm_listener}{UsimmListener}}\ \ \ \ \ \ \ \ \ \ \ \ *listener;}
+\DoxyCodeLine{00115\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ id;}
+\DoxyCodeLine{00116\ \ \ \ \ \mbox{\hyperlink{structarches__request__t}{arches\_request\_t}}()\ :}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \textcolor{comment}{//which\_reg(0),}}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \textcolor{comment}{//op(0b000/*NOP\ =\ ADDI\ x0\ x0\ 0*/),}}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \textcolor{comment}{//thread(NULL),}}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ arches\_addr(0),}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ listener(NULL),}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ id(0)}
+\DoxyCodeLine{00123\ \ \ \ \ \{}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \textcolor{comment}{//result.u64\ =\ 0;}}
+\DoxyCodeLine{00125\ \ \ \ \ \}}
+\DoxyCodeLine{00126\ \}\ \mbox{\hyperlink{structarches__request__t}{arches\_request\_t}};}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \textcolor{comment}{//DK:\ update\ this\ struct\ to\ hold\ the\ PC\ of\ issuing\ instruction}}
+\DoxyCodeLine{00130\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structreq}{req}}}
+\DoxyCodeLine{00131\ \{}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ \ physical\_address;}
+\DoxyCodeLine{00133\ \ \ \ \ \mbox{\hyperlink{structdraddr}{dram\_address\_t}}\ \ \ \ \ \ \ \ \ \ dram\_addr;}
+\DoxyCodeLine{00134\ \ \ \ \ int64\_t\ \ \ \ \ \ \ \ \ \ \ arrival\_time;}
+\DoxyCodeLine{00135\ \ \ \ \ int64\_t\ \ \ \ \ \ \ \ \ \ \ \ \ dispatch\_time;\ \ \ \ \ \ \textcolor{comment}{//\ when\ COL\_RD\ or\ COL\_WR\ is\ issued\ for\ this\ request}}
+\DoxyCodeLine{00136\ \ \ \ \ int64\_t\ \ \ \ \ \ \ \ \ \ \ completion\_time;\ \ \ \ \textcolor{comment}{//\ final\ completion\ time}}
+\DoxyCodeLine{00137\ \ \ \ \ int64\_t\ \ \ \ \ \ \ \ \ \ \ \ \ latency;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ dispatch\_time-\/arrival\_time}}
+\DoxyCodeLine{00138\ \textcolor{comment}{//\ \ \ \ int\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ thread\_id;\ \ \ \ \ \ \ \ \ \ //\ core\ that\ issued\ this\ request}}
+\DoxyCodeLine{00139\ \ \ \ \ command\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ next\_command;\ \ \ \ \ \ \ \textcolor{comment}{//\ what\ command\ needs\ to\ be\ issued\ to\ make\ forward\ progress\ with\ this\ request}}
+\DoxyCodeLine{00140\ \ \ \ \ optype\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ operation\_type;\ \ \ \ \ \textcolor{comment}{//\ Read/Write}}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ command\_issuable;\ \ \ \textcolor{comment}{//\ can\ this\ request\ be\ issued\ in\ the\ current\ cycle}}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ request\_served;\ \ \ \ \ \textcolor{comment}{//\ if\ request\ has\ it's\ final\ command\ issued\ or\ not}}
+\DoxyCodeLine{00143\ \textcolor{comment}{//\ \ \ \ int\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ instruction\_id;\ \ \ \ \ //\ 0\ to\ ROBSIZE-\/1}}
+\DoxyCodeLine{00144\ \textcolor{comment}{//\ \ \ \ long\ long\ int\ \ \ \ \ \ \ \ \ \ \ instruction\_pc;\ \ \ \ \ //\ phy\ address\ of\ instruction\ that\ generated\ this\ request\ (valid\ only\ for\ reads)}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{comment}{//TRaX\ stuff}}
+\DoxyCodeLine{00147\ \ \ \ \ std::vector<arches\_request\_t>\ arches\_reqs;}
+\DoxyCodeLine{00148\ \}\ \mbox{\hyperlink{structreq}{request\_t}};}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{comment}{//\ Returned\ when\ inserting\ a\ read\ or\ a\ write}}
+\DoxyCodeLine{00151\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structreq_insert_ret__tt}{reqInsertRet\_tt}}}
+\DoxyCodeLine{00152\ \{}
+\DoxyCodeLine{00153\ \ \ \ \ \textcolor{keyword}{enum}\ REQ\_RET\_TYPE}
+\DoxyCodeLine{00154\ \ \ \ \ \{}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ RRT\_UNKNOWN\ =\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ just\ in\ case}}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ RRT\_READ\_QUEUE,\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ request\ found\ in\ read\ queue}}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ RRT\_WRITE\_QUEUE,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ request\ found\ in\ write\ queue}}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ RRT\_READ\_QUEUE\_FULL,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ no\ space\ in\ read\ queue}}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ RRT\_WRITE\_QUEUE\_FULL,\ \ \ \ \ \ \ \textcolor{comment}{//\ no\ space\ in\ write\ queue}}
+\DoxyCodeLine{00160\ \ \ \ \ \};}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ completionTime;}
+\DoxyCodeLine{00163\ \ \ \ \ REQ\_RET\_TYPE\ \ retType;}
+\DoxyCodeLine{00164\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ \ retLatencyKnown;}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \ \ \mbox{\hyperlink{structreq_insert_ret__tt}{reqInsertRet\_tt}}()\ :}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ completionTime(UNKNOWN\_LATENCY),}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ retType(RRT\_UNKNOWN),}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ retLatencyKnown(\textcolor{keyword}{false})}
+\DoxyCodeLine{00170\ \ \ \ \ \{}
+\DoxyCodeLine{00171\ \ \ \ \ \}}
+\DoxyCodeLine{00172\ \}\ \mbox{\hyperlink{structreq_insert_ret__tt}{reqInsertRet\_t}};}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{comment}{//\ Bankstates}}
+\DoxyCodeLine{00175\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00176\ \{}
+\DoxyCodeLine{00177\ \ \ \ \ IDLE,}
+\DoxyCodeLine{00178\ \ \ \ \ PRECHARGING,}
+\DoxyCodeLine{00179\ \ \ \ \ REFRESHING,}
+\DoxyCodeLine{00180\ \ \ \ \ ROW\_ACTIVE,}
+\DoxyCodeLine{00181\ \ \ \ \ PRECHARGE\_POWER\_DOWN\_FAST,}
+\DoxyCodeLine{00182\ \ \ \ \ PRECHARGE\_POWER\_DOWN\_SLOW,}
+\DoxyCodeLine{00183\ \ \ \ \ ACTIVE\_POWER\_DOWN}
+\DoxyCodeLine{00184\ \}\ bankstate\_t;}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \textcolor{comment}{//\ Structure\ to\ hold\ the\ state\ of\ a\ bank}}
+\DoxyCodeLine{00187\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structbnk}{bnk}}}
+\DoxyCodeLine{00188\ \{}
+\DoxyCodeLine{00189\ \ \ \ \ bankstate\_t\ \ \ state;}
+\DoxyCodeLine{00190\ \ \ \ \ Arches::cycles\_t\ active\_row;}
+\DoxyCodeLine{00191\ \ \ \ \ Arches::cycles\_t\ next\_pre;}
+\DoxyCodeLine{00192\ \ \ \ \ Arches::cycles\_t\ next\_act;}
+\DoxyCodeLine{00193\ \ \ \ \ Arches::cycles\_t\ next\_read;}
+\DoxyCodeLine{00194\ \ \ \ \ Arches::cycles\_t\ next\_write;}
+\DoxyCodeLine{00195\ \ \ \ \ Arches::cycles\_t\ next\_powerdown;}
+\DoxyCodeLine{00196\ \ \ \ \ Arches::cycles\_t\ next\_powerup;}
+\DoxyCodeLine{00197\ \ \ \ \ Arches::cycles\_t\ next\_refresh;}
+\DoxyCodeLine{00198\ \}\ \mbox{\hyperlink{structbnk}{bank\_t}};}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \textcolor{keyword}{extern}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structrobstructure}{robstructure}}\ *\ ROB;}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{bool}\ activation\_record[MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][BIG\_ACTIVATION\_WINDOW];}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \textcolor{comment}{//\ contains\ the\ states\ of\ all\ banks\ in\ the\ system\ }}
+\DoxyCodeLine{00205\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structbnk}{bank\_t}}\ dram\_state[MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ total\_col\_reads\ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00208\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ total\_pre\_cmds\ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00209\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ total\_single\_col\_reads\ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00210\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ current\_col\_reads\ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \textcolor{comment}{//[MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}}
+\DoxyCodeLine{00213\ \textcolor{comment}{//\ total\ number\ of\ col\ reads}}
+\DoxyCodeLine{00214\ \textcolor{comment}{//\ total\ number\ of\ pre\ cmds}}
+\DoxyCodeLine{00215\ \textcolor{comment}{//\ total\ number\ of\ single\ col\ reads}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \textcolor{comment}{//\ command\ issued\ this\ cycle\ to\ this\ channel}}
+\DoxyCodeLine{00218\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{bool}\ command\_issued\_current\_cycle[MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \textcolor{comment}{//\ cas\ command\ issued\ this\ cycle\ to\ this\ channel}}
+\DoxyCodeLine{00221\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00222\ \{}
+\DoxyCodeLine{00223\ \ \ \ \ CIC\_NONE\ =\ 0,}
+\DoxyCodeLine{00224\ \ \ \ \ CIC\_COL\_READ,}
+\DoxyCodeLine{00225\ \ \ \ \ CIC\_COL\_WRITE,}
+\DoxyCodeLine{00226\ \}\ casIssCyc\_t;}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \textcolor{keyword}{extern}\ casIssCyc\_t\ cas\_issued\_current\_cycle[MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];\ \textcolor{comment}{//\ 1/2\ for\ COL\_READ/COL\_WRITE}}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \textcolor{comment}{//\ Per\ channel\ read\ queue}}
+\DoxyCodeLine{00231\ \textcolor{keyword}{extern}\ std::list<request\_t>\ read\_queue\_head[MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \textcolor{comment}{//\ Per\ channel\ write\ queue}}
+\DoxyCodeLine{00234\ \textcolor{keyword}{extern}\ std::list<request\_t>\ write\_queue\_head[MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \textcolor{comment}{//\ issuables\_for\_different\ commands}}
+\DoxyCodeLine{00237\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{bool}\ cmd\_precharge\_issuable\ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00238\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{bool}\ cmd\_all\_bank\_precharge\_issuable\ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00239\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{bool}\ cmd\_powerdown\_fast\_issuable\ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00240\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{bool}\ cmd\_powerdown\_slow\_issuable\ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00241\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{bool}\ cmd\_powerup\_issuable\ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00242\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{bool}\ cmd\_refresh\_issuable\ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \textcolor{comment}{//\ refresh\ variables}}
+\DoxyCodeLine{00246\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ next\_refresh\_completion\_deadline[MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00247\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ last\_refresh\_completion\_deadline[MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00248\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ \ forced\_refresh\_mode\_on\ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00249\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ refresh\_issue\_deadline\ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00250\ \textcolor{comment}{//extern\ int\ issued\_forced\_refresh\_commands[MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}}
+\DoxyCodeLine{00251\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ num\_issued\_refreshes\ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ read\_queue\_length\ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00254\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ write\_queue\_length[MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \textcolor{comment}{//\ Stats}}
+\DoxyCodeLine{00257\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ num\_read\_merge;}
+\DoxyCodeLine{00258\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ num\_write\_merge;}
+\DoxyCodeLine{00259\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_reads\_merged\_per\_channel\ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00260\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_writes\_merged\_per\_channel[MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00261\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_reads\_seen\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00262\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_writes\_seen\ \ \ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00263\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_reads\_completed\ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00264\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_writes\_completed\ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{double}\ stats\_average\_read\_latency\ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00267\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{double}\ stats\_average\_read\_queue\_latency\ \ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00268\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{double}\ stats\_average\_write\_latency\ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00269\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{double}\ stats\_average\_write\_queue\_latency\ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_page\_hits\ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00272\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{double}\ \ \ \ \ \ \ \ stats\_read\_row\_hit\_rate[MAX\_NUM\_CHANNELS];}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \textcolor{comment}{//\ Time\ spent\ in\ various\ states}}
+\DoxyCodeLine{00275\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_time\_spent\_in\_active\_standby\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00276\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_time\_spent\_in\_active\_power\_down\ \ \ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00277\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_time\_spent\_in\_precharge\_power\_down\_fast\ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00278\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_time\_spent\_in\_precharge\_power\_down\_slow\ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00279\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_time\_spent\_in\_power\_up\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00280\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ last\_activate\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00281\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ last\_refresh\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00282\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{double}\ \ \ \ \ \ \ \ average\_gap\_between\_activates\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00283\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{double}\ \ \ \ \ \ \ \ average\_gap\_between\_refreshes\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00284\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_time\_spent\_terminating\_reads\_from\_other\_ranks[MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00285\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_time\_spent\_terminating\_writes\_to\_other\_ranks\ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ \textcolor{comment}{//\ Command\ Counters}}
+\DoxyCodeLine{00288\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_num\_activate\_read\ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00289\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_num\_activate\_write\ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00290\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_num\_activate\_spec\ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00291\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_num\_activate\ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00292\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_num\_precharge\ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00293\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_num\_read\ \ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00294\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_num\_write\ \ \ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS][MAX\_NUM\_BANKS];}
+\DoxyCodeLine{00295\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_num\_powerdown\_slow\ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00296\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_num\_powerdown\_fast\ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00297\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stats\_num\_powerup\ \ \ \ \ \ \ \ \ \ [MAX\_NUM\_CHANNELS][MAX\_NUM\_RANKS];}
+\DoxyCodeLine{00298\ }
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ }
+\DoxyCodeLine{00301\ \textcolor{comment}{//\ functions}}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \textcolor{comment}{//\ to\ get\ log\ with\ base\ 2}}
+\DoxyCodeLine{00304\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ log\_base2(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ new\_value);}
+\DoxyCodeLine{00305\ }
+\DoxyCodeLine{00306\ \textcolor{comment}{//\ initialize\ memory\_controller\ variables}}
+\DoxyCodeLine{00307\ \textcolor{keywordtype}{void}\ init\_memory\_controller\_vars();}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \textcolor{comment}{//\ called\ every\ cycle\ to\ update\ the\ read/write\ queues}}
+\DoxyCodeLine{00310\ \textcolor{keywordtype}{void}\ update\_memory();}
+\DoxyCodeLine{00311\ }
+\DoxyCodeLine{00312\ \textcolor{comment}{//\ activate\ to\ bank\ allowed\ or\ not}}
+\DoxyCodeLine{00313\ \textcolor{keywordtype}{bool}\ is\_activate\_allowed(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank,}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ bank);}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \textcolor{comment}{//\ precharge\ to\ bank\ allowed\ or\ not}}
+\DoxyCodeLine{00318\ \textcolor{keywordtype}{bool}\ is\_precharge\_allowed(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank,}
+\DoxyCodeLine{00320\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ bank);}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \textcolor{comment}{//\ all\ bank\ precharge\ allowed\ or\ not}}
+\DoxyCodeLine{00323\ \textcolor{keywordtype}{bool}\ is\_all\_bank\_precharge\_allowed(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00324\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank);}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \textcolor{comment}{//\ autoprecharge\ allowed\ or\ not}}
+\DoxyCodeLine{00327\ \textcolor{keywordtype}{bool}\ is\_autoprecharge\_allowed(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank,}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ bank);}
+\DoxyCodeLine{00330\ }
+\DoxyCodeLine{00331\ \textcolor{comment}{//\ power\_down\ fast\ allowed\ or\ not}}
+\DoxyCodeLine{00332\ \textcolor{keywordtype}{bool}\ is\_powerdown\_fast\_allowed(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank);}
+\DoxyCodeLine{00334\ }
+\DoxyCodeLine{00335\ \textcolor{comment}{//\ power\_down\ slow\ allowed\ or\ not}}
+\DoxyCodeLine{00336\ \textcolor{keywordtype}{bool}\ is\_powerdown\_slow\_allowed(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank);}
+\DoxyCodeLine{00338\ }
+\DoxyCodeLine{00339\ \textcolor{comment}{//\ powerup\ allowed\ or\ not}}
+\DoxyCodeLine{00340\ \textcolor{keywordtype}{bool}\ is\_powerup\_allowed(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank);}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \textcolor{comment}{//\ refresh\ allowed\ or\ not}}
+\DoxyCodeLine{00344\ \textcolor{keywordtype}{bool}\ is\_refresh\_allowed(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00345\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank);}
+\DoxyCodeLine{00346\ }
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \textcolor{comment}{//\ issues\ command\ to\ make\ progress\ on\ a\ request}}
+\DoxyCodeLine{00349\ \textcolor{keywordtype}{bool}\ issue\_request\_command(\mbox{\hyperlink{structreq}{request\_t}}\ *\ \mbox{\hyperlink{structreq}{req}});}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \textcolor{comment}{//\ power\_down\ command}}
+\DoxyCodeLine{00352\ \textcolor{keywordtype}{bool}\ issue\_powerdown\_command(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank,}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ command\_t\ cmd);}
+\DoxyCodeLine{00355\ }
+\DoxyCodeLine{00356\ \textcolor{comment}{//\ powerup\ command}}
+\DoxyCodeLine{00357\ \textcolor{keywordtype}{bool}\ issue\_powerup\_command(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00358\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank);}
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ \textcolor{comment}{//\ precharge\ a\ bank}}
+\DoxyCodeLine{00361\ \textcolor{keywordtype}{bool}\ issue\_activate\_command(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank,}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ bank,}
+\DoxyCodeLine{00364\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ row);}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \textcolor{comment}{//\ precharge\ a\ bank}}
+\DoxyCodeLine{00367\ \textcolor{keywordtype}{bool}\ issue\_precharge\_command(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank,}
+\DoxyCodeLine{00369\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ bank);}
+\DoxyCodeLine{00370\ }
+\DoxyCodeLine{00371\ \textcolor{comment}{//\ precharge\ all\ banks\ in\ a\ rank}}
+\DoxyCodeLine{00372\ \textcolor{keywordtype}{bool}\ issue\_all\_bank\_precharge\_command(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank);}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \textcolor{comment}{//\ refresh\ all\ banks}}
+\DoxyCodeLine{00376\ \textcolor{keywordtype}{bool}\ issue\_refresh\_command(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00377\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank);}
+\DoxyCodeLine{00378\ }
+\DoxyCodeLine{00379\ \textcolor{comment}{//\ autoprecharge\ all\ banks}}
+\DoxyCodeLine{00380\ \textcolor{keywordtype}{bool}\ issue\_autoprecharge(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00381\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank,}
+\DoxyCodeLine{00382\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ bank);}
+\DoxyCodeLine{00383\ }
+\DoxyCodeLine{00384\ \textcolor{comment}{//\ find\ if\ there\ is\ a\ matching\ write\ request}}
+\DoxyCodeLine{00385\ reqInsertRet\_tt::REQ\_RET\_TYPE\ read\_exists\_in\_write\_or\_read\_queue(\textcolor{keyword}{const}\ \mbox{\hyperlink{structdraddr}{dram\_address\_t}}\ \&physical\_address,}
+\DoxyCodeLine{00386\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{request\_t}}*\&\ foundRequest);}
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ \textcolor{comment}{//\ find\ if\ there\ is\ a\ matching\ request\ in\ the\ write\ queue}}
+\DoxyCodeLine{00389\ \textcolor{keywordtype}{bool}\ write\_exists\_in\_write\_queue(\textcolor{keyword}{const}\ \mbox{\hyperlink{structdraddr}{dram\_address\_t}}\ \&physical\_address,}
+\DoxyCodeLine{00390\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structreq}{request\_t}}*\&\ foundRequest);}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ \textcolor{comment}{//\ enqueue\ a\ read\ into\ the\ corresponding\ read\ queue\ (returns\ ptr\ to\ new\ node)}}
+\DoxyCodeLine{00393\ \mbox{\hyperlink{structreq_insert_ret__tt}{reqInsertRet\_t}}\ insert\_read(\textcolor{keyword}{const}\ \mbox{\hyperlink{structdraddr}{dram\_address\_t}}\ \&dram\_address,}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structarches__request__t}{arches\_request\_t}}\ \&arches\_request,}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Arches::cycles\_t\ arrival\_time);}
+\DoxyCodeLine{00396\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const\ int\ instruction\_id,}}
+\DoxyCodeLine{00397\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const\ long\ long\ int\ instruction\_pc);}}
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \textcolor{comment}{//\ enqueue\ a\ write\ into\ the\ corresponding\ write\ queue\ (returns\ ptr\ to\ new\_node)}}
+\DoxyCodeLine{00400\ \mbox{\hyperlink{structreq_insert_ret__tt}{reqInsertRet\_t}}\ insert\_write(\textcolor{keyword}{const}\ \mbox{\hyperlink{structdraddr}{dram\_address\_t}}\ \&dram\_address,}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structarches__request__t}{arches\_request\_t}}\ \&arches\_request,}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Arches::cycles\_t\ arrival\_time);}
+\DoxyCodeLine{00403\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const\ int\ instruction\_id,}}
+\DoxyCodeLine{00404\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const\ long\ long\ int\ instruction\_pc);}}
+\DoxyCodeLine{00405\ }
+\DoxyCodeLine{00406\ \textcolor{keywordtype}{int}\ numDramChannels();}
+\DoxyCodeLine{00407\ \mbox{\hyperlink{structdraddr}{dram\_address\_t}}\ calcDramAddr(Arches::paddr\_t\ physical\_address);}
+\DoxyCodeLine{00408\ }
+\DoxyCodeLine{00409\ \textcolor{comment}{//\ convert\ the\ TRaX\ address\ to\ byte-\/addressed,\ cache-\/line-\/aligned}}
+\DoxyCodeLine{00410\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ traxAddrToUsimm(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ address,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ lineSize)}
+\DoxyCodeLine{00411\ \{}
+\DoxyCodeLine{00412\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ retVal\ =\ address;}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \ \ \ \ \textcolor{comment}{//\ multiply\ by\ 4\ (word\ -\/>\ byte),\ then\ mask\ off\ bits\ to\ get\ cache\ line\ number}}
+\DoxyCodeLine{00415\ \ \ \ \ retVal\ *=\ 4;}
+\DoxyCodeLine{00416\ \ \ \ \ retVal\ \&=\ (0xFFFFFFFF\ <<\ (lineSize\ +\ 2));\ \textcolor{comment}{//\ +2\ here\ to\ convert\ from\ word\ line-\/size\ to\ byte\ line-\/size}}
+\DoxyCodeLine{00417\ }
+\DoxyCodeLine{00418\ \ \ \ \ \textcolor{keywordflow}{return}\ retVal;}
+\DoxyCodeLine{00419\ \}}
+\DoxyCodeLine{00420\ }
+\DoxyCodeLine{00421\ \textcolor{comment}{//\ gets\ how\ many\ LSBs\ from\ trax\ address\ are\ masked\ to\ compute\ row\ address}}
+\DoxyCodeLine{00422\ \textcolor{keywordtype}{int}\ traxAddrGetBitsToRowBuffer();}
+\DoxyCodeLine{00423\ }
+\DoxyCodeLine{00424\ \textcolor{comment}{//\ update\ stats\ counters}}
+\DoxyCodeLine{00425\ \textcolor{keywordtype}{void}\ gather\_stats(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel);}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \textcolor{comment}{//\ print\ statistics}}
+\DoxyCodeLine{00428\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ print\_stats();}
+\DoxyCodeLine{00429\ }
+\DoxyCodeLine{00430\ \textcolor{comment}{//\ calculate\ power\ for\ each\ channel}}
+\DoxyCodeLine{00431\ \textcolor{keywordtype}{float}\ calculate\_power(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ channel,}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ rank,}
+\DoxyCodeLine{00433\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ print\_stats\_type,}
+\DoxyCodeLine{00434\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ chips\_per\_rank,}
+\DoxyCodeLine{00435\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ print\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00436\ }
+\DoxyCodeLine{00437\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \_\_MEM\_CONTROLLER\_HH\_\_}}
+
+\end{DoxyCode}

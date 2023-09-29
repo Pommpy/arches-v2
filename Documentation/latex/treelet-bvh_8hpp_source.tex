@@ -1,0 +1,164 @@
+\doxysection{treelet-\/bvh.hpp}
+\hypertarget{treelet-bvh_8hpp_source}{}\label{treelet-bvh_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/dual-\/streaming/src/treelet-\/bvh.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/dual-\/streaming/src/treelet-\/bvh.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}bvh.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}mesh.hpp"{}}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{keyword}{struct\ }\textcolor{keyword}{alignas}(32)\ \mbox{\hyperlink{struct_treelet_node}{TreeletNode}}}
+\DoxyCodeLine{00008\ \{}
+\DoxyCodeLine{00009\ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb;}
+\DoxyCodeLine{00010\ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00011\ \ \ \ \ \{}
+\DoxyCodeLine{00012\ \ \ \ \ \ \ \ \ uint32\_t\ data;}
+\DoxyCodeLine{00013\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00014\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ is\_leaf\ \ \ \ \ \ \ \ \ :\ 1;}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ is\_treelet\_leaf\ :\ 1;}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ last\_tri\_offset\ :\ 3;}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ child\_index\ \ \ \ \ :\ 27;}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00020\ \ \ \ \ \};}
+\DoxyCodeLine{00021\ \};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_treelet_triangle}{TreeletTriangle}}}
+\DoxyCodeLine{00024\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}\ tri;}
+\DoxyCodeLine{00026\ \ \ \ \ uint\ \ \ \ \ id;}
+\DoxyCodeLine{00027\ \};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#define\ TREELET\_SIZE\ (64\ *\ 1024)}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keyword}{struct\ }\textcolor{keyword}{alignas}(8\ *\ 1024)\ \mbox{\hyperlink{struct_treelet}{Treelet}}}
+\DoxyCodeLine{00032\ \{}
+\DoxyCodeLine{00033\ \ \ \ \ uint8\_t\ data[64\ *\ 1024];}
+\DoxyCodeLine{00034\ \};}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00037\ \textcolor{keyword}{class\ }TreeletBVH}
+\DoxyCodeLine{00038\ \{}
+\DoxyCodeLine{00039\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00040\ \ \ \ \ std::vector<Treelet>\ treelets;}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ TreeletBVH(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_b_v_h}{BVH}}\&\ bvh,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_mesh}{Mesh}}\&\ mesh)}
+\DoxyCodeLine{00043\ \ \ \ \ \{}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Treelet\ BVH\ Building\(\backslash\)n"{}});}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ build\_treelet\_breadth\_first(bvh,\ mesh);}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Treelet\ BVH\ Built\(\backslash\)n"{}});}
+\DoxyCodeLine{00047\ \ \ \ \ \}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ uint\ get\_node\_size(uint\ node,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_b_v_h}{BVH}}\&\ bvh,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_mesh}{Mesh}}\&\ mesh)}
+\DoxyCodeLine{00050\ \ \ \ \ \{}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ uint\ node\_size\ =\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet_node}{TreeletNode}});}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(bvh.nodes[node].is\_leaf)}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ node\_size\ +=\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet_triangle}{TreeletTriangle}})\ *\ (bvh.nodes[node].lst\_chld\_ofst\ +\ 1);}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ node\_size;}
+\DoxyCodeLine{00056\ \ \ \ \ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{void}\ build\_treelet\_breadth\_first(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_b_v_h}{BVH}}\&\ bvh,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_mesh}{Mesh}}\&\ mesh)}
+\DoxyCodeLine{00059\ \ \ \ \ \{}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ std::vector<std::vector<uint>>\ treelet\_assignments;}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ std::queue<uint>\ root\_node\_queue;}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ root\_node\_queue.push(bvh.nodes[0].fst\_chld\_ind);}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ bytes\ =\ 0;}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(!root\_node\_queue.empty())}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ treelet\_assignments.push\_back(\{\});}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ std::queue<uint>\ node\_queue;}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \ \ \ \ node\_queue.push(root\_node\_queue.front());\ root\_node\_queue.pop();}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ bytes\_left\ =\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet}{Treelet}});}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(!node\_queue.empty())}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ node\ =\ node\_queue.front();\ node\_queue.pop();}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ node\_size\ =\ get\_node\_size(node\ +\ 0,\ bvh,\ mesh)\ +\ get\_node\_size(node\ +\ 1,\ bvh,\ mesh);}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(node\_size\ <\ bytes\_left)}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bytes\_left\ -\/=\ node\_size;}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ treelet\_assignments.back().push\_back(node\ +\ 0);}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ treelet\_assignments.back().push\_back(node\ +\ 1);}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!bvh.nodes[node\ +\ 0].is\_leaf)\ node\_queue.push(bvh.nodes[node\ +\ 0].fst\_chld\_ind);}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!bvh.nodes[node\ +\ 1].is\_leaf)\ node\_queue.push(bvh.nodes[node\ +\ 1].fst\_chld\_ind);}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ root\_node\_queue.push(node);}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ bytes\ +=\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet}{Treelet}})\ -\/\ bytes\_left;}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ treelets.resize(treelet\_assignments.size());}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ std::unordered\_map<uint,\ std::pair<uint,\ uint>>\ node\_map;}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ uint\ num\_nodes\_assigned\ =\ 0;}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ uint\ num\_tris\_assigned\ =\ 0;}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ treelets.size()\ -\/\ 1;\ i\ !=\ \string~0u;\ -\/-\/i)}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ num\_nodes\ =\ treelet\_assignments[i].size();}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ \ num\_nodes\_assigned\ +=\ num\_nodes;}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ j\ =\ 0;\ j\ <\ num\_nodes;\ ++j)}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ node\_id\ =\ treelet\_assignments[i][j];}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_b_v_h_node}{BVHNode}}\ node\ =\ bvh.nodes[node\_id];}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ node\_map[node\_id].first\ =\ i;}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ node\_map[node\_id].second\ =\ j\ *\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet_node}{TreeletNode}})\ /\ 4);}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ current\_word\ =\ num\_nodes\ *\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet_node}{TreeletNode}})\ /\ 4);}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ j\ =\ 0;\ j\ <\ num\_nodes;\ ++j)}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ node\_id\ =\ treelet\_assignments[i][j];}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_b_v_h_node}{BVHNode}}\ node\ =\ bvh.nodes[node\_id];}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_treelet_node}{TreeletNode}}\&\ tnode\ =\ ((\mbox{\hyperlink{struct_treelet_node}{TreeletNode}}*)treelets[i].data)[j];}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tnode.aabb\ =\ node.aabb;}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tnode.is\_leaf\ =\ node.is\_leaf;}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(node.is\_leaf)}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tnode.last\_tri\_offset\ =\ node.lst\_chld\_ofst;}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tnode.child\_index\ =\ current\_word;}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_treelet_triangle}{TreeletTriangle}}*\ tris\ =\ (\mbox{\hyperlink{struct_treelet_triangle}{TreeletTriangle}}*)(\&treelets[i].data[current\_word\ *\ 4]);}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ k\ =\ 0;\ k\ <=\ node.lst\_chld\_ofst;\ ++k)}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_tris\_assigned++;}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tris[k].id\ =\ node.fst\_chld\_ind\ +\ k;}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tris[k].tri\ =\ mesh.triangles[node.fst\_chld\_ind\ +\ k];}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_word\ +=\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_treelet_triangle}{TreeletTriangle}})\ /\ 4)\ *\ (node.lst\_chld\_ofst\ +\ 1);}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tnode.is\_treelet\_leaf\ =\ node\_map[node.fst\_chld\_ind].first\ !=\ i;}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(tnode.is\_treelet\_leaf)\ tnode.child\_index\ =\ node\_map[node.fst\_chld\_ind].first;}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tnode.child\_index\ =\ node\_map[node.fst\_chld\_ind].second;}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Nodes\ Assigned:\ \%u/\%u\(\backslash\)n"{}},\ num\_nodes\_assigned,\ bvh.num\_nodes);}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Tris\ Assigned:\ \%u/\%u\(\backslash\)n"{}},\ num\_tris\_assigned,\ mesh.num\_triangles);}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Treelets:\ \%lu\(\backslash\)n"{}},\ treelets.size());}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Bytes/Treelet:\ \%lu\(\backslash\)n"{}},\ bytes\ /\ treelets.size());}
+\DoxyCodeLine{00155\ \ \ \ \ \}}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \};}
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

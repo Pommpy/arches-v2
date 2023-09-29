@@ -1,0 +1,87 @@
+\doxysection{Arches\+::Units\+::Dual\+Streaming\+::Unit\+Ray\+Staging\+Buffer Class Reference}
+\hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer}{}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer}\index{Arches::Units::DualStreaming::UnitRayStagingBuffer@{Arches::Units::DualStreaming::UnitRayStagingBuffer}}
+Inheritance diagram for Arches\+::Units\+::Dual\+Streaming\+::Unit\+Ray\+Staging\+Buffer\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a05c48ece0ea067d854845d1b0c4990e3}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a05c48ece0ea067d854845d1b0c4990e3} 
+{\bfseries Unit\+Ray\+Staging\+Buffer} (uint num\+\_\+tp, uint tm\+\_\+index, \mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler}{Unit\+Stream\+Scheduler}} \texorpdfstring{$\ast$}{*}stream\+\_\+scheduler)
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_ae91e994ec554a440da44e20d3378e971}{clock\+\_\+rise}} () override
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a1543344029aa19c52bee496b119bd44f}{clock\+\_\+fall}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Unit\+Memory\+Base} (uint clients, uint servers)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_acf3e6cf285c28af323fc00dfe1d587b6}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_acf3e6cf285c28af323fc00dfe1d587b6} 
+\mbox{\hyperlink{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_stream_scheduler}{Unit\+Stream\+Scheduler}} \texorpdfstring{$\ast$}{*} {\bfseries stream\+\_\+scheduler}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a016af8e62aa2dafe05900000d87e4852}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a016af8e62aa2dafe05900000d87e4852} 
+uint {\bfseries tm\+\_\+index}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a7861496ca125f699f3b73c4da03f35fc}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a7861496ca125f699f3b73c4da03f35fc} 
+\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_ray_bucket_buffer}{Ray\+Bucket\+Buffer}} \texorpdfstring{$\ast$}{*} {\bfseries front\+\_\+buffer}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_aafb81932844f10338216c84d91dd98c2}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_aafb81932844f10338216c84d91dd98c2} 
+\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_ray_bucket_buffer}{Ray\+Bucket\+Buffer}} \texorpdfstring{$\ast$}{*} {\bfseries back\+\_\+buffer}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a4eae69c24e28f9125a45ac24b042c203}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a4eae69c24e28f9125a45ac24b042c203} 
+\mbox{\hyperlink{struct_arches_1_1_units_1_1_dual_streaming_1_1_ray_bucket_buffer}{Ray\+Bucket\+Buffer}} {\bfseries ray\+\_\+buffer} \mbox{[}2\mbox{]}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a4520b77c95c94fc9a97f4895e6139e9e}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a4520b77c95c94fc9a97f4895e6139e9e} 
+uint {\bfseries request\+\_\+index} \{\texorpdfstring{$\sim$}{\string~}0u\}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a942b223df6d4fb5a7e31e711553f0dd5}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a942b223df6d4fb5a7e31e711553f0dd5} 
+\mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}} {\bfseries request}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_interconnection_network}{Interconnection\+Network}}$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}}, \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{Memory\+Return}} $>$ {\bfseries interconnect}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a1543344029aa19c52bee496b119bd44f}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_a1543344029aa19c52bee496b119bd44f} 
+\index{Arches::Units::DualStreaming::UnitRayStagingBuffer@{Arches::Units::DualStreaming::UnitRayStagingBuffer}!clock\_fall@{clock\_fall}}
+\index{clock\_fall@{clock\_fall}!Arches::Units::DualStreaming::UnitRayStagingBuffer@{Arches::Units::DualStreaming::UnitRayStagingBuffer}}
+\doxysubsubsection{\texorpdfstring{clock\_fall()}{clock\_fall()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Dual\+Streaming\+::\+Unit\+Ray\+Staging\+Buffer\+::clock\+\_\+fall (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+\Hypertarget{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_ae91e994ec554a440da44e20d3378e971}\label{class_arches_1_1_units_1_1_dual_streaming_1_1_unit_ray_staging_buffer_ae91e994ec554a440da44e20d3378e971} 
+\index{Arches::Units::DualStreaming::UnitRayStagingBuffer@{Arches::Units::DualStreaming::UnitRayStagingBuffer}!clock\_rise@{clock\_rise}}
+\index{clock\_rise@{clock\_rise}!Arches::Units::DualStreaming::UnitRayStagingBuffer@{Arches::Units::DualStreaming::UnitRayStagingBuffer}}
+\doxysubsubsection{\texorpdfstring{clock\_rise()}{clock\_rise()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Dual\+Streaming\+::\+Unit\+Ray\+Staging\+Buffer\+::clock\+\_\+rise (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/units/dual-\/streaming/unit-\/ray-\/staging-\/buffer.\+hpp\end{DoxyCompactItemize}

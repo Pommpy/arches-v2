@@ -1,0 +1,92 @@
+\doxysection{Arches\+::Units\+::Unit\+Atomic\+Regfile Class Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_atomic_regfile}{}\label{class_arches_1_1_units_1_1_unit_atomic_regfile}\index{Arches::Units::UnitAtomicRegfile@{Arches::Units::UnitAtomicRegfile}}
+
+
+Class implements thread safe routines to arbitrate memory requests.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/atomic-\/reg-\/file.\+hpp$>$}
+
+Inheritance diagram for Arches\+::Units\+::Unit\+Atomic\+Regfile\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_arches_1_1_units_1_1_unit_atomic_regfile}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_atomic_regfile_a65d193b890f1ca3f74e6508f4bb68441}\label{class_arches_1_1_units_1_1_unit_atomic_regfile_a65d193b890f1ca3f74e6508f4bb68441} 
+{\bfseries Unit\+Atomic\+Regfile} (uint num\+\_\+clients)
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_atomic_regfile_a6bd21475ceb45ba452917e4e7ddbe83e}{clock\+\_\+rise}} () override
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_atomic_regfile_a67193c736806af831c19326635a73b16}{clock\+\_\+fall}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Unit\+Memory\+Base} (uint clients, uint servers)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_atomic_regfile_ab8f0985d258b366f2ec3a4043ee48b8c}\label{class_arches_1_1_units_1_1_unit_atomic_regfile_ab8f0985d258b366f2ec3a4043ee48b8c} 
+uint32\+\_\+t {\bfseries iregs} \mbox{[}32\mbox{]}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_atomic_regfile_aad2c5b48e7ec58dac4c904addf3e6612}\label{class_arches_1_1_units_1_1_unit_atomic_regfile_aad2c5b48e7ec58dac4c904addf3e6612} 
+uint {\bfseries port\+\_\+index} \{\texorpdfstring{$\sim$}{\string~}0u\}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_atomic_regfile_af8a999055841c0ca26ea28147157f0a0}\label{class_arches_1_1_units_1_1_unit_atomic_regfile_af8a999055841c0ca26ea28147157f0a0} 
+\mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}} {\bfseries req}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_atomic_regfile_addde76e4c3a615d128d839cf4ff7b14b}\label{class_arches_1_1_units_1_1_unit_atomic_regfile_addde76e4c3a615d128d839cf4ff7b14b} 
+uint32\+\_\+t {\bfseries return\+\_\+reg}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_interconnection_network}{Interconnection\+Network}}$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}}, \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{Memory\+Return}} $>$ {\bfseries interconnect}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class implements thread safe routines to arbitrate memory requests. 
+
+TODO\+: long description 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_arches_1_1_units_1_1_unit_atomic_regfile_a67193c736806af831c19326635a73b16}\label{class_arches_1_1_units_1_1_unit_atomic_regfile_a67193c736806af831c19326635a73b16} 
+\index{Arches::Units::UnitAtomicRegfile@{Arches::Units::UnitAtomicRegfile}!clock\_fall@{clock\_fall}}
+\index{clock\_fall@{clock\_fall}!Arches::Units::UnitAtomicRegfile@{Arches::Units::UnitAtomicRegfile}}
+\doxysubsubsection{\texorpdfstring{clock\_fall()}{clock\_fall()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+Atomic\+Regfile\+::clock\+\_\+fall (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+\Hypertarget{class_arches_1_1_units_1_1_unit_atomic_regfile_a6bd21475ceb45ba452917e4e7ddbe83e}\label{class_arches_1_1_units_1_1_unit_atomic_regfile_a6bd21475ceb45ba452917e4e7ddbe83e} 
+\index{Arches::Units::UnitAtomicRegfile@{Arches::Units::UnitAtomicRegfile}!clock\_rise@{clock\_rise}}
+\index{clock\_rise@{clock\_rise}!Arches::Units::UnitAtomicRegfile@{Arches::Units::UnitAtomicRegfile}}
+\doxysubsubsection{\texorpdfstring{clock\_rise()}{clock\_rise()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+Atomic\+Regfile\+::clock\+\_\+rise (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/units/unit-\/atomic-\/reg-\/file.\+hpp\end{DoxyCompactItemize}

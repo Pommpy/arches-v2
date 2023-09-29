@@ -1,0 +1,46 @@
+\doxysection{triangle.\+hpp}
+\hypertarget{dual-streaming_2src_2triangle_8hpp_source}{}\label{dual-streaming_2src_2triangle_8hpp_source}\index{arches-\/v2/benchmarks/dual-\/streaming/src/triangle.hpp@{arches-\/v2/benchmarks/dual-\/streaming/src/triangle.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}rtm.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}aabb.hpp"{}}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_triangle}{Triangle}}}
+\DoxyCodeLine{00008\ \{}
+\DoxyCodeLine{00009\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00010\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ vrts[3]\{\mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(0.0f),\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(0.0f),\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(0.0f)\};}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00013\ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}()\ \{\}}
+\DoxyCodeLine{00014\ \ \ \ \ \mbox{\hyperlink{class_triangle}{Triangle}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\&\ v0,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\&\ v1,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\&\ v2)}
+\DoxyCodeLine{00015\ \ \ \ \ \{}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ this-\/>vrts[0]\ =\ v0;}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ this-\/>vrts[1]\ =\ v1;}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ this-\/>vrts[2]\ =\ v2;}
+\DoxyCodeLine{00019\ \ \ \ \ \}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ get\_aabb()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00022\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00023\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb;}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ 3;\ ++i)}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ \ \ \ \ aabb.min\ =\ rtm::min(aabb.min,\ vrts[i]);}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \ \ \ \ aabb.max\ =\ rtm::max(aabb.max,\ vrts[i]);}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ aabb;}
+\DoxyCodeLine{00030\ \ \ \ \ \}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keywordtype}{float}\ get\_cost()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ 2.0f;\ \}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ get\_normal()}
+\DoxyCodeLine{00035\ \ \ \ \ \{}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ rtm::normalize(rtm::cross(vrts[1]\ -\/\ vrts[0],\ vrts[2]\ -\/\ vrts[0]));}
+\DoxyCodeLine{00037\ \ \ \ \ \}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \};}
+
+\end{DoxyCode}

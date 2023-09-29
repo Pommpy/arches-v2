@@ -1,0 +1,246 @@
+\doxysection{bvh.\+hpp}
+\hypertarget{dual-streaming_2src_2bvh_8hpp_source}{}\label{dual-streaming_2src_2bvh_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/dual-\/streaming/src/bvh.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/dual-\/streaming/src/bvh.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}aabb.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}mesh.hpp"{}}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_b_v_h_node}{BVHNode}}}
+\DoxyCodeLine{00008\ \{}
+\DoxyCodeLine{00009\ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb;}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00012\ \ \ \ \ \{}
+\DoxyCodeLine{00013\ \ \ \ \ \ \ \ \ uint32\_t\ data;}
+\DoxyCodeLine{00014\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ is\_leaf\ :\ 1;}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ lst\_chld\_ofst\ :\ 3;}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ fst\_chld\_ind\ :\ 28;}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00020\ \ \ \ \ \};}
+\DoxyCodeLine{00021\ \};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00024\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_b_v_h}{BVH}}}
+\DoxyCodeLine{00025\ \{}
+\DoxyCodeLine{00026\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00027\ \ \ \ \ \mbox{\hyperlink{struct_b_v_h_node}{BVHNode}}*\ nodes\{\textcolor{keyword}{nullptr}\};}
+\DoxyCodeLine{00028\ \ \ \ \ uint\ \ \ \ \ num\_nodes\{0\};}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{comment}{//BUILD}}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_build_object}{BuildObject}}}
+\DoxyCodeLine{00032\ \ \ \ \ \{}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ \ aabb\ \ \{\};}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ cost\ \ \{1.0f\};}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ uint\ \ index\ \{0u\};}
+\DoxyCodeLine{00036\ \ \ \ \ \};}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keyword}{class\ }\_BuildObjectComparatorSpacial}
+\DoxyCodeLine{00039\ \ \ \ \ \{}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \_BuildObjectComparatorSpacial(uint\ axis)\ :\ \_axis(axis)\ \{\}}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ operator()(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_build_object}{BuildObject}}\&\ a,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_build_object}{BuildObject}}\&\ b)\ \{\ \textcolor{keywordflow}{return}\ a.aabb.get\_centroid()[\_axis]\ <\ b.aabb.get\_centroid()[\_axis];\ \};}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ uint\ \_axis;}
+\DoxyCodeLine{00045\ \ \ \ \ \};}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keyword}{struct\ }\_BuildEvent}
+\DoxyCodeLine{00048\ \ \ \ \ \{}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_build_object}{BuildObject}}*\ build\_objects\{\textcolor{keyword}{nullptr}\};}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ uint\ num\_build\_objects\{0\};}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ uint\ absolute\_offset\{0\};}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_leaf\{\textcolor{keyword}{false}\};}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ uint\ split\_build\_objects(\mbox{\hyperlink{class_a_a_b_b}{AABB}}\ parent\_aabb)}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ best\_spliting\_index\ =\ 0;}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ best\_spliting\_axis\ =\ parent\_aabb.get\_longest\_axis();}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ best\_spliting\_cost\ =\ FLT\_MAX;}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ spliting\_axis\ =\ 0;\ spliting\_axis\ <\ 3;\ ++spliting\_axis)}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_BuildObjectComparatorSpacial\ comparator(spliting\_axis);}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::sort(build\_objects,\ build\_objects\ +\ num\_build\_objects,\ comparator);}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::vector<float>\ cost\_left\ =\ \{0.0f\};}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb;}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ object\_cost\_sum\ =\ 0.0f;}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ num\_build\_objects;\ ++i)}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ object\_cost\_sum\ +=\ build\_objects[i].cost;}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ aabb.add\_aabb(build\_objects[i].aabb);}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ cost\ =\ object\_cost\_sum\ *\ aabb.surface\_area()\ /\ parent\_aabb.surface\_area();}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cost\_left.push\_back(cost);}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::vector<float>\ cost\_right\ =\ \{0.0f\};}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb;}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ object\_cost\_sum\ =\ 0.0f;}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ num\_build\_objects\ -\/\ 1u;\ i\ !=\ \string~0u;\ -\/-\/i)}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ object\_cost\_sum\ +=\ build\_objects[i].cost;}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ aabb.add\_aabb(build\_objects[i].aabb);}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ cost\ =\ object\_cost\_sum\ *\ aabb.surface\_area()\ /\ parent\_aabb.surface\_area();}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cost\_right.push\_back(cost);}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::reverse(cost\_right.begin(),\ cost\_right.end());}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ cost\_left.size();\ ++i)}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ cost\ =\ parent\_aabb.get\_cost()\ +\ cost\_left[i]\ +\ cost\_right[i];}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(cost\ <\ best\_spliting\_cost)}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ best\_spliting\_index\ =\ i;}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ best\_spliting\_axis\ =\ spliting\_axis;}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ best\_spliting\_cost\ =\ cost;}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \ \ \ \ \_BuildObjectComparatorSpacial\ comparator(best\_spliting\_axis);}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ \ std::sort(build\_objects,\ build\_objects\ +\ num\_build\_objects,\ comparator);}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//second\ case\ shouldnt\ happen?}}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(best\_spliting\_index\ ==\ 0\ ||\ best\_spliting\_index\ ==\ num\_build\_objects)}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(num\_build\_objects\ <=\ 8)\ \textcolor{keywordflow}{return}\ \string~0;}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ num\_build\_objects\ /\ 2;}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ best\_spliting\_index;}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00116\ \ \ \ \ \};}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \ \ \mbox{\hyperlink{class_b_v_h}{BVH}}(\mbox{\hyperlink{class_mesh}{Mesh}}\&\ mesh)}
+\DoxyCodeLine{00119\ \ \ \ \ \{}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Building\ BVH4\(\backslash\)n"{}};}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \_BuildEvent\ build\_event;}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ build\_event.num\_build\_objects\ =\ mesh.num\_triangles;}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ std::vector<BuildObject>\ build\_objects(build\_event.num\_build\_objects);}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ build\_event.build\_objects\ =\ build\_objects.data();}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ mesh.num\_triangles;\ ++i)}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ build\_event.build\_objects[i].aabb\ =\ mesh.triangles[i].get\_aabb();}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ build\_event.build\_objects[i].cost\ =\ mesh.triangles[i].get\_cost();}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ build\_event.build\_objects[i].index\ =\ i;}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ std::vector<BVHNode>\_nodes;\ \_nodes.resize(1);}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}BVH\ Cost:\ "{}}\ <<\ (\_build(build\_event,\ \_nodes,\ 0)\ +\ \_nodes[0].aabb.get\_cost())\ <<\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}};}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ num\_nodes\ =\ \_nodes.size();}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ nodes\ =\ \textcolor{keyword}{new}\ \mbox{\hyperlink{struct_b_v_h_node}{BVHNode}}[num\_nodes];}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ num\_nodes;\ ++i)}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ nodes[i]\ =\ \_nodes[i];}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ std::vector<Triangle>\ temp\_tris(mesh.num\_triangles);}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ mesh.num\_triangles;\ ++i)}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ temp\_tris[i]\ =\ mesh.triangles[i];}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ build\_objects.size();\ ++i)}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ mesh.triangles[i]\ =\ temp\_tris[build\_objects[i].index];}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}BVH4\ Built\(\backslash\)n"{}};}
+\DoxyCodeLine{00150\ \ \ \ \ \}}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{class_b_v_h}{\string~BVH}}()}
+\DoxyCodeLine{00153\ \ \ \ \ \{}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(nodes)\ \textcolor{keyword}{delete}[]\ nodes;}
+\DoxyCodeLine{00155\ \ \ \ \ \}}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{keywordtype}{float}\ \_build(\_BuildEvent\&\ build\_event,\ std::vector<BVHNode>\&\ \_nodes,\ uint\ node\_index)}
+\DoxyCodeLine{00159\ \ \ \ \ \{}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb;}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ build\_event.num\_build\_objects;\ ++i)}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ aabb.add\_aabb(build\_event.build\_objects[i].aabb);}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ std::vector<\_BuildEvent>\ build\_events\ =\ \{build\_event\};}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ 1;\ ++i)}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \ \ \ \ std::vector<\_BuildEvent>\ new\_build\_events;}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\&\ build\_event\ :\ build\_events)}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ splitting\_index\ =\ build\_event.split\_build\_objects(aabb);}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(splitting\_index\ !=\ \string~0)}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_BuildEvent\ new\_event;}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ new\_event.build\_objects\ =\ build\_event.build\_objects;}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ new\_event.num\_build\_objects\ =\ splitting\_index;}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ new\_event.absolute\_offset\ =\ build\_event.absolute\_offset;}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ new\_build\_events.push\_back(new\_event);}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_build_object}{BuildObject}}*\ build\_objects1\ =\ build\_event.build\_objects\ +\ splitting\_index;}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ num\_build\_objects1\ =\ build\_event.num\_build\_objects\ -\/\ splitting\_index;}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ absolute\_offset1\ =\ build\_event.absolute\_offset\ +\ splitting\_index;}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ new\_build\_events.push\_back(\{build\_objects1,\ num\_build\_objects1,\ absolute\_offset1,\ \textcolor{keyword}{false}\});}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ new\_build\_events.push\_back(build\_event);}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(new\_build\_events.size()\ ==\ build\_events.size())\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \ \ \ \ build\_events.clear();}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ \ \ \ \ build\_events\ =\ new\_build\_events;}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \textcolor{comment}{//didn't\ do\ any\ splitting\ meaning\ this\ build\ event\ can\ become\ a\ leaf\ node}}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(build\_events.size()\ ==\ 1)\ \textcolor{keywordflow}{return}\ \_build\_leaf(build\_event,\ \_nodes,\ node\_index);}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ \ \ \_nodes[node\_index].aabb\ =\ aabb;}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \_nodes[node\_index].is\_leaf\ =\ 0;}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \ \ \ \ \_nodes[node\_index].lst\_chld\_ofst\ =\ build\_events.size()\ -\/\ 1;}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ \_nodes[node\_index].fst\_chld\_ind\ =\ \_nodes.size();}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ cost\ =\ aabb.get\_cost();}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ build\_events.size();\ ++i)\ \_nodes.push\_back(\{\});}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ build\_events.size();\ ++i)}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ child\_index\ =\ \_nodes[node\_index].fst\_chld\_ind\ +\ i;}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ temp\_cost;}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(build\_events[i].is\_leaf)\ temp\_cost\ =\ \_build\_leaf(build\_events[i],\ \_nodes,\ child\_index);}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp\_cost\ =\ \_build(build\_events[i],\ \_nodes,\ child\_index);}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cost\ +=\ temp\_cost\ *\ \_nodes[child\_index].aabb.surface\_area()\ /\ aabb.surface\_area();}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ cost;}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00218\ \ \ \ \ \}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keywordtype}{float}\ \_build\_leaf(\_BuildEvent\&\ build\_event,\ std::vector<BVHNode>\&\ \_nodes,\ uint\ node\_index)}
+\DoxyCodeLine{00221\ \ \ \ \ \{}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ assert(build\_event.num\_build\_objects\ <=\ 8\ \&\&\ build\_event.num\_build\_objects\ >=\ 1);}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ aabb;}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ cost\ =\ 0.0f;}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ build\_event.num\_build\_objects;\ ++i)}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ aabb.add\_aabb(build\_event.build\_objects[i].aabb);}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ cost\ +=\ build\_event.build\_objects[i].cost;}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \_nodes[node\_index].aabb\ =\ aabb;}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \_nodes[node\_index].is\_leaf\ =\ 1;}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \_nodes[node\_index].lst\_chld\_ofst\ =\ build\_event.num\_build\_objects\ -\/\ 1;}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \_nodes[node\_index].fst\_chld\_ind\ =\ build\_event.absolute\_offset;}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ cost;}
+\DoxyCodeLine{00238\ \ \ \ \ \}}
+\DoxyCodeLine{00239\ \};}
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

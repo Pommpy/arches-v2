@@ -1,0 +1,30 @@
+\doxysection{usimm.\+h}
+\hypertarget{usimm_8h_source}{}\label{usimm_8h_source}\index{arches-\/v2/src/arches/units/usimm/usimm.h@{arches-\/v2/src/arches/units/usimm/usimm.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ USIMM\_H\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ USIMM\_H\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}../../../stdafx.hpp"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{comment}{//\#ifndef\ REL\_PATH\_BIN\_TO\_SAMPLES}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\#\ \ define\ REL\_PATH\_BIN\_TO\_SAMPLES\ "{}../../config-\/files/usimm/"{}}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\#endif}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#ifndef\ REL\_PATH\_BIN\_TO\_SAMPLES}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#\ \ define\ REL\_PATH\_BIN\_TO\_SAMPLES\ "{}src/config-\/files/usimm/"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keywordtype}{int}\ usimm\_setup(\textcolor{keywordtype}{char}*\ config\_filename,\ \textcolor{keywordtype}{char}*\ usimm\_vi\_file);}
+\DoxyCodeLine{00015\ \textcolor{keywordtype}{float}\ getUsimmPower();}
+\DoxyCodeLine{00016\ \textcolor{keywordtype}{void}\ usimmClock();}
+\DoxyCodeLine{00017\ \textcolor{keywordtype}{bool}\ usimmIsBusy();}
+\DoxyCodeLine{00018\ \textcolor{keywordtype}{void}\ usimmDestroy();}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keywordtype}{void}\ printUsimmStats(uint32\_t\ \textcolor{keyword}{const}\ L2\_line\_size,}
+\DoxyCodeLine{00021\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \textcolor{keyword}{const}\ word\_size,}
+\DoxyCodeLine{00022\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Arches::cycles\_t\ cycle\_count);}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

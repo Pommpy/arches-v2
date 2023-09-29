@@ -1,0 +1,96 @@
+\doxysection{Arches\+::Units\+::Unit\+Thread\+Scheduler Class Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler}{}\label{class_arches_1_1_units_1_1_unit_thread_scheduler}\index{Arches::Units::UnitThreadScheduler@{Arches::Units::UnitThreadScheduler}}
+Inheritance diagram for Arches\+::Units\+::Unit\+Thread\+Scheduler\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_arches_1_1_units_1_1_unit_thread_scheduler}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_ab83f75bdb4ed46a54d1c1bc08f0573b8}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_ab83f75bdb4ed46a54d1c1bc08f0573b8} 
+{\bfseries Unit\+Thread\+Scheduler} (uint num\+\_\+tp, uint tm\+\_\+index, \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_atomic_regfile}{Unit\+Atomic\+Regfile}} \texorpdfstring{$\ast$}{*}atomic\+\_\+regs)
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_thread_scheduler_a8da269b12b7785e22d7e2a8d91f49e5d}{clock\+\_\+rise}} () override
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_thread_scheduler_ab344a80bd32ff7f924cdf1353644db02}{clock\+\_\+fall}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Unit\+Memory\+Base} (uint clients, uint servers)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_a318a25cac5b329a25f4f339f556be885}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_a318a25cac5b329a25f4f339f556be885} 
+\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_atomic_regfile}{Unit\+Atomic\+Regfile}} \texorpdfstring{$\ast$}{*} {\bfseries atomic\+\_\+regs}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_a831b1a1c9004ed46057316f3adb9f374}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_a831b1a1c9004ed46057316f3adb9f374} 
+uint {\bfseries num\+\_\+tp}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_a88fbf38272c3447c3f83b2eb38d04ac7}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_a88fbf38272c3447c3f83b2eb38d04ac7} 
+uint {\bfseries tm\+\_\+index}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_a26fc7e8e370a91ad268c6b9b185562f1}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_a26fc7e8e370a91ad268c6b9b185562f1} 
+uint {\bfseries current\+\_\+tile} \{0\}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_a63a5e213f7a1cab1e0520547616c8b15}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_a63a5e213f7a1cab1e0520547616c8b15} 
+uint {\bfseries current\+\_\+offset} \{0\}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_a15e25c9ab8d432961c6993c8b972e4b8}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_a15e25c9ab8d432961c6993c8b972e4b8} 
+\mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}} {\bfseries current\+\_\+req}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_a18184e62e753e6d8f5bf4344d01c8a47}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_a18184e62e753e6d8f5bf4344d01c8a47} 
+uint {\bfseries current\+\_\+port\+\_\+index} \{\texorpdfstring{$\sim$}{\string~}0u\}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_a02bb2795353f8bd02d897b58078281a4}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_a02bb2795353f8bd02d897b58078281a4} 
+uint32\+\_\+t {\bfseries req\+\_\+reg}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_aaa7739bda7804a9ff3a8bab7f22f3150}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_aaa7739bda7804a9ff3a8bab7f22f3150} 
+uint32\+\_\+t {\bfseries ret\+\_\+reg}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_a1877d26b4c8b4459acfedcb8eba0a970}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_a1877d26b4c8b4459acfedcb8eba0a970} 
+bool {\bfseries stalled\+\_\+for\+\_\+atomic\+\_\+reg} \{false\}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_interconnection_network}{Interconnection\+Network}}$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}}, \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{Memory\+Return}} $>$ {\bfseries interconnect}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_ab344a80bd32ff7f924cdf1353644db02}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_ab344a80bd32ff7f924cdf1353644db02} 
+\index{Arches::Units::UnitThreadScheduler@{Arches::Units::UnitThreadScheduler}!clock\_fall@{clock\_fall}}
+\index{clock\_fall@{clock\_fall}!Arches::Units::UnitThreadScheduler@{Arches::Units::UnitThreadScheduler}}
+\doxysubsubsection{\texorpdfstring{clock\_fall()}{clock\_fall()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+Thread\+Scheduler\+::clock\+\_\+fall (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+\Hypertarget{class_arches_1_1_units_1_1_unit_thread_scheduler_a8da269b12b7785e22d7e2a8d91f49e5d}\label{class_arches_1_1_units_1_1_unit_thread_scheduler_a8da269b12b7785e22d7e2a8d91f49e5d} 
+\index{Arches::Units::UnitThreadScheduler@{Arches::Units::UnitThreadScheduler}!clock\_rise@{clock\_rise}}
+\index{clock\_rise@{clock\_rise}!Arches::Units::UnitThreadScheduler@{Arches::Units::UnitThreadScheduler}}
+\doxysubsubsection{\texorpdfstring{clock\_rise()}{clock\_rise()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+Thread\+Scheduler\+::clock\+\_\+rise (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/tile-\/scheduler.\+hpp\end{DoxyCompactItemize}

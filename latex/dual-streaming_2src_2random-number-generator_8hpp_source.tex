@@ -1,0 +1,76 @@
+\doxysection{random-\/number-\/generator.hpp}
+\hypertarget{dual-streaming_2src_2random-number-generator_8hpp_source}{}\label{dual-streaming_2src_2random-number-generator_8hpp_source}\index{arches-\/v2/benchmarks/dual-\/streaming/src/random-\/number-\/generator.hpp@{arches-\/v2/benchmarks/dual-\/streaming/src/random-\/number-\/generator.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include"{}rtm.hpp"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_r_n_g}{RNG}}}
+\DoxyCodeLine{00007\ \{}
+\DoxyCodeLine{00008\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00009\ \ \ \ \ uint32\_t\ rng\_state\{\ 2147483647u\ \};}
+\DoxyCodeLine{00010\ \ \ \ \ \textcolor{comment}{//the\ basis\ for\ this\ rng\ system\ came\ from\ https://stackoverflow.com/questions/4200224/random-\/noise-\/functions-\/for-\/glsl}}
+\DoxyCodeLine{00011\ \ \ \ \ \textcolor{comment}{//A\ integer\ hash\ function\ outlined\ here\ https://gist.github.com/badboy/6267743}}
+\DoxyCodeLine{00012\ \ \ \ \ uint32\_t\ hash(uint32\_t\ u)}
+\DoxyCodeLine{00013\ \ \ \ \ \{}
+\DoxyCodeLine{00014\ \ \ \ \ \ \ \ \ u\ =\ (u\ +\ 0x7ed55d16u)\ +\ (u\ <<\ 12u);}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ u\ =\ (u\ \string^\ 0xc761c23cu)\ \string^\ (u\ >>\ 19u);}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ u\ =\ (u\ +\ 0x165667b1u)\ +\ (u\ <<\ 5u);}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ u\ =\ (u\ +\ 0xd3a2646cu)\ \string^\ (u\ <<\ 9u);}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ u\ =\ (u\ +\ 0xfd7046c5u)\ +\ (u\ <<\ 3u);}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ u\ =\ (u\ \string^\ 0xb55a4f09u)\ \string^\ (u\ >>\ 16u);}
+\DoxyCodeLine{00020\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ u;}
+\DoxyCodeLine{00021\ \ \ \ \ \}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{comment}{//Robert\ Jenkins'\ one\ a\ time\ hash\ funcion\ for\ size\ 1\ https://en.wikipedia.org/wiki/Jenkins\_hash\_function}}
+\DoxyCodeLine{00024\ \ \ \ \ uint32\_t\ hashf(uint32\_t\ u)}
+\DoxyCodeLine{00025\ \ \ \ \ \{}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ u\ +=\ u\ <<\ 10;}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ u\ \string^=\ u\ >>\ 6;}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ u\ +=\ u\ <<\ 3;}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ u\ \string^=\ u\ >>\ 11;}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ u\ +=\ u\ <<\ 15;}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ u;}
+\DoxyCodeLine{00032\ \ \ \ \ \}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{comment}{//Mask\ off\ the\ lower\ 21\ bits\ of\ u\ to\ make\ a\ mantisa\ then\ OR\ it\ with\ the\ bit\ pattern\ for\ 1.0}}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{comment}{//then\ make\ a\ float\ from\ these\ bit\ and\ substract\ 1.0\ to\ give\ a\ number\ betweeon\ 0.0\ and\ 1.0}}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordtype}{float}\ build\_float(uint32\_t\ u)}
+\DoxyCodeLine{00037\ \ \ \ \ \{}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ uint32\_t\ bits\ =\ u\ \&\ 0x007FFFFFu\ |\ 0x3F800000u;}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *((\textcolor{keywordtype}{float}*)(\&bits))\ -\/\ 1.0f;}
+\DoxyCodeLine{00040\ \ \ \ \ \}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00043\ \ \ \ \ \mbox{\hyperlink{class_r_n_g}{RNG}}(uint32\_t\ seed\ =\ 0)}
+\DoxyCodeLine{00044\ \ \ \ \ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ this-\/>seed(seed);}
+\DoxyCodeLine{00046\ \ \ \ \ \}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordtype}{void}\ seed(uint32\_t\ seed)}
+\DoxyCodeLine{00049\ \ \ \ \ \{}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ rng\_state\ =\ hash((seed\ +\ 1u)\ *\ 2147483647u);}
+\DoxyCodeLine{00051\ \ \ \ \ \}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordtype}{float}\ randf()}
+\DoxyCodeLine{00054\ \ \ \ \ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ uint32\_t\ r\ =\ rng\_state;}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ rng\_state\ =\ hashf(rng\_state);}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ build\_float(r);}
+\DoxyCodeLine{00058\ \ \ \ \ \}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}\ randv2()\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrtm_1_1vec2}{rtm::vec2}}(randf(),\ randf());\ \}}
+\DoxyCodeLine{00061\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}\ randv3()\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrtm_1_1vec3}{rtm::vec3}}(randf(),\ randf(),\ randf());\ \}}
+\DoxyCodeLine{00062\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec4}{rtm::vec4}}\ randv4()\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrtm_1_1vec4}{rtm::vec4}}(randf(),\ randf(),\ randf(),\ randf());\ \}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \ \ uint32\_t\ randi()}
+\DoxyCodeLine{00065\ \ \ \ \ \{}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ uint32\_t\ r\ =\ rng\_state;}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ rng\_state\ =\ hashf(rng\_state);}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ r;}
+\DoxyCodeLine{00069\ \ \ \ \ \}}
+\DoxyCodeLine{00070\ \};}
+
+\end{DoxyCode}

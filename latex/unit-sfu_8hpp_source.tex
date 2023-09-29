@@ -1,0 +1,103 @@
+\doxysection{unit-\/sfu.hpp}
+\hypertarget{unit-sfu_8hpp_source}{}\label{unit-sfu_8hpp_source}\index{arches-\/v2/src/arches/units/unit-\/sfu.hpp@{arches-\/v2/src/arches/units/unit-\/sfu.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once\ }}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}unit-\/base.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}../isa/execution-\/base.hpp"{}}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}../util/arbitration.hpp"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }Units\ \{}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00016\ \textcolor{keyword}{class\ }UnitSFU\ :\ \textcolor{keyword}{public}\ UnitBase}
+\DoxyCodeLine{00017\ \{}
+\DoxyCodeLine{00018\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keyword}{struct\ }Request}
+\DoxyCodeLine{00025\ \ \ \ \ \{}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ ISA::RISCV::RegAddr\ dst;}
+\DoxyCodeLine{00027\ \ \ \ \ \};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00030\ \ \ \ \ UnitSFU(uint\ issue\_width,\ uint\ issue\_rate,\ uint\ latency,\ uint\ num\_clients)\ :}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ UnitBase(),\ request\_bus(num\_clients),\ return\_bus(num\_clients),}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \ issue\_width(issue\_width),\ issue\_rate(issue\_rate),\ latency(latency)}
+\DoxyCodeLine{00033\ \ \ \ \ \{}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ issue\_counters.resize(issue\_width,\ 0);}
+\DoxyCodeLine{00035\ \ \ \ \ \}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ \mbox{\hyperlink{class_bus}{Bus<Request>}}\ request\_bus;}
+\DoxyCodeLine{00038\ \ \ \ \ \mbox{\hyperlink{class_bus}{Bus<Request>}}\ return\_bus;}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ uint\ issue\_width;}
+\DoxyCodeLine{00041\ \ \ \ \ uint\ issue\_rate;}
+\DoxyCodeLine{00042\ \ \ \ \ uint\ latency;}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \ \ std::vector<uint>\ issue\_counters;}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \mbox{\hyperlink{class_round_robin_arbitrator64}{RoundRobinArbitrator64}}\ arb;}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00049\ \ \ \ \ cycles\_t\ current\_cycle\{0\};}
+\DoxyCodeLine{00050\ \ \ \ \ }
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keyword}{struct\ }Return}
+\DoxyCodeLine{00057\ \ \ \ \ \{}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ Request\ \ request;}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ uint16\_t\ index;}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ cycles\_t\ return\_cycle;}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ operator\ <(\textcolor{keyword}{const}\ Return\&\ other)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ return\_cycle\ >\ other.return\_cycle;\ \}}
+\DoxyCodeLine{00063\ \ \ \ \ \};}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ std::priority\_queue<Return>\ \_return\_queue;}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_rise()\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00068\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ port\_index\ =\ 0;\ port\_index\ <\ request\_bus.size();\ ++port\_index)}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!request\_bus.transfer\_pending(port\_index))\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ arb.add(port\_index);}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ arb.update();}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ issue\_width;\ ++i)}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(issue\_counters[i]\ ==\ 0)}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint\ request\_index\ =\ arb.current();}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(request\_index\ ==\ \string~0u)\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Request\ request\_item\ =\ request\_bus.transfer(request\_index);}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ request\_bus.acknowlege(request\_index);}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ arb.remove(request\_index);}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ arb.update();}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_return\_queue.push(\{request\_item,\ \textcolor{keyword}{static\_cast<}uint16\_t\textcolor{keyword}{>}(request\_index),\ current\_cycle\ +\ std::max(1u,\ latency\ -\/\ 1u)\});\textcolor{comment}{//simulate\ forwarding\ by\ returning\ a\ cycle\ eraly\ single\ cycle\ instruction\ will\ have\ to\ be\ handeled\ sepratly}}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ issue\_counters[i]\ =\ issue\_rate\ -\/\ 1;}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ issue\_counters[i]-\/-\/;}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00098\ \ \ \ \ \}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_fall()\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00101\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(!\_return\_queue.empty()\ \&\&\ \_return\_queue.top().return\_cycle\ <=\ current\_cycle)}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \ \ \ \ Return\ return\_item\ =\ \_return\_queue.top();\ \_return\_queue.pop();}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ \ return\_bus.add\_transfer(return\_item.request,\ return\_item.index);}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ current\_cycle++;}
+\DoxyCodeLine{00109\ \ \ \ \ \}}
+\DoxyCodeLine{00110\ \};}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \}\}}
+
+\end{DoxyCode}

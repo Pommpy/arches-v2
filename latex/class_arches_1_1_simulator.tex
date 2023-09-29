@@ -1,0 +1,52 @@
+\doxysection{Arches\+::Simulator Class Reference}
+\hypertarget{class_arches_1_1_simulator}{}\label{class_arches_1_1_simulator}\index{Arches::Simulator@{Arches::Simulator}}
+
+
+Generic simulator template.  
+
+
+
+
+{\ttfamily \#include $<$simulator.\+hpp$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_simulator_a4be971f7e79a8e02da70b247dab51b52}\label{class_arches_1_1_simulator_a4be971f7e79a8e02da70b247dab51b52} 
+{\bfseries Simulator} ()
+\begin{DoxyCompactList}\small\item\em Default Constructor. \end{DoxyCompactList}\item 
+\Hypertarget{class_arches_1_1_simulator_ad06f537f7185d63b1c8f17d1ab3fe975}\label{class_arches_1_1_simulator_ad06f537f7185d63b1c8f17d1ab3fe975} 
+void {\bfseries register\+\_\+unit} (\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Units\+::\+Unit\+Base}} \texorpdfstring{$\ast$}{*}unit)
+\item 
+\Hypertarget{class_arches_1_1_simulator_abc35e15bb255cdc777c3729f9019b701}\label{class_arches_1_1_simulator_abc35e15bb255cdc777c3729f9019b701} 
+void {\bfseries start\+\_\+new\+\_\+unit\+\_\+group} ()
+\begin{DoxyCompactList}\small\item\em A function to register unit to be executed by this simulator. \end{DoxyCompactList}\item 
+\Hypertarget{class_arches_1_1_simulator_aad8200f4749c4e768ae4ee5dde9aff51}\label{class_arches_1_1_simulator_aad8200f4749c4e768ae4ee5dde9aff51} 
+void {\bfseries \+\_\+clock\+\_\+rise} ()
+\begin{DoxyCompactList}\small\item\em A function to clear and recreate unit base collection. \end{DoxyCompactList}\item 
+\Hypertarget{class_arches_1_1_simulator_a633e9d997cb1487f44ef233e21d9b875}\label{class_arches_1_1_simulator_a633e9d997cb1487f44ef233e21d9b875} 
+void {\bfseries \+\_\+clock\+\_\+fall} ()
+\begin{DoxyCompactList}\small\item\em A function to define routines executed by simulator when it receives clock rise signal. \end{DoxyCompactList}\item 
+\Hypertarget{class_arches_1_1_simulator_a88a8edb448a57a007b8313d58380fdd4}\label{class_arches_1_1_simulator_a88a8edb448a57a007b8313d58380fdd4} 
+void {\bfseries execute} ()
+\begin{DoxyCompactList}\small\item\em A function to define routines executed by simulator when it receives clock fall signal. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_simulator_a59ba067f32b17a0829f99faf19d7f81d}\label{class_arches_1_1_simulator_a59ba067f32b17a0829f99faf19d7f81d} 
+std\+::atomic\+\_\+uint {\bfseries units\+\_\+executing} \{0\}
+\begin{DoxyCompactList}\small\item\em Thread safe unit execution counter. \end{DoxyCompactList}\item 
+\Hypertarget{class_arches_1_1_simulator_adab84dcde58cf510501ac9d5c5f21ef5}\label{class_arches_1_1_simulator_adab84dcde58cf510501ac9d5c5f21ef5} 
+cycles\+\_\+t {\bfseries current\+\_\+cycle} \{ 0 \}
+\begin{DoxyCompactList}\small\item\em 64 bit cycle counter \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Generic simulator template. 
+
+This class can be further specialized to provide specific implementations. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+arches-\/v2/src/arches/simulator/simulator.\+hpp\item 
+arches-\/v2/src/arches/simulator/simulator.\+cpp\end{DoxyCompactItemize}

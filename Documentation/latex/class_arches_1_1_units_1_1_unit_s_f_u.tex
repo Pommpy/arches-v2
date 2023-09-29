@@ -1,0 +1,79 @@
+\doxysection{Arches\+::Units\+::Unit\+SFU Struct Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_s_f_u}{}\label{class_arches_1_1_units_1_1_unit_s_f_u}\index{Arches::Units::UnitSFU@{Arches::Units::UnitSFU}}
+
+
+Class describes shared functional unit structure.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/sfu.\+hpp$>$}
+
+Inheritance diagram for Arches\+::Units\+::Unit\+SFU\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_arches_1_1_units_1_1_unit_s_f_u}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_s_f_u_1_1_request}{Request}}
+\begin{DoxyCompactList}\small\item\em Defines request register address. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_a9b5084cd6665f73598132d1eeadb3b9f}\label{class_arches_1_1_units_1_1_unit_s_f_u_a9b5084cd6665f73598132d1eeadb3b9f} 
+{\bfseries Unit\+SFU} (uint latency, uint issue\+\_\+width, uint num\+\_\+clients, \mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*}simulator)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_a81d84638c33a6c5d8d4559f07281e481}\label{class_arches_1_1_units_1_1_unit_s_f_u_a81d84638c33a6c5d8d4559f07281e481} 
+{\bfseries Unit\+SFU} (uint issue\+\_\+width, uint issue\+\_\+rate, uint latency, uint num\+\_\+clients)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_a1f318b603eee019ddef0594ed2b6388c}\label{class_arches_1_1_units_1_1_unit_s_f_u_a1f318b603eee019ddef0594ed2b6388c} 
+Connection\+Group$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_s_f_u_1_1_request}{Request}} $>$ {\bfseries request\+\_\+bus}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_a0378c4cb5ccd2729cc16322a1e757336}\label{class_arches_1_1_units_1_1_unit_s_f_u_a0378c4cb5ccd2729cc16322a1e757336} 
+Connection\+Group$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_s_f_u_1_1_request}{Request}} $>$ {\bfseries return\+\_\+bus}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_a989692f0b156311fcba34d5e3aeb965b}\label{class_arches_1_1_units_1_1_unit_s_f_u_a989692f0b156311fcba34d5e3aeb965b} 
+uint {\bfseries issue\+\_\+width}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_ac274819f06d25239315d1ad35cfc0b69}\label{class_arches_1_1_units_1_1_unit_s_f_u_ac274819f06d25239315d1ad35cfc0b69} 
+uint {\bfseries latency}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_a372fa531c7a40ffe00d1ae15dd578d1e}\label{class_arches_1_1_units_1_1_unit_s_f_u_a372fa531c7a40ffe00d1ae15dd578d1e} 
+\mbox{\hyperlink{class_bus}{Bus}}$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_s_f_u_1_1_request}{Request}} $>$ {\bfseries request\+\_\+bus}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_a6b1c59b18d6feabbe8428c77c476b187}\label{class_arches_1_1_units_1_1_unit_s_f_u_a6b1c59b18d6feabbe8428c77c476b187} 
+\mbox{\hyperlink{class_bus}{Bus}}$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_s_f_u_1_1_request}{Request}} $>$ {\bfseries return\+\_\+bus}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_aee8ff4ca0ab2ecf654eb341bc927b155}\label{class_arches_1_1_units_1_1_unit_s_f_u_aee8ff4ca0ab2ecf654eb341bc927b155} 
+uint {\bfseries issue\+\_\+rate}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_a2f0bc919abb7dd400a49dd6c24c58660}\label{class_arches_1_1_units_1_1_unit_s_f_u_a2f0bc919abb7dd400a49dd6c24c58660} 
+std\+::vector$<$ uint $>$ {\bfseries issue\+\_\+counters}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_s_f_u_a6e64317993b51b8c954bc7e9d88be1d0}\label{class_arches_1_1_units_1_1_unit_s_f_u_a6e64317993b51b8c954bc7e9d88be1d0} 
+\mbox{\hyperlink{class_round_robin_arbitrator64}{Round\+Robin\+Arbitrator64}} {\bfseries arb}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class describes shared functional unit structure. 
+
+TODO\+: long description 
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/trax/unit-\/sfu.\+hpp\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/sfu.\+hpp\end{DoxyCompactItemize}

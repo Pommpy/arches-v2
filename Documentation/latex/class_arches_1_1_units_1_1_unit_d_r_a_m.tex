@@ -1,0 +1,136 @@
+\doxysection{Arches\+::Units\+::Unit\+DRAM Struct Reference}
+\hypertarget{class_arches_1_1_units_1_1_unit_d_r_a_m}{}\label{class_arches_1_1_units_1_1_unit_d_r_a_m}\index{Arches::Units::UnitDRAM@{Arches::Units::UnitDRAM}}
+
+
+Class defines DRAM design, behaviour and execution routines.  
+
+
+
+
+{\ttfamily \#include $<$unit-\/dram.\+hpp$>$}
+
+Inheritance diagram for Arches\+::Units\+::Unit\+DRAM\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4.000000cm]{class_arches_1_1_units_1_1_unit_d_r_a_m}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_d_r_a_m_aae0da8b81abed78bc9a95247ef3f9dd4}\label{class_arches_1_1_units_1_1_unit_d_r_a_m_aae0da8b81abed78bc9a95247ef3f9dd4} 
+{\bfseries Unit\+DRAM} (uint num\+\_\+clients, uint64\+\_\+t size, \mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*}simulator)
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_d_r_a_m_af8957cce88183a77d17a8320ce624a36}{clock\+\_\+rise}} () override
+\item 
+void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_d_r_a_m_a79b931d46f947a7e97a57bc7cd09d052}{clock\+\_\+fall}} () override
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_d_r_a_m_a0d453579551386e88f2ab9e067c5b2e0}\label{class_arches_1_1_units_1_1_unit_d_r_a_m_a0d453579551386e88f2ab9e067c5b2e0} 
+bool {\bfseries usimm\+\_\+busy} ()
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_d_r_a_m_aea91cdc920d4385f08268149d9a18d13}\label{class_arches_1_1_units_1_1_unit_d_r_a_m_aea91cdc920d4385f08268149d9a18d13} 
+void {\bfseries print\+\_\+usimm\+\_\+stats} (uint32\+\_\+t const L2\+\_\+line\+\_\+size, uint32\+\_\+t const word\+\_\+size, cycles\+\_\+t cycle\+\_\+count)
+\item 
+\Hypertarget{class_arches_1_1_units_1_1_unit_d_r_a_m_adcd7724976be4af376728cc2baf3ef71}\label{class_arches_1_1_units_1_1_unit_d_r_a_m_adcd7724976be4af376728cc2baf3ef71} 
+float {\bfseries total\+\_\+power\+\_\+in\+\_\+watts} ()
+\item 
+virtual void \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_d_r_a_m_ab7febec0c5eb901012cb6ccb007f63ce}{Usimm\+Notify\+Event}} (paddr\+\_\+t const address, cycles\+\_\+t write\+\_\+cycle, uint32\+\_\+t request\+\_\+id)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_main_memory_base}{Arches\+::\+Units\+::\+Unit\+Main\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Unit\+Main\+Memory\+Base} (uint num\+\_\+clients, uint num\+\_\+servers, size\+\_\+t size)
+\item 
+void {\bfseries clear} ()
+\item 
+void {\bfseries direct\+\_\+read} (void \texorpdfstring{$\ast$}{*}data, size\+\_\+t size, paddr\+\_\+t paddr) const
+\item 
+void {\bfseries direct\+\_\+write} (const void \texorpdfstring{$\ast$}{*}data, size\+\_\+t size, paddr\+\_\+t paddr)
+\item 
+paddr\+\_\+t {\bfseries write\+\_\+elf} (\mbox{\hyperlink{class_arches_1_1_e_l_f}{ELF}} \&elf)
+\item 
+void {\bfseries dump\+\_\+as\+\_\+ppm\+\_\+uint8} (paddr\+\_\+t from\+\_\+paddr, size\+\_\+t width, size\+\_\+t height, std\+::string const \&path)
+\item 
+void {\bfseries dump\+\_\+as\+\_\+png\+\_\+uint8} (paddr\+\_\+t from\+\_\+paddr, size\+\_\+t width, size\+\_\+t height, std\+::string const \&path)
+\item 
+void {\bfseries dump\+\_\+as\+\_\+ppm\+\_\+float} (paddr\+\_\+t from\+\_\+paddr, size\+\_\+t width, size\+\_\+t height, std\+::string const \&path)
+\item 
+void {\bfseries \+\_\+print\+\_\+data} (uint8\+\_\+t \texorpdfstring{$\ast$}{*}data, int size) const
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries Unit\+Memory\+Base} (uint clients, uint servers)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_main_memory_base}{Arches\+::\+Units\+::\+Unit\+Main\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+size\+\_\+t {\bfseries size\+\_\+bytes}
+\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>uint8\_t \texorpdfstring{$\ast$}{*} {\bfseries \_data\_u8}\\
+\>uint16\_t \texorpdfstring{$\ast$}{*} {\bfseries \_data\_u16}\\
+\>uint32\_t \texorpdfstring{$\ast$}{*} {\bfseries \_data\_u32}\\
+\>uint64\_t \texorpdfstring{$\ast$}{*} {\bfseries \_data\_u64}\\
+\}; \\
+
+\end{tabbing}\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches\+::\+Units\+::\+Unit\+Memory\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_interconnection_network}{Interconnection\+Network}}$<$ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{Memory\+Request}}, \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{Memory\+Return}} $>$ {\bfseries interconnect}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_arches_1_1_simulator}{Simulator}} \texorpdfstring{$\ast$}{*} {\bfseries simulator} \{nullptr\}
+\item 
+uint64\+\_\+t {\bfseries unit\+\_\+id} \{\texorpdfstring{$\sim$}{\string~}0ull\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class defines DRAM design, behaviour and execution routines. 
+
+TODO\+: long description 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_arches_1_1_units_1_1_unit_d_r_a_m_a79b931d46f947a7e97a57bc7cd09d052}\label{class_arches_1_1_units_1_1_unit_d_r_a_m_a79b931d46f947a7e97a57bc7cd09d052} 
+\index{Arches::Units::UnitDRAM@{Arches::Units::UnitDRAM}!clock\_fall@{clock\_fall}}
+\index{clock\_fall@{clock\_fall}!Arches::Units::UnitDRAM@{Arches::Units::UnitDRAM}}
+\doxysubsubsection{\texorpdfstring{clock\_fall()}{clock\_fall()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+DRAM\+::clock\+\_\+fall (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+\Hypertarget{class_arches_1_1_units_1_1_unit_d_r_a_m_af8957cce88183a77d17a8320ce624a36}\label{class_arches_1_1_units_1_1_unit_d_r_a_m_af8957cce88183a77d17a8320ce624a36} 
+\index{Arches::Units::UnitDRAM@{Arches::Units::UnitDRAM}!clock\_rise@{clock\_rise}}
+\index{clock\_rise@{clock\_rise}!Arches::Units::UnitDRAM@{Arches::Units::UnitDRAM}}
+\doxysubsubsection{\texorpdfstring{clock\_rise()}{clock\_rise()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+DRAM\+::clock\+\_\+rise (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{Arches\+::\+Units\+::\+Unit\+Base}}.
+
+\Hypertarget{class_arches_1_1_units_1_1_unit_d_r_a_m_ab7febec0c5eb901012cb6ccb007f63ce}\label{class_arches_1_1_units_1_1_unit_d_r_a_m_ab7febec0c5eb901012cb6ccb007f63ce} 
+\index{Arches::Units::UnitDRAM@{Arches::Units::UnitDRAM}!UsimmNotifyEvent@{UsimmNotifyEvent}}
+\index{UsimmNotifyEvent@{UsimmNotifyEvent}!Arches::Units::UnitDRAM@{Arches::Units::UnitDRAM}}
+\doxysubsubsection{\texorpdfstring{UsimmNotifyEvent()}{UsimmNotifyEvent()}}
+{\footnotesize\ttfamily void Arches\+::\+Units\+::\+Unit\+DRAM\+::\+Usimm\+Notify\+Event (\begin{DoxyParamCaption}\item[{paddr\+\_\+t const}]{address,  }\item[{cycles\+\_\+t}]{write\+\_\+cycle,  }\item[{uint32\+\_\+t}]{request\+\_\+id }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{struct_usimm_listener}{Usimm\+Listener}}.
+
+
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/dram.\+hpp\item 
+C\+:/\+Users/u1320313/\+Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/dram.\+cpp\end{DoxyCompactItemize}

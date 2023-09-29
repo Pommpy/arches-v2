@@ -51,20 +51,20 @@ public:
 	//! Default Constructor
 	Simulator() { _unit_groups.emplace_back(0u, 0u); }
 
-	//! A function to register unit to be executed by this simulator
-	void register_unit(Units::UnitBase* unit);
+	
+	void register_unit(Units::UnitBase* unit);//! A function to register unit to be executed by this simulator
 
-	//! A function to clear and recreate unit base collection
-	void start_new_unit_group();
+	
+	void start_new_unit_group();//! A function to clear and recreate unit base collection
 
-	//! A function to define routines executed by simulator when it receives clock rise signal
-	void _clock_rise();
+	
+	void _clock_rise();//! A function to define routines executed by simulator when it receives clock rise signal
 
-	//! A function to define routines executed by simulator when it receives clock fall signal
-	void _clock_fall();
+	
+	void _clock_fall();//! A function to define routines executed by simulator when it receives clock fall signal
 
-	//! A function to define all the execution routines
-	void execute();
+	
+	void execute();//! A function to define all the execution routines
 };
 
 }

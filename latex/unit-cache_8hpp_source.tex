@@ -1,0 +1,272 @@
+\doxysection{unit-\/cache.hpp}
+\hypertarget{unit-cache_8hpp_source}{}\label{unit-cache_8hpp_source}\index{arches-\/v2/src/arches/units/unit-\/cache.hpp@{arches-\/v2/src/arches/units/unit-\/cache.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once\ }}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}../util/bit-\/manipulation.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}../util/arbitration.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}unit-\/base.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}unit-\/memory-\/base.hpp"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }Units\ \{}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00016\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache}{UnitCache}}\ final\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{UnitMemoryBase}}}
+\DoxyCodeLine{00017\ \{}
+\DoxyCodeLine{00018\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_cache_1_1_configuration}{Configuration}}}
+\DoxyCodeLine{00026\ \ \ \ \ \{}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ uint\ size\{1024\};}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ uint\ associativity\{1\};}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ uint\ tag\_array\_access\_cycles\{1\};}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ uint\ data\_array\_access\_cycles\{1\};}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ uint\ num\_ports\{1\};}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ uint\ port\_size\{CACHE\_BLOCK\_SIZE\};}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ uint\ num\_banks\{1\};}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ uint\ num\_lfb\{1\};}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_memory_map}{MemoryMap}}\ mem\_map;}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ dynamic\_read\_energy;}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ bank\_leakge\_power;}
+\DoxyCodeLine{00042\ \ \ \ \ \};}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache}{UnitCache}}(\mbox{\hyperlink{struct_arches_1_1_units_1_1_unit_cache_1_1_configuration}{Configuration}}\ config);}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache}{\string~UnitCache}}();}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_rise()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordtype}{void}\ clock\_fall()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keyword}{struct\ }\_BlockMetaData}
+\DoxyCodeLine{00056\ \ \ \ \ \{}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ uint64\_t\ tag\ \ \ \ \ :\ 59;}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ uint64\_t\ lru\ \ \ \ \ :\ 4;}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ uint64\_t\ valid\ \ \ :\ 1;}
+\DoxyCodeLine{00060\ \ \ \ \ \};}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keyword}{struct\ }alignas(CACHE\_BLOCK\_SIZE)\ \_BlockData}
+\DoxyCodeLine{00066\ \ \ \ \ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ uint8\_t\ bytes[CACHE\_BLOCK\_SIZE];}
+\DoxyCodeLine{00068\ \ \ \ \ \};}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keyword}{struct\ }\_LFB\ }
+\DoxyCodeLine{00075\ \ \ \ \ \{}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ Type\ :\ uint8\_t}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ READ,}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ WRITE,\ \textcolor{comment}{//TODO:\ support\ write\ through.\ This\ will\ need\ to\ write\ the\ store\ to\ the\ buffer\ then\ load\ the\ background\ data\ and\ write\ it\ back\ to\ the\ tag\ array}}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//we\ can\ reuse\ some\ of\ read\ logic\ to\ do\ this.\ It\ is\ basically\ a\ read\ that\ always\ needs\ to\ be\ commited\ at\ the\ end\ (hit\ or\ miss).}}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//in\ the\ furture\ we\ might\ also\ want\ to\ support\ cache\ coherency}}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ WRITE\_COMBINING,}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ State\ :\ uint8\_t}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ \ \ INVALID,}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ EMPTY,}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ MISSED,}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ ISSUED,}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ FILLED,}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \_BlockData\ block\_data;}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ addr\_t\ block\_addr\{\string~0ull\};}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ byte\_mask;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//used\ by\ stores}}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ chunk\_request\_masks[CACHE\_BLOCK\_SIZE\ /\ 8];\ \textcolor{comment}{//used\ by\ loads}}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ uint8\_t\ lru\{0u\};}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ Type\ type\{Type::READ\};}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ State\ state\{State::INVALID\};}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ commited\{\textcolor{keyword}{false}\};}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ returned\{\textcolor{keyword}{false}\};}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \_LFB()}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ CACHE\_BLOCK\_SIZE\ /\ 8;\ ++i)}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ chunk\_request\_masks[i]\ =\ 0;}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ \_LFB\&\ other)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00116\ \textcolor{keyword}{\ \ \ \ \ \ \ \ }\{}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ block\_addr\ ==\ other.block\_addr\ \&\&\ type\ ==\ other.type;}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ uint64\_t\ get\_next(uint8\_t\&\ offset,\ uint8\_t\&\ size)}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \ \ assert(type\ ==\ \_LFB::Type::WRITE\_COMBINING);}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//try\ to\ find\ largest\ contiguous\ alligned\ block\ to\ issue\ store}}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ size\ =\ CACHE\_BLOCK\_SIZE;}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(size\ >\ 0)}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ comb\_mask\ =\ generate\_nbit\_mask(size);}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(offset\ =\ 0;\ offset\ <\ CACHE\_BLOCK\_SIZE;\ offset\ +=\ size)}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}((comb\_mask\ \&\ byte\_mask)\ ==\ comb\_mask)}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ byte\_mask\ \&=\ \string~(comb\_mask);}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ comb\_mask\ <<=\ size;}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ size\ /=\ 2;}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00144\ \ \ \ \ \};}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00151\ \ \ \ \ \textcolor{keyword}{struct\ }\_Bank}
+\DoxyCodeLine{00152\ \ \ \ \ \{}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ std::vector<\_LFB>\ lfbs;}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ uint\ cycles\_remaining\{0u\};}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ uint\ lfb\_accessing\_cache\{\string~0u\};\ }
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ uint\ outgoing\_request\_lfb\{\string~0u\};}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ uint64\_t\ outgoing\_request\_byte\_mask\{0x0ull\};}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ uint\ outgoing\_return\_lfb\{\string~0u\};}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ uint\ outgoing\_return\_chunk\_index\{0u\};}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \_Bank(uint\ num\_lfb)\ :\ lfbs(num\_lfb)\ \{\}}
+\DoxyCodeLine{00165\ \ \ \ \ \};}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \ \ \ \ Configuration\ \_configuration;\ \textcolor{comment}{//nice\ for\ debugging}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \ \ uint\ \_bank\_priority\_index\{0\};}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \ \ \ \ uint\ \_set\_index\_offset,\ \_tag\_offset,\ \_bank\_index\_offset,\ \_chunk\_width,\ \_chunks\_per\_block;}
+\DoxyCodeLine{00173\ \ \ \ \ uint64\_t\ \_set\_index\_mask,\ \_tag\_mask,\ \_bank\_index\_mask,\ \_block\_offset\_mask;}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \ \ \ \ uint\ \_data\_array\_access\_cycles,\ \_tag\_array\_access\_cycles,\ \_associativity;}
+\DoxyCodeLine{00176\ \ \ \ \ std::vector<\_BlockMetaData>\ \_tag\_array;}
+\DoxyCodeLine{00177\ \ \ \ \ std::vector<\_BlockData>\ \_data\_array;}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \ \ std::vector<\_Bank>\ \_banks;}
+\DoxyCodeLine{00180\ \ \ \ \ \mbox{\hyperlink{class_memory_map}{MemoryMap}}\ \_mem\_map;}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \ \ \ \ \mbox{\hyperlink{class_arbitration_network64}{ArbitrationNetwork64}}\ incoming\_return\_network;}
+\DoxyCodeLine{00183\ \ \ \ \ \mbox{\hyperlink{class_arbitration_network64}{ArbitrationNetwork64}}\ outgoing\_request\_network;}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \ \ \ \ uint\ \_fetch\_lfb(uint\ bank\_index,\ \_LFB\&\ lfb);}
+\DoxyCodeLine{00186\ \ \ \ \ uint\ \_allocate\_lfb(uint\ bank\_index,\ \_LFB\&\ lfb);}
+\DoxyCodeLine{00187\ \ \ \ \ uint\ \_fetch\_or\_allocate\_lfb(uint\ bank\_index,\ uint64\_t\ block\_addr,\ \_LFB::Type\ type);}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{keywordtype}{void}\ \_interconnects\_rise();}
+\DoxyCodeLine{00190\ \ \ \ \ \textcolor{keywordtype}{void}\ \_propagate\_ack();}
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordtype}{void}\ \_interconnects\_fall();}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{keywordtype}{void}\ \_proccess\_returns(uint\ bank\_index);}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keywordtype}{void}\ \_proccess\_requests(uint\ bank\_index);}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{keywordtype}{void}\ \_update\_bank(uint\ bank\_index);}
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keywordtype}{void}\ \_try\_issue\_lfb(uint\ bank\_index);}
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{keywordtype}{void}\ \_try\_return\_lfb(uint\ bank\_index);}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \ \ \ \ \_BlockData*\ \_get\_block(paddr\_t\ paddr);}
+\DoxyCodeLine{00201\ \ \ \ \ \_BlockData*\ \_insert\_block(paddr\_t\ paddr,\ \_BlockData\&\ data);}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \ \ paddr\_t\ \_get\_block\_offset(paddr\_t\ paddr)\ \{\ \textcolor{keywordflow}{return}\ \ (paddr\ >>\ 0)\ \&\ \_block\_offset\_mask;\ \}}
+\DoxyCodeLine{00204\ \ \ \ \ paddr\_t\ \_get\_block\_addr(paddr\_t\ paddr)\ \{\ \textcolor{keywordflow}{return}\ paddr\ \&\ \string~\_block\_offset\_mask;\ \}}
+\DoxyCodeLine{00205\ \ \ \ \ paddr\_t\ \_get\_bank\_index(paddr\_t\ paddr)\ \{\ \textcolor{keywordflow}{return}\ (paddr\ >>\ \_bank\_index\_offset)\ \&\ \_bank\_index\_mask;\ \}}
+\DoxyCodeLine{00206\ \ \ \ \ paddr\_t\ \_get\_set\_index(paddr\_t\ paddr)\ \{\ \textcolor{keywordflow}{return}\ \ (paddr\ >>\ \_set\_index\_offset)\ \&\ \_set\_index\_mask;\ \}}
+\DoxyCodeLine{00207\ \ \ \ \ paddr\_t\ \_get\_tag(paddr\_t\ paddr)\ \{\ \textcolor{keywordflow}{return}\ (paddr\ >>\ \_tag\_offset)\ \&\ \_tag\_mask;\ \}}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00214\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache_1_1_log}{Log}}}
+\DoxyCodeLine{00215\ \ \ \ \ \{}
+\DoxyCodeLine{00216\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ uint64\_t\ \_total;}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ uint64\_t\ \_hits;}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ uint64\_t\ \_misses;}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ uint64\_t\ \_lfb\_hits;}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ uint64\_t\ \_half\_misses;}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ uint64\_t\ \_bank\_conflicts;}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ uint64\_t\ \_lfb\_stalls;}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ uint64\_t\ \_data\_array\_reads;}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ uint64\_t\ \_data\_array\_writes;}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache_1_1_log}{Log}}()\ \{\ reset();\ \}}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ reset()}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \ \ \ \ \_total\ =\ 0;}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \ \ \ \ \_lfb\_hits\ =\ 0;}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \ \ \ \ \_hits\ =\ 0;}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \ \ \ \ \_misses\ =\ 0;}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \_half\_misses\ =\ 0;}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ \_bank\_conflicts\ =\ 0;}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \_lfb\_stalls\ =\ 0;}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ \ \_data\_array\_reads\ =\ 0;}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ \ \_data\_array\_writes\ =\ 0;}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ accumulate(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_cache_1_1_log}{Log}}\&\ other)}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \ \ \ \ \_total\ +=\ other.\_total;}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \ \ \ \ \_lfb\_hits\ +=\ other.\_lfb\_hits;}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ \ \ \ \ \_hits\ +=\ other.\_hits;}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \ \ \_misses\ +=\ other.\_misses;}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \ \ \_half\_misses\ +=\ other.\_half\_misses;;}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \ \ \_bank\_conflicts\ +=\ other.\_bank\_conflicts;}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \ \ \ \ \_lfb\_stalls\ +=\ other.\_lfb\_stalls;}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \ \ \ \ \_data\_array\_reads\ +=\ other.\_data\_array\_reads;}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ \_data\_array\_writes\ +=\ other.\_data\_array\_writes;}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_requests(uint\ n\ =\ 1)\ \{\ \_total\ +=\ n;\ \}\ \textcolor{comment}{//TODO\ hit\ under\ miss\ logging}}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_hit(uint\ n\ =\ 1)\ \{\ \_hits\ +=\ n;\ \}\ \textcolor{comment}{//TODO\ hit\ under\ miss\ logging}}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_miss(uint\ n\ =\ 1)\ \{\ \_misses\ +=\ n;\ \}}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_lfb\_hit(uint\ n\ =\ 1)\ \{\ \_lfb\_hits\ +=\ n;\ \}}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_half\_miss(uint\ n\ =\ 1)\ \{\ \_half\_misses\ +=\ n;\ \}}
+\DoxyCodeLine{00262\ }
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_bank\_conflict()\ \{\ \_bank\_conflicts++;\ \}}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_lfb\_stall()\ \{\ \_lfb\_stalls++;\ \}}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_data\_array\_read()\ \{\ \_data\_array\_reads++;\ \}}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ log\_data\_array\_write()\ \{\ \_data\_array\_writes++;\ \}}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ uint64\_t\ get\_total()\ \{\ \textcolor{keywordflow}{return}\ \_hits\ +\ \_misses\ +\ \_lfb\_hits\ +\ \_half\_misses;\ \}}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ uint64\_t\ get\_total\_data\_array\_accesses()\ \{\ \textcolor{keywordflow}{return}\ \_data\_array\_reads\ +\ \_data\_array\_writes;\ \}}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ print\_log(FILE*\ stream\ =\ stdout,\ uint\ units\ =\ 1)}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ total\ =\ get\_total();}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ ft\ =\ total\ /\ 100.0f;}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ da\_total\ =\ get\_total\_data\_array\_accesses();}
+\DoxyCodeLine{00278\ }
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Total:\ \%lld\(\backslash\)n"{}},\ total\ /\ units);}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Total2:\ \%lld\(\backslash\)n"{}},\ \_total\ /\ units);}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Hits:\ \%lld(\%.2f\%\%)\(\backslash\)n"{}},\ \_hits\ /\ units,\ \_hits\ /\ ft);}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Misses:\ \%lld(\%.2f\%\%)\(\backslash\)n"{}},\ \_misses\ /\ units,\ \_misses\ /\ ft);}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}LFB\ Hits:\ \%lld(\%.2f\%\%)\(\backslash\)n"{}},\ \_lfb\_hits\ /\ units,\ \_lfb\_hits\ /\ ft);}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Half\ Misses:\ \%lld(\%.2f\%\%)\(\backslash\)n"{}},\ \_half\_misses\ /\ units,\ \_half\_misses\ /\ ft);}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Bank\ Conflicts:\ \%lld\(\backslash\)n"{}},\ \_bank\_conflicts\ /\ units);}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}LFB\ Stalls:\ \%lld\(\backslash\)n"{}},\ \_lfb\_stalls\ /\ units);}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Data\ Array\ Total:\ \%lld\(\backslash\)n"{}},\ da\_total);}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Data\ Array\ Reads:\ \%lld\(\backslash\)n"{}},\ \_data\_array\_reads);}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stream,\ \textcolor{stringliteral}{"{}Data\ Array\ Writes:\ \%lld\(\backslash\)n"{}},\ \_data\_array\_writes);}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00291\ \ \ \ \ \}log;}
+\DoxyCodeLine{00292\ \};}
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \}\}}
+
+\end{DoxyCode}

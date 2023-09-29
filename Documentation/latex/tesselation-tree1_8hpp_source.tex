@@ -1,0 +1,94 @@
+\doxysection{tesselation-\/tree1.hpp}
+\hypertarget{tesselation-tree1_8hpp_source}{}\label{tesselation-tree1_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/tesselation-\/tree1.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/benchmarks/describo/src/tesselation-\/tree1.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}mesh.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}tesselation-\/tree.hpp"{}}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_tesselation_tree1}{TesselationTree1}}}
+\DoxyCodeLine{00008\ \{}
+\DoxyCodeLine{00009\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00010\ \ \ \ \ \textcolor{keyword}{struct\ }\textcolor{keyword}{alignas}(32)\ \mbox{\hyperlink{struct_tesselation_tree1_1_1_header}{Header}}}
+\DoxyCodeLine{00011\ \ \ \ \ \{}
+\DoxyCodeLine{00012\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrtm_1_1uvec3}{rtm::uvec3}}\ vi;}
+\DoxyCodeLine{00013\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ max\_db;}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ uint\ last\_lod;}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ uint\ root\_node\_offset;}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ uint\ id\_offset;}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ uint\ \_pad;}
+\DoxyCodeLine{00019\ \ \ \ \ \};}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keyword}{struct\ }\textcolor{keyword}{alignas}(32)\ \mbox{\hyperlink{struct_tesselation_tree1_1_1_node}{Node}}}
+\DoxyCodeLine{00022\ \ \ \ \ \{}
+\DoxyCodeLine{00023\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_a_a_b_b}{AABB}}\ \ \ \ \ aabb;}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \ \ uint32\_t\ dbs;}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ uint32\_t\ \_pad;}
+\DoxyCodeLine{00026\ \ \ \ \ \};}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#ifdef\ ARCH\_X86}}
+\DoxyCodeLine{00029\ \ \ \ \ std::vector<Header>\ headers;}
+\DoxyCodeLine{00030\ \ \ \ \ std::vector<Node>\ nodes;}
+\DoxyCodeLine{00031\ \ \ \ \ std::vector<rtm::vec3>\ vertices;}
+\DoxyCodeLine{00032\ \ \ \ \ std::vector<CompactTri>\ triangles;}
+\DoxyCodeLine{00033\ \ \ \ \ std::vector<float>\ sah\_costs;}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \ \ \mbox{\hyperlink{class_tesselation_tree1}{TesselationTree1}}(std::string\ file\_path)}
+\DoxyCodeLine{00036\ \ \ \ \ \{}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Loading:\ \%s\(\backslash\)r"{}},\ file\_path.c\_str());}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ std::ifstream\ stream(file\_path,\ std::ios::binary);}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!stream.is\_open())\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \_deserialize\_vector(headers,\ stream);}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \_deserialize\_vector(nodes,\ stream);}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \_deserialize\_vector(vertices,\ stream);}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \_deserialize\_vector(triangles,\ stream);}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \_deserialize\_vector(sah\_costs,\ stream);}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ stream.close();}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Loaded:\ \%s\ \(\backslash\)n"{}},\ file\_path.c\_str());}
+\DoxyCodeLine{00051\ \ \ \ \ \};}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ uint\ size()\ \{\ \textcolor{keywordflow}{return}\ (uint)headers.size();\ \};}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordtype}{void}\ reorder(std::vector<BuildObject>\&\ ordered\_build\_objects)}
+\DoxyCodeLine{00056\ \ \ \ \ \{}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ std::vector<Header>\ temp\_headers(headers);}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(uint\ i\ =\ 0;\ i\ <\ ordered\_build\_objects.size();\ ++i)}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ headers[i]\ =\ temp\_headers[ordered\_build\_objects[i].index];}
+\DoxyCodeLine{00060\ \ \ \ \ \};}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ \mbox{\hyperlink{struct_build_object}{BuildObject}}\ get\_build\_object(uint\ index)}
+\DoxyCodeLine{00063\ \ \ \ \ \{}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_build_object}{BuildObject}}\ object;}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{object}.aabb\ =\ nodes[headers[index].root\_node\_offset].aabb;}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{object}.cost\ =\ sah\_costs[index];}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{object}.index\ =\ index;}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ object;}
+\DoxyCodeLine{00069\ \ \ \ \ \};}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00071\ \};}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_tesselation_tree1_pointers}{TesselationTree1Pointers}}}
+\DoxyCodeLine{00074\ \{}
+\DoxyCodeLine{00075\ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree1_1_1_header}{TesselationTree1::Header}}*\ headers;}
+\DoxyCodeLine{00076\ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree1_1_1_node}{TesselationTree1::Node}}*\ nodes;}
+\DoxyCodeLine{00077\ \ \ \ \ \mbox{\hyperlink{classrtm_1_1vec3}{glm::vec3}}*\ vertices;}
+\DoxyCodeLine{00078\ \ \ \ \ \mbox{\hyperlink{struct_compact_tri}{CompactTri}}*\ triangles;}
+\DoxyCodeLine{00079\ \};}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_tesselation_tree1_secondary_ray_data}{TesselationTree1SecondaryRayData}}}
+\DoxyCodeLine{00083\ \{}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_tesselation_tree1_pointers}{TesselationTree1Pointers}}\&\ tes\_tree;}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ last\_ray;}
+\DoxyCodeLine{00086\ \ \ \ \ uint\ last\_patch\_index;}
+\DoxyCodeLine{00087\ \ \ \ \ \mbox{\hyperlink{struct_tesselation_tree1_secondary_ray_data}{TesselationTree1SecondaryRayData}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_tesselation_tree1_pointers}{TesselationTree1Pointers}}\&\ tes\_tree,\ uint\ last\_patch\_index,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_ray}{Ray}}\&\ last\_ray)\ :\ tes\_tree(tes\_tree),\ last\_ray(last\_ray),\ last\_patch\_index(last\_patch\_index)\ \{\}}
+\DoxyCodeLine{00088\ \};}
+
+\end{DoxyCode}

@@ -1,0 +1,198 @@
+\doxysection{unit-\/memory-\/base.hpp}
+\hypertarget{unit-memory-base_8hpp_source}{}\label{unit-memory-base_8hpp_source}\index{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/memory-\/base.hpp@{C:/Users/u1320313/Dev/arches-\/v2/arches-\/v2/src/arches/units/unit-\/memory-\/base.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}unit-\/base.hpp"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}../simulator/interconnects.hpp"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}../util/memory-\/map.hpp"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{keyword}{namespace\ }Arches\ \{\ \textcolor{keyword}{namespace\ }Units\ \{}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#define\ CACHE\_BLOCK\_SIZE\ 32}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#define\ ROW\_BUFFER\_SIZE\ (8\ *\ 1024)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}}
+\DoxyCodeLine{00020\ \{}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keyword}{enum\ class}\ Type\ :\ uint8\_t}
+\DoxyCodeLine{00022\ \ \ \ \ \{}
+\DoxyCodeLine{00023\ \ \ \ \ \ \ \ \ \textcolor{comment}{//must\ match\ the\ first\ part\ of\ ISA::RISCV::Type\ f}}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \ \ \textcolor{comment}{//TODO:\ We\ should\ figure\ a\ way\ to\ make\ this\ and\ the\ isa\ RISCV\ enum\ the\ same\ structure.\ Right\ now\ this\ isn't\ maintainable.\ Also\ it\ should\ be\ impmnetation\ dependent\ somehow\ so\ that\ we\ can\ have\ diffrent\ isntruction\ based\ on\ impl.}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ NA,}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ LOAD,}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ STORE,}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ AMO\_ADD,}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ AMO\_XOR,}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ AMO\_OR,}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ AMO\_AND,}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ AMO\_MIN,}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ AMO\_MAX,}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ AMO\_MINU,}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ AMO\_MAXU,}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ FCHTHRD,}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ LBRAY,}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ SBRAY,}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ CSHIT,}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \textcolor{comment}{//other\ non\ instruction\ mem\ ops}}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ LOAD\_RAY\_BUCKET,}
+\DoxyCodeLine{00047\ \ \ \ \ \};}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{comment}{//meta\ data\ }}
+\DoxyCodeLine{00050\ \ \ \ \ Type\ \ \ \ type;}
+\DoxyCodeLine{00051\ \ \ \ \ uint8\_t\ size;}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00054\ \ \ \ \ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ paddr\_t\ paddr;}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ vaddr\_t\ vaddr;}
+\DoxyCodeLine{00057\ \ \ \ \ \};}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_request}{MemoryRequest}}\&\ other)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00060\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ type\ ==\ other.type\ \&\&\ size\ ==\ other.size\ \&\&\ paddr\ ==\ other.paddr;}
+\DoxyCodeLine{00062\ \ \ \ \ \}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{comment}{//Only\ atomic\ instructions\ actually\ pass\ or\ receive\ data.}}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{comment}{//The\ data\ pointed\ to\ by\ this\ must\ persist\ until\ the\ pending\ line\ in\ cleared.}}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{comment}{//Copying\ data\ into\ the\ request\ would\ be\ very\ inefficient\ (especially\ when\ passing\ full\ blocks\ of\ data).}}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{comment}{//Hence\ why\ we\ handle\ it\ by\ passing\ a\ pointer\ the\ data\ can\ then\ be\ copied\ directly\ by\ the\ receiver}}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{void}*\ data\{\textcolor{keyword}{nullptr}\};}
+\DoxyCodeLine{00069\ \};}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00076\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{MemoryReturn}}}
+\DoxyCodeLine{00077\ \{}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keyword}{enum\ class}\ Type\ :\ uint8\_t}
+\DoxyCodeLine{00079\ \ \ \ \ \{}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ NA,}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ LOAD\_RETURN,}
+\DoxyCodeLine{00082\ \ \ \ \ \};}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{comment}{//meta\ data\ }}
+\DoxyCodeLine{00085\ \ \ \ \ Type\ \ \ \ type;}
+\DoxyCodeLine{00086\ \ \ \ \ uint8\_t\ size;}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keyword}{union}}
+\DoxyCodeLine{00089\ \ \ \ \ \{}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ paddr\_t\ paddr;}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ vaddr\_t\ vaddr;}
+\DoxyCodeLine{00092\ \ \ \ \ \};}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_arches_1_1_units_1_1_memory_return}{MemoryReturn}}\&\ other)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00095\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ type\ ==\ other.type\ \&\&\ size\ ==\ other.size\ \&\&\ paddr\ ==\ other.paddr;}
+\DoxyCodeLine{00097\ \ \ \ \ \}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{comment}{//Only\ atomic\ instructions\ actually\ pass\ or\ receive\ data.}}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{comment}{//The\ data\ pointed\ to\ by\ this\ must\ persist\ until\ the\ pending\ line\ in\ cleared.}}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{comment}{//Copying\ data\ into\ the\ request\ would\ be\ very\ inefficient\ (especially\ when\ passing\ full\ blocks\ of\ data).}}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{comment}{//Hence\ why\ we\ handle\ it\ by\ passing\ a\ pointer\ the\ data\ can\ then\ be\ copied\ directly\ by\ the\ receiver}}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keywordtype}{void}*\ data\{\textcolor{keyword}{nullptr}\};}
+\DoxyCodeLine{00104\ \};}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00110\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{UnitMemoryBase}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{UnitBase}}}
+\DoxyCodeLine{00111\ \{}
+\DoxyCodeLine{00112\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00113\ \ \ \ \ \mbox{\hyperlink{class_interconnection_network}{InterconnectionNetwork<MemoryRequest,\ MemoryReturn>}}\ interconnect;}
+\DoxyCodeLine{00114\ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{UnitMemoryBase}}(uint\ clients,\ uint\ servers)\ :\ interconnect(clients,\ servers),\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_base}{UnitBase}}()}
+\DoxyCodeLine{00115\ \ \ \ \ \{}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00117\ \ \ \ \ \}}
+\DoxyCodeLine{00118\ \};}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \}\}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00125\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_memory_map}{MemoryMap}}}
+\DoxyCodeLine{00126\ \{}
+\DoxyCodeLine{00127\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00128\ \ \ \ \ std::vector<std::pair<Arches::paddr\_t,\ uint>>\ ranges;}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_memory_map_1_1_memory_mapping}{MemoryMapping}}}
+\DoxyCodeLine{00132\ \ \ \ \ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches::Units::UnitMemoryBase}}*\ unit;}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ uint16\_t\ \ \ \ \ \ \ \ port\_index;\ \textcolor{comment}{//port\ index\ within\ unit}}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ uint16\_t\ \ \ \ \ \ \ \ num\_ports;\ \textcolor{comment}{//number\ of\ ports\ reserved\ for\ this\ mapping}}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ uint16\_t\ \ \ \ \ \ \ \ port\_id;\ \textcolor{comment}{//provides\ unique\ ids\ for\ all\ ports}}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_memory_map_1_1_memory_mapping}{MemoryMapping}}\&\ other)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00139\ \textcolor{keyword}{\ \ \ \ \ \ \ \ }\{}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ unit\ ==\ other.unit\ \&\&\ port\_index\ ==\ other.port\_index\ \&\&\ num\_ports\ ==\ other.num\_ports;}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00142\ \ \ \ \ \};}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \ \ \ \ std::vector<MemoryMapping>\ mappings;}
+\DoxyCodeLine{00145\ \ \ \ \ uint\ total\_ports\{0\};}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{keywordtype}{void}\ add\_unit(Arches::paddr\_t\ paddr,\ \mbox{\hyperlink{class_arches_1_1_units_1_1_unit_memory_base}{Arches::Units::UnitMemoryBase}}*\ unit,\ uint\ port\_id,\ uint\ num\_ports)}
+\DoxyCodeLine{00148\ \ \ \ \ \{}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(unit\ ==\ \textcolor{keyword}{nullptr})}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ num\_ports\ =\ 0;}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ port\_id\ =\ 0;}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ uint\ i\ =\ 0;}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(;\ i\ <\ ranges.size();\ ++i)}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(paddr\ <\ ranges[i].first)\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ ranges.insert(ranges.begin()\ +\ i,\ \{paddr,\ \string~0u\});}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(unit\ ==\ \textcolor{keyword}{nullptr})\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ MemoryMapping\ mapping\ =\ \{unit,\ port\_id,\ num\_ports,\ 0\};}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ uint\ j;}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(j\ =\ 0;\ j\ <\ mappings.size();\ ++j)}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(mapping\ ==\ mappings[j])\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(j\ ==\ mappings.size())\ mappings.push\_back(mapping);}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ ranges[i].second\ =\ j;}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ total\_ports\ =\ 0;}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(j\ =\ 0;\ j\ <\ mappings.size();\ ++j)}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ mappings[j].port\_id\ =\ total\_ports;}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ total\_ports\ +=\ mappings[j].num\_ports;}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00179\ \ \ \ \ \}}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \ \ \ \ uint\ get\_mapping\_index(Arches::paddr\_t\ paddr)}
+\DoxyCodeLine{00182\ \ \ \ \ \{}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ uint\ start\ =\ 0;}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ uint\ end\ =\ ranges.size();}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}((start\ +\ 1)\ !=\ end)}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ middle\ =\ (start\ +\ end)\ /\ 2;}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(paddr\ >=\ ranges[middle].first)\ start\ =\ middle;}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ end\ =\ middle;}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ranges[start].second;}
+\DoxyCodeLine{00193\ \ \ \ \ \}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \ \ uint\ get\_mapping\_index\_for\_unique\_port\_index(uint\ unique\_port\_index)}
+\DoxyCodeLine{00196\ \ \ \ \ \{}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ uint\ start\ =\ 0;}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ uint\ end\ =\ mappings.size();}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}((start\ +\ 1)\ !=\ end)}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ \ \ uint\ middle\ =\ (start\ +\ end)\ /\ 2;}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(unique\_port\_index\ >=\ mappings[middle].port\_id)\ start\ =\ middle;}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ end\ =\ middle;}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ start;}
+\DoxyCodeLine{00207\ \ \ \ \ \}}
+\DoxyCodeLine{00208\ \};}
+
+\end{DoxyCode}

@@ -1,0 +1,97 @@
+\doxysection{params.\+h}
+\hypertarget{params_8h_source}{}\label{params_8h_source}\index{arches-\/v2/src/arches/units/usimm/params.h@{arches-\/v2/src/arches/units/usimm/params.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ \_\_PARAMS\_H\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ \_\_PARAMS\_H\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}../../../stdafx.hpp"{}}}
+\DoxyCodeLine{00005\ \textcolor{comment}{/********************/}}
+\DoxyCodeLine{00006\ \textcolor{comment}{/*\ Processor\ params\ */}}
+\DoxyCodeLine{00007\ \textcolor{comment}{/********************/}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{comment}{//\ number\ of\ cores\ in\ mulicore\ }}
+\DoxyCodeLine{00010\ \textcolor{keyword}{extern}\ uint32\_t\ NUMCORES;}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ processor\ clock\ frequency\ multiplier\ :\ multiplying\ the}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ DRAM\_CLK\_FREQUENCY\ by\ the\ following\ parameter\ gives\ the\ processor}}
+\DoxyCodeLine{00014\ \textcolor{comment}{//\ clock\ frequency\ }}
+\DoxyCodeLine{00015\ \textcolor{keyword}{extern}\ uint32\_t\ PROCESSOR\_CLK\_MULTIPLIER;}
+\DoxyCodeLine{00016\ \textcolor{keyword}{extern}\ uint32\_t\ ROBSIZE;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ size\ of\ ROB}}
+\DoxyCodeLine{00017\ \textcolor{keyword}{extern}\ uint32\_t\ MAX\_RETIRE;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ maximum\ commit\ width}}
+\DoxyCodeLine{00018\ \textcolor{keyword}{extern}\ uint32\_t\ MAX\_FETCH;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ maximum\ instruction\ fetch\ width}}
+\DoxyCodeLine{00019\ \textcolor{keyword}{extern}\ uint32\_t\ PIPELINEDEPTH;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ depth\ of\ pipeline}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{comment}{/*****************************/}}
+\DoxyCodeLine{00023\ \textcolor{comment}{/*\ DRAM\ System\ Configuration\ */}}
+\DoxyCodeLine{00024\ \textcolor{comment}{/*****************************/}}
+\DoxyCodeLine{00025\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ NUM\_CHANNELS;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ total\ number\ of\ channels\ in\ the\ system}}
+\DoxyCodeLine{00026\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ NUM\_RANKS;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ ranks\ per\ channel}}
+\DoxyCodeLine{00027\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ NUM\_BANKS;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ banks\ per\ rank}}
+\DoxyCodeLine{00028\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ NUM\_ROWS;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ rows\ per\ bank}}
+\DoxyCodeLine{00029\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ NUM\_COLUMNS;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ columns\ per\ rank}}
+\DoxyCodeLine{00030\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ CACHE\_LINE\_SIZE;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ cache-\/line\ size\ (bytes)}}
+\DoxyCodeLine{00031\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ ADDRESS\_BITS;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ total\ number\ of\ address\ bits\ (i.e.\ indicates\ size\ of\ memory)}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{comment}{/****************************/}}
+\DoxyCodeLine{00035\ \textcolor{comment}{/*\ DRAM\ Chip\ Specifications\ */}}
+\DoxyCodeLine{00036\ \textcolor{comment}{/****************************/}}
+\DoxyCodeLine{00037\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ DRAM\_CLK\_FREQUENCY;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ dram\ frequency\ (not\ datarate)\ in\ MHz}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{comment}{//\ All\ the\ following\ timing\ parameters\ should\ be}}
+\DoxyCodeLine{00040\ \textcolor{comment}{//\ entered\ in\ the\ config\ file\ in\ terms\ of\ memory}}
+\DoxyCodeLine{00041\ \textcolor{comment}{//\ clock\ cycles.}}
+\DoxyCodeLine{00042\ \textcolor{keyword}{extern}\ uint32\_t\ T\_RCD;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ RAS\ to\ CAS\ delay}}
+\DoxyCodeLine{00043\ \textcolor{keyword}{extern}\ uint32\_t\ T\_RP;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ PRE\ to\ RAS}}
+\DoxyCodeLine{00044\ \textcolor{keyword}{extern}\ uint32\_t\ T\_CAS;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ ColumnRD\ to\ Data\ burst}}
+\DoxyCodeLine{00045\ \textcolor{keyword}{extern}\ uint32\_t\ T\_RAS;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ RAS\ to\ PRE\ delay}}
+\DoxyCodeLine{00046\ \textcolor{keyword}{extern}\ uint32\_t\ T\_RC;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Row\ Cycle\ time}}
+\DoxyCodeLine{00047\ \textcolor{keyword}{extern}\ uint32\_t\ T\_CWD;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ ColumnWR\ to\ Data\ burst}}
+\DoxyCodeLine{00048\ \textcolor{keyword}{extern}\ uint32\_t\ T\_WR;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ write\ recovery\ time\ (COL\_WR\ to\ PRE)}}
+\DoxyCodeLine{00049\ \textcolor{keyword}{extern}\ uint32\_t\ T\_WTR;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ write\ to\ read\ turnaround}}
+\DoxyCodeLine{00050\ \textcolor{keyword}{extern}\ uint32\_t\ T\_RTRS;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ rank\ to\ rank\ switching\ time}}
+\DoxyCodeLine{00051\ \textcolor{keyword}{extern}\ uint32\_t\ T\_DATA\_TRANS;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Data\ transfer}}
+\DoxyCodeLine{00052\ \textcolor{keyword}{extern}\ uint32\_t\ T\_RTP;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Read\ to\ PRE}}
+\DoxyCodeLine{00053\ \textcolor{keyword}{extern}\ uint32\_t\ T\_CCD;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ CAS\ to\ CAS}}
+\DoxyCodeLine{00054\ \textcolor{keyword}{extern}\ uint32\_t\ T\_XP;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Power\ UP\ time\ fast}}
+\DoxyCodeLine{00055\ \textcolor{keyword}{extern}\ uint32\_t\ T\_XP\_DLL;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Power\ UP\ time\ slow}}
+\DoxyCodeLine{00056\ \textcolor{keyword}{extern}\ uint32\_t\ T\_CKE;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Power\ down\ entry}}
+\DoxyCodeLine{00057\ \textcolor{keyword}{extern}\ uint32\_t\ T\_PD\_MIN;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Minimum\ power\ down\ duration}}
+\DoxyCodeLine{00058\ \textcolor{keyword}{extern}\ uint32\_t\ T\_RRD;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ rank\ to\ rank\ delay\ (ACTs\ to\ same\ rank)}}
+\DoxyCodeLine{00059\ \textcolor{keyword}{extern}\ uint32\_t\ T\_FAW;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ four\ bank\ activation\ window}}
+\DoxyCodeLine{00060\ \textcolor{keyword}{extern}\ uint32\_t\ T\_REFI;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ refresh\ extern\ interval}}
+\DoxyCodeLine{00061\ \textcolor{keyword}{extern}\ uint32\_t\ T\_RFC;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ refresh\ cycle\ time}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \textcolor{comment}{/****************************/}}
+\DoxyCodeLine{00065\ \textcolor{comment}{/*\ VOLTAGE\ \&\ CURRENT\ VALUES\ */}}
+\DoxyCodeLine{00066\ \textcolor{comment}{/****************************/}}
+\DoxyCodeLine{00067\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ VDD;}
+\DoxyCodeLine{00068\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ IDD0;}
+\DoxyCodeLine{00069\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ IDD1;}
+\DoxyCodeLine{00070\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ IDD2P0;}
+\DoxyCodeLine{00071\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ IDD2P1;}
+\DoxyCodeLine{00072\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ IDD2N;}
+\DoxyCodeLine{00073\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ IDD3P;}
+\DoxyCodeLine{00074\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ IDD3N;}
+\DoxyCodeLine{00075\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ IDD4R;}
+\DoxyCodeLine{00076\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ IDD4W;}
+\DoxyCodeLine{00077\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ IDD5;}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{comment}{/******************************/}}
+\DoxyCodeLine{00081\ \textcolor{comment}{/*\ MEMORY\ CONTROLLER\ Settings\ */}}
+\DoxyCodeLine{00082\ \textcolor{comment}{/******************************/}}
+\DoxyCodeLine{00083\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ WQ\_CAPACITY;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ maximum\ capacity\ of\ write\ queue\ (per\ channel)}}
+\DoxyCodeLine{00084\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ WQ\_LOOKUP\_LATENCY;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ WQ\ associative\ lookup\ }}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{comment}{//\ Address\ mapping\ mode}}
+\DoxyCodeLine{00087\ \textcolor{comment}{//\ 1\ is\ consecutive\ cache-\/lines\ to\ same\ row}}
+\DoxyCodeLine{00088\ \textcolor{comment}{//\ 2\ is\ consecutive\ cache-\/lines\ striped\ across\ different\ banks\ }}
+\DoxyCodeLine{00089\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ ADDRESS\_MAPPING;}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \_\_PARAMS\_H\_\_}}
+
+\end{DoxyCode}

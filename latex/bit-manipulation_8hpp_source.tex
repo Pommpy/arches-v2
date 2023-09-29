@@ -1,0 +1,42 @@
+\doxysection{bit-\/manipulation.hpp}
+\hypertarget{bit-manipulation_8hpp_source}{}\label{bit-manipulation_8hpp_source}\index{arches-\/v2/src/arches/util/bit-\/manipulation.hpp@{arches-\/v2/src/arches/util/bit-\/manipulation.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ "{}../../stdafx.hpp"{}}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{keyword}{inline}\ uint\ log2i(uint64\_t\ in)}
+\DoxyCodeLine{00005\ \{}
+\DoxyCodeLine{00006\ \ \ \ \ uint\ i\ =\ 0;}
+\DoxyCodeLine{00007\ \ \ \ \ \textcolor{keywordflow}{while}\ (in\ >>=\ 1)\ ++i;}
+\DoxyCodeLine{00008\ \ \ \ \ \textcolor{keywordflow}{return}\ i;}
+\DoxyCodeLine{00009\ \}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{inline}\ uint64\_t\ generate\_nbit\_mask(uint\ n)}
+\DoxyCodeLine{00012\ \{}
+\DoxyCodeLine{00013\ \ \ \ \ \textcolor{keywordflow}{if}(n\ >=\ 64)\ \textcolor{keywordflow}{return}\ \string~0ull;}
+\DoxyCodeLine{00014\ \ \ \ \ \textcolor{keywordflow}{return}\ \string~(\string~0ull\ <<\ n);}
+\DoxyCodeLine{00015\ \}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{keyword}{inline}\ Arches::paddr\_t\ align\_to(\textcolor{keywordtype}{size\_t}\ alignment,\ Arches::paddr\_t\ paddr)}
+\DoxyCodeLine{00019\ \{}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keywordflow}{return}\ (paddr\ +\ alignment\ -\/\ 1)\ \&\ \string~(alignment\ -\/\ 1);}
+\DoxyCodeLine{00021\ \}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{inline}\ uint64\_t\ rotr(uint64\_t\ mask,\ uint\ n)}
+\DoxyCodeLine{00024\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keywordflow}{return}\ \_rotr64(mask,\ n);}
+\DoxyCodeLine{00026\ \}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{keyword}{inline}\ uint64\_t\ ctz(uint64\_t\ mask)}
+\DoxyCodeLine{00029\ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keywordflow}{return}\ \_tzcnt\_u64(mask);}
+\DoxyCodeLine{00031\ \}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{inline}\ uint64\_t\ popcnt(uint64\_t\ mask)}
+\DoxyCodeLine{00034\ \{}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_popcnt64(mask);}
+\DoxyCodeLine{00036\ \}}
+
+\end{DoxyCode}
