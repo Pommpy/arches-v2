@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="src\custom-instr.hpp" />
+    <ClInclude Include="src\intersect.hpp" />
+    <ClInclude Include="src\stdafx.hpp" />
+    <ClInclude Include="src\rtm\rtm.hpp">
+      <Filter>rtm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rtm\rtm-float.hpp">
+      <Filter>rtm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rtm\rtm-int.hpp">
+      <Filter>rtm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rtm\rtm-rng.hpp">
+      <Filter>rtm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rtm\rtm-uvec3.hpp">
+      <Filter>rtm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rtm\rtm-vec2.hpp">
+      <Filter>rtm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rtm\rtm-vec3.hpp">
+      <Filter>rtm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rtm\rtm-vec4.hpp">
+      <Filter>rtm</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="rtm">
+      <UniqueIdentifier>{b86b5e40-0ef3-4ef5-be42-edc66a03d59c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
