@@ -139,9 +139,6 @@
     <ClInclude Include="src\units\dual-streaming\unit-stream-scheduler.hpp">
       <Filter>units\dual-streaming</Filter>
     </ClInclude>
-    <ClInclude Include="src\units\dual-streaming\unit-hit-record-updater.hpp">
-      <Filter>units\dual-streaming</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />

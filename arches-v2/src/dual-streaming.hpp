@@ -144,11 +144,7 @@ const static InstructionInfo isa_custom0_funct3[8] =
 	InstructionInfo(0x3, "cshit", InstrType::CUSTOM5, Encoding::S, RegType::FLOAT, RegType::INT, MEM_REQ_DECL
 	{	
 		MemoryRequest mem_req;
-<<<<<<< HEAD
 		mem_req.type = MemoryRequest::Type::STORE_HIT;
-=======
-		mem_req.type = MemoryRequest::Type::STORE;
->>>>>>> 5c23c0c2bdb7531e3cacdb4e8fed9d10a2c1936a
 		mem_req.size = sizeof(rtm::Hit);
 		mem_req.vaddr = unit->int_regs->registers[instr.s.rs1].u64 + s_imm(instr);
 
@@ -270,7 +266,6 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	Units::DualStreaming::UnitStreamScheduler stream_scheduler(stream_scheduler_config);
 	simulator.register_unit(&stream_scheduler);
 
-<<<<<<< HEAD
 	Units::DualStreaming::UnitHitRecordUpdater::Configuration hit_record_updater_config;
 	hit_record_updater_config.num_tms = num_tms;
 	hit_record_updater_config.main_mem = &dram;
@@ -282,8 +277,6 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	Units::DualStreaming::UnitHitRecordUpdater hit_record_updater(hit_record_updater_config);
 	simulator.register_unit(&hit_record_updater);
 
-=======
->>>>>>> 5c23c0c2bdb7531e3cacdb4e8fed9d10a2c1936a
 	/*
 	Units::UnitBuffer::Configuration scene_buffer_config;
 	scene_buffer_config.size = scene_buffer_size;
@@ -349,11 +342,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 		unit_table[(uint)ISA::RISCV::InstrType::ATOMIC] = thread_schedulers.back();
 		unit_table[(uint)ISA::RISCV::InstrType::CUSTOM0] = thread_schedulers.back();
 
-<<<<<<< HEAD
 		rsbs.push_back(_new Units::DualStreaming::UnitRayStagingBuffer(num_tps_per_tm, tm_index, &stream_scheduler, &hit_record_updater));
-=======
-		rsbs.push_back(_new Units::DualStreaming::UnitRayStagingBuffer(num_tps_per_tm, tm_index, &stream_scheduler));
->>>>>>> 5c23c0c2bdb7531e3cacdb4e8fed9d10a2c1936a
 		mem_list.push_back(rsbs.back());
 		simulator.register_unit(rsbs.back());
 
