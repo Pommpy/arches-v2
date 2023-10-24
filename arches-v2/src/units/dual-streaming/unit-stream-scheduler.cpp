@@ -2,16 +2,12 @@
 #include "unit-stream-scheduler.hpp"
 
 
-// Each segment contains a ray bucket
-// First 
-
-
 namespace Arches { namespace Units { namespace DualStreaming {
 
 void UnitStreamScheduler::proccess_request(uint channel_index)
 {
 	if(!_request_network.is_read_valid(channel_index)) return;
-	const StreamSchedulerRequest& req = _request_network.peek(channel_index); // Get request from the channel request_queue
+	const StreamSchedulerRequest& req = _request_network.peek(channel_index);
 	Channel& channel = _channels[channel_index];
 
 	if(req.type == StreamSchedulerRequest::Type::STORE_WORKITEM)
@@ -21,17 +17,17 @@ void UnitStreamScheduler::proccess_request(uint channel_index)
 
 		if(segment_state.write_buffer.is_full()) return;
 
-		segment_state.write_buffer.write_ray(req.work_item.bray); // write the ray to the current ray bucket of the segment
+		segment_state.write_buffer.write_ray(req.work_item.bray);
 		_request_network.read(channel_index);
 
 		if(req.work_item.segment == 0)
 			if(++_root_rays_in_flight == 1024 * 1024)
-				channel.segment_state_map[0].parent_finished = true; // The root node has been finished
+				channel.segment_state_map[0].parent_finished = true;
 
 		//We just filled the write buffer queue it up for streaming
 		if(segment_state.write_buffer.is_full())
 		{
-			channel.bucket_write_queue.push(segment_index); // The bucket is full so new request will be pushed into a queue
+			channel.bucket_write_queue.push(segment_index);
 			//TODO: allocate a new write buffer for this segment instead of stalling while we wait to stream
 		}
 	}
@@ -52,7 +48,7 @@ void UnitStreamScheduler::proccess_return(uint channel_index)
 	channel.forward_return = _main_mem->read_return(mem_higher_port_index);
 }
 
-void UnitStreamScheduler::issue_request(uint channel_index) // Send Request to DRAM
+void UnitStreamScheduler::issue_request(uint channel_index)
 {
 	Channel& channel = _channels[channel_index];
 	uint mem_higher_port_index = channel_index * _main_mem_port_stride + _main_mem_port_offset;
@@ -60,7 +56,7 @@ void UnitStreamScheduler::issue_request(uint channel_index) // Send Request to D
 
 	if(channel.stream_state == Channel::StreamState::NA)
 	{
-		if(!channel.bucket_write_queue.empty()) // The write buffer is full
+		if(!channel.bucket_write_queue.empty())
 		{ 
 			uint segment_index = channel.bucket_write_queue.front();
 			SegmentState& segment_state = channel.segment_state_map[segment_index];

@@ -267,6 +267,8 @@ public:
 		return t;
 	}
 
+
+
 	bool is_write_valid(uint source_index) override
 	{
 		return _sizes[source_index] < _max_size;
@@ -479,7 +481,6 @@ public:
 	bool is_read_valid(uint sink_index) override { return _sink_fifos.is_read_valid(sink_index); }
 	const T& peek(uint sink_index) override { return _sink_fifos.peek(sink_index); }
 	const T read(uint sink_index) override { return _sink_fifos.read(sink_index); }
-
 
 	bool is_write_valid(uint source_index) override { return _source_fifos.is_write_valid(source_index); }
 	void write(const T& transaction, uint source_index) override { _source_fifos.write(transaction, source_index); }

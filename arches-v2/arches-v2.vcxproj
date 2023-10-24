@@ -38,7 +38,6 @@
     <ClInclude Include="src\simulator\transactions.hpp" />
     <ClInclude Include="src\stdafx.hpp" />
     <ClInclude Include="src\trax.hpp" />
-    <ClInclude Include="src\units\dual-streaming\unit-hit-record-updater.hpp" />
     <ClInclude Include="src\units\dual-streaming\unit-ray-staging-buffer.hpp" />
     <ClInclude Include="src\units\dual-streaming\unit-stream-scheduler.hpp" />
     <ClInclude Include="src\units\unit-atomic-reg-file.hpp" />
@@ -142,7 +141,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseInteloneTBB>true</UseInteloneTBB>

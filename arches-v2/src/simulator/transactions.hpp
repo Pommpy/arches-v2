@@ -155,12 +155,6 @@ struct StreamSchedulerRequest
 	}
 };
 
-struct HitRecordUpdateRequest
-{
-	uint     port;
-	rtm::Hit hit;
-};
-
 struct SFURequest
 {
 	uint16_t dst;
