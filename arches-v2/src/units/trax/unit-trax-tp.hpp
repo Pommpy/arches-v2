@@ -1,16 +1,17 @@
 #pragma once
 
-#include "../../../stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "../unit-base.hpp"
 #include "../unit-memory-base.hpp"
 #include "../unit-main-memory-base.hpp"
-#include "../uint-atomic-increment.hpp"
+#include "../unit-atomic-reg-file.hpp"
 
-#include "../../isa/execution-base.hpp"
-#include "../../isa/registers.hpp"
+#include "isa/execution-base.hpp"
+#include "isa/registers.hpp"
 
 #include "../unit-sfu.hpp"
+#include "isa/riscv.hpp"
 
 namespace Arches { namespace Units { namespace TRaX {
 

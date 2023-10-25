@@ -205,8 +205,24 @@ int usimm_setup(char* config_filename,
     long long int *addr;
     long long int *instrpc;
 
-
     // Initialization code
+	char* s = __FILE__;
+	int new_length_config = strlen(s) - 8 + strlen(config_filename);
+	int new_length_vi = strlen(s) - 8 + strlen(usimm_vi_file);
+	char* config_path = (char*)malloc(new_length_config + 1);
+	char* vi_path = (char*)malloc(new_length_vi + 1);
+	for (int i = 0; i < strlen(s) - 8; i++) config_path[i] = s[i];
+	for (int i = 0; i < strlen(config_filename); i++) config_path[strlen(s) - 8 + i] = config_filename[i];
+	for (int i = 0; i < strlen(s) - 8; i++) vi_path[i] = s[i];
+	for (int i = 0; i < strlen(usimm_vi_file); i++) vi_path[strlen(s) - 8 + i] = usimm_vi_file[i];
+	config_path[new_length_config] = '\0';
+	vi_path[new_length_vi] = '\0';
+	config_filename = config_path;
+	usimm_vi_file = vi_path;
+
+	std::cout << config_filename << '\n';
+	std::cout << usimm_vi_file << '\n';
+
     config_file = fopen(config_filename, "r");
     if (!config_file)
     {
