@@ -12,3 +12,6 @@ add_subdirectory("trax-benchmark")
 add_subdirectory("describo-benchmark")
 add_subdirectory("dual-streaming-benchmark")
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/datasets)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/datasets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endif()

@@ -55,7 +55,7 @@ static RET* write_vector(Units::UnitMainMemoryBase* main_memory, size_t alignmen
 
 static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, paddr_t& heap_address)
 {
-	rtm::Mesh mesh("../../../datasets/sponza.obj");
+	rtm::Mesh mesh("../../datasets/sponza.obj");
 	rtm::BVH blas;
 	std::vector<rtm::Triangle> tris;
 	std::vector<rtm::BVH::BuildObject> build_objects;
