@@ -18,8 +18,6 @@ public:
 
 		LOAD,
 		STORE,
-		
-		STORE_HIT,
 
 		AMO_ADD,
 		AMO_XOR,

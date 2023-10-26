@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 set(PROJECT_NAME "Describo-benchmark")
 
 file(GLOB FILES src/*.hpp src/*.cpp)
-add_executable(${PROJECT_NAME} WIN32 ${FILES})
+add_executable(${PROJECT_NAME} ${FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/describo-benchmark/src)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})

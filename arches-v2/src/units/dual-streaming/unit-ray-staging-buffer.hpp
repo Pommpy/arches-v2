@@ -103,18 +103,20 @@ public:
 				front_buffer->next_ray++;
 			}
 		}
-		else if (request.type == MemoryRequest::Type::STORE_HIT) {
-			if (_hit_record_updater->request_port_write_valid(tm_index)) {
-				rtm::Hit hit_record;
-				std::memcpy(&hit_record, request.data, sizeof(rtm::Hit));
-				_hit_record_updater->write_request(hit_record, tm_index);
-			}
-		}
 		else if(request.type == MemoryRequest::Type::STORE) //ray write or conditionally store hit
 		{
-			//forward to stream scheduler
-			if(_stream_scheduler->request_port_write_valid(tm_index))
+			
+			if (request.size == sizeof(rtm::Hit)) {
+				//forward to hit record updater
+				if (_hit_record_updater->request_port_write_valid(tm_index)) {
+					rtm::Hit hit_record;
+					std::memcpy(&hit_record, request.data, sizeof(rtm::Hit));
+					_hit_record_updater->write_request(hit_record, tm_index);
+				}
+			}
+			else if(_stream_scheduler->request_port_write_valid(tm_index))
 			{
+				//forward to stream scheduler
 				StreamSchedulerRequest req;
 				req.type = StreamSchedulerRequest::Type::STORE_WORKITEM;
 				req.port = tm_index;
