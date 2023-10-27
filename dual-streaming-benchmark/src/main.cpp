@@ -23,9 +23,6 @@ void inline barrier()
 inline static void kernel(const KernelArgs& args)
 {
 #if __riscv
-	auto range = [&](int L, int R) {
-		return L + rand() % (R - L + 1);
-	};
 	for (uint index = fchthrd(); index < args.framebuffer_size; index = fchthrd()) {
 		uint fb_index = index;
 		uint x = index % args.framebuffer_width;
@@ -35,12 +32,13 @@ inline static void kernel(const KernelArgs& args)
 		// generate random hit
 		rtm::Hit hit;
 		hit.id = index % 1024;
-		hit.bc = { (float)range(1, 100) / 100, (float)range(1, 100) / 100 };
+		hit.bc = { rng.randf(), rng.randf() };
 		hit.t = rng.randf();
 
 		_cshit(hit, args.hit_records + hit.id);
 		rtm::Hit hit_updated = *(args.hit_records + hit.id);
 		hit_updated.t = hit_updated.t / (hit_updated.t + 1);
+		hit_updated.bc = hit_updated.bc / (hit_updated.bc + 1);
 		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit_updated.bc.x, hit_updated.bc.y, hit_updated.t));
 	}
 
@@ -83,9 +81,6 @@ inline static void kernel(const KernelArgs& args)
 	//intersect_buckets(args.treelets, args.hit_records);
 
 #else
-	auto range = [&](int L, int R) {
-		return L + rand() % (R - L + 1);
-	};
 	for (uint index = fchthrd(); index < args.framebuffer_size; index = fchthrd()) {
 		uint fb_index = index;
 		uint x = index % args.framebuffer_width;
