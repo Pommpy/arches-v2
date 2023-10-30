@@ -64,7 +64,7 @@ private:
 			else
 			{
 				//if this is a bcuket request then cascade
-				request.port * num_sinks() / num_sources();
+				return request.port * num_sinks() / num_sources();
 			}
 		}
 	};

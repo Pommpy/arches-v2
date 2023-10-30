@@ -97,23 +97,26 @@ public:
 					if (cache[i].hit.t < hit_record.t) { // The record in cache is closer
 						return i;
 					}
+					else {
+						std::cout << "DRAM is better" << '\n';
+					}
 				}
 			}
 			assert(find_element);
 			return ~0;
 		}
 
-		bool insert(rtm::Hit hit_record) {
+		uint insert(rtm::Hit hit_record) {
 			uint set_id = hit_record.id % num_set;
 			uint start_index = set_id * associativity, end_index = start_index + associativity;
 			assert(end_index <= cache_size);
 			for (int i = start_index; i < end_index; i++) {
 				if (cache[i].state == State::EMPTY) {
 					cache[i] = { State::UNISSUED, hit_record };
-					return true;
+					return i;
 				}
 			}
-			return false;
+			return ~0;
 		}
 
 		rtm::Hit fetch_hit(uint cache_index) {
@@ -124,15 +127,25 @@ public:
 			cache[cache_index].state = state;
 		}
 
+		void check_cache() {
+			std::map<int, int> counter;
+			for (int i = 0; i < cache_size; i++) {
+				
+				if(cache[i].state != State::EMPTY) counter[cache[i].hit.id] += 1;
+			}
+			for (auto [key, value] : counter) assert(value == 1);
+		}
+
 	};
 
 	class HitRecordUpdaterRequestCrossBar : public CasscadedCrossBar<rtm::Hit> {
 	public:
-		HitRecordUpdaterRequestCrossBar(uint ports, uint channels) : CasscadedCrossBar<rtm::Hit>(ports, channels, channels) {}
+		HitRecordUpdaterRequestCrossBar(uint ports, uint channels, paddr_t hit_record_start_address) : CasscadedCrossBar<rtm::Hit>(ports, channels, channels), hit_record_start_address(hit_record_start_address){}
 		uint get_sink(const rtm::Hit& request) override {
 			paddr_t hit_record_address = hit_record_start_address + request.id * sizeof(rtm::Hit);
-			return hit_record_address % num_sinks();
+			return calcDramAddr(hit_record_address).channel;
 		}
+		paddr_t hit_record_start_address;
 	};
 
 	struct Channel {
@@ -142,7 +155,7 @@ public:
 	};
 
 private:
-	static paddr_t hit_record_start_address;
+	paddr_t hit_record_start_address;
 	HitRecordUpdaterRequestCrossBar request_network;
 	std::vector<Channel> channels;
 	UnitMemoryBase* main_memory;
@@ -160,8 +173,11 @@ private:
 			request_network.read(channel_index);
 		}
 		else {
-			bool success = channel.hit_record_cache.insert(req);
-			if (success) request_network.read(channel_index);
+			uint success_index = channel.hit_record_cache.insert(req);
+			if (success_index != ~0) {
+				request_network.read(channel_index);
+				channel.read_queue.push(success_index);
+			}
 		}
 	}
 
@@ -175,6 +191,8 @@ private:
 
 		uint cache_index = channel.hit_record_cache.compare_dram(hit_in_dram);
 		if (cache_index != ~0) channel.write_queue.push(cache_index);
+
+		channel.hit_record_cache.check_cache();
 	}
 
 	void issue_requests(uint channel_index) {
@@ -185,9 +203,13 @@ private:
 		// Write first
 		bool requested = false;
 		if (!channel.write_queue.empty()) {
+			static uint smaller_than_dram = 0;
 			uint cache_index = channel.write_queue.front();
 			channel.write_queue.pop();
 			channel.hit_record_cache.update_state(cache_index, HitRecordCache::State::EMPTY);
+
+			smaller_than_dram += 1;
+
 			rtm::Hit hit_record = channel.hit_record_cache.fetch_hit(cache_index);
 			MemoryRequest req;
 			req.type = MemoryRequest::Type::STORE;
@@ -197,6 +219,9 @@ private:
 			req.paddr = hit_record_start_address + hit_record.id * sizeof(rtm::Hit);
 			memcpy(req.data, &hit_record, sizeof(rtm::Hit));
 			main_memory->write_request(req, port_in_main_memory);
+			requested = true;
+
+			std::cout << smaller_than_dram << '\n';
 		}
 
 		// Read (Only do that when we do not send a write request)
@@ -212,11 +237,11 @@ private:
 			req.paddr = hit_record_start_address + hit_record.id * sizeof(rtm::Hit);
 			main_memory->write_request(req, port_in_main_memory);
 		}
+		channel.hit_record_cache.check_cache();
 	}
 
 public:
-	UnitHitRecordUpdater(Configuration config) : request_network(config.num_tms, DRAM_CHANNELS), main_memory(config.main_mem), main_mem_port_offset(config.main_mem_port_offset), main_mem_port_stride(config.main_mem_port_stride) {
-		hit_record_start_address = config.hit_record_start;
+	UnitHitRecordUpdater(Configuration config) : request_network(config.num_tms, DRAM_CHANNELS, config.hit_record_start), main_memory(config.main_mem), main_mem_port_offset(config.main_mem_port_offset), main_mem_port_stride(config.main_mem_port_stride), hit_record_start_address(config.hit_record_start){
 		for (int i = 0; i < DRAM_CHANNELS; i++) {
 			channels.push_back({ HitRecordCache(config.cache_size, config.associativity) });
 		}

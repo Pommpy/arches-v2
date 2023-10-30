@@ -19,6 +19,8 @@ private:
 	Casscade<MemoryRequest> _request_network;
 	FIFOArray<MemoryReturn> _return_network;
 
+	uint current_id = 0;
+
 public:
 	UnitAtomicRegfile(uint num_clients) : UnitMemoryBase(),
 		_request_network(num_clients, 1), _return_network(num_clients)
@@ -46,7 +48,8 @@ public:
 
 			uint32_t reg_index = (_current_request.paddr >> 2) & 0b1'1111;
 			uint32_t request_data = _current_request.data_u32;
-			uint32_t ret_val = _iregs[reg_index];
+			//uint32_t ret_val = _iregs[reg_index];
+			uint ret_val = current_id;
 
 			switch(_current_request.type)
 			{
@@ -58,9 +61,10 @@ public:
 				break;
 
 			case MemoryRequest::Type::AMO_ADD:
+				current_id += 1;
 				_iregs[reg_index] += request_data;
-				if(ret_val % 64 == 0) 
-					printf("Tiles Launched: %d\n", ret_val);
+				if(ret_val % (64 * 64) == 0) 
+					printf("Tiles Launched: %d\n", ret_val / 64);
 				break;
 
 			case MemoryRequest::Type::AMO_AND:

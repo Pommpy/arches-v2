@@ -36,10 +36,11 @@ inline static void kernel(const KernelArgs& args)
 		hit.t = rng.randf();
 
 		_cshit(hit, args.hit_records + hit.id);
-		rtm::Hit hit_updated = *(args.hit_records + hit.id);
-		hit_updated.t = hit_updated.t / (hit_updated.t + 1);
-		hit_updated.bc = hit_updated.bc / (hit_updated.bc + 1);
-		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit_updated.bc.x, hit_updated.bc.y, hit_updated.t));
+
+		hit = *(args.hit_records + hit.id);
+		hit.t = hit.t / (hit.t + 1);
+		hit.bc = hit.bc / (hit.bc + 1);
+		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 	}
 
 	//for(uint index = fchthrd(); index < args.framebuffer_size; index = fchthrd())
@@ -81,7 +82,7 @@ inline static void kernel(const KernelArgs& args)
 	//intersect_buckets(args.treelets, args.hit_records);
 
 #else
-	for (uint index = fchthrd(); index < args.framebuffer_size; index = fchthrd()) {
+	for (uint index = 0; index < args.framebuffer_size; index++) {
 		uint fb_index = index;
 		uint x = index % args.framebuffer_width;
 		uint y = index / args.framebuffer_width;
@@ -95,10 +96,12 @@ inline static void kernel(const KernelArgs& args)
 
 		if ((args.hit_records + hit.id)->t > hit.t) {
 			*(args.hit_records + hit.id) = hit;
-			hit.t = hit.t / (hit.t + 1);
-			hit.bc = hit.bc / (hit.bc + 1);
-			args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 		}
+
+		hit = *(args.hit_records + hit.id);
+		hit.t = hit.t / (hit.t + 1);
+		hit.bc = hit.bc / (hit.bc + 1);
+		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 	}
 
 	/*for(uint index = fchthrd(); index < args.framebuffer_size; index = fchthrd())
@@ -197,12 +200,14 @@ int main(int argc, char* argv[])
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	uint thread_count = std::max(std::thread::hardware_concurrency() - 1u, 1u);
+	/*uint thread_count = std::max(std::thread::hardware_concurrency() - 1u, 1u);
 	std::vector<std::thread> threads;
 	for (uint i = 0; i < thread_count; ++i)
 		threads.emplace_back(kernel, args);
 	for (uint i = 0; i < thread_count; ++i)
-		threads[i].join();
+		threads[i].join();*/
+
+	kernel(args);
 
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);

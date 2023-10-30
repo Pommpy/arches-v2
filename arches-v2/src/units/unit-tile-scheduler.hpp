@@ -32,10 +32,13 @@ private:
 	uint _current_tile;
 	uint _current_offset;
 
+	uint current_id = 0;
+
 public:
 	UnitThreadScheduler(uint num_tp, uint tm_index, UnitAtomicRegfile* atomic_regs, uint width, uint height, uint tile_width = 8, uint tile_height = 8) : UnitMemoryBase(),
 		_width(width), _height(height), _tile_width(tile_width), _tile_height(tile_height), _tile_size(tile_width * tile_height), _request_network(num_tp, 1), _return_network(num_tp), _num_tp(num_tp), _tm_index(tm_index), _atomic_regs(atomic_regs)
 	{
+		current_id = 0;
 		_current_offset = _tile_size;
 	}
 
@@ -48,6 +51,7 @@ public:
 			if(_atomic_regs->return_port_read_valid(_tm_index))
 			{
 				const MemoryReturn ret = _atomic_regs->read_return(_tm_index);
+				current_id = ret.data_u32;
 				_current_tile = ret.data_u32;
 				_current_offset = 0;
 
@@ -82,9 +86,11 @@ public:
 			else if(_return_network.is_write_valid(_tm_index))
 			{
 				MemoryReturn ret = _current_request;
-				uint x = (_current_tile % (_width / _tile_width)) * _tile_width + (_current_offset % _tile_width);
+				/*uint x = (_current_tile % (_width / _tile_width)) * _tile_width + (_current_offset % _tile_width);
 				uint y = (_current_tile / (_width / _tile_width)) * _tile_height + (_current_offset / _tile_width);
-				ret.data_u32 = y * _width + x;
+				ret.data_u32 = y * _width + x;*/
+
+				ret.data_u32 = current_id;
 
 				_return_network.write(ret, ret.port);
 

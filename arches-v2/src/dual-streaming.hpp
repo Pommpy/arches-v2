@@ -144,7 +144,7 @@ const static InstructionInfo isa_custom0_funct3[8] =
 	InstructionInfo(0x3, "cshit", InstrType::CUSTOM5, Encoding::S, RegType::FLOAT, RegType::INT, MEM_REQ_DECL
 	{	
 		MemoryRequest mem_req;
-		mem_req.type = MemoryRequest::Type::STORE_HIT;
+		mem_req.type = MemoryRequest::Type::STORE;
 		mem_req.size = sizeof(rtm::Hit);
 		mem_req.vaddr = unit->int_regs->registers[instr.s.rs1].u64 + s_imm(instr);
 
@@ -177,7 +177,7 @@ static RET* write_vector(Units::UnitMainMemoryBase* main_memory, size_t alignmen
 
 static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, paddr_t& heap_address)
 {
-	rtm::Mesh mesh("../datasets/sponza.obj");
+	rtm::Mesh mesh("../../datasets/sponza.obj");
 	rtm::BVH blas;
 	std::vector<rtm::Triangle> tris;
 	std::vector<rtm::BVH::BuildObject> build_objects;
@@ -190,8 +190,8 @@ static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	TreeletBVH treelet_bvh(blas, mesh);
 
 	KernelArgs args;
-	args.framebuffer_width = 1024;
-	args.framebuffer_height = 1024;
+	args.framebuffer_width = 256;
+	args.framebuffer_height = 256;
 	args.framebuffer_size = args.framebuffer_width * args.framebuffer_height;
 
 	args.samples_per_pixel = 1;
@@ -204,7 +204,10 @@ static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	heap_address = align_to(ROW_BUFFER_SIZE, heap_address);
 	args.framebuffer = reinterpret_cast<uint32_t*>(heap_address); heap_address += args.framebuffer_size * sizeof(uint32_t);
 	//args.hit_records = reinterpret_cast<rtm::Hit*>(heap_address); heap_address += args.framebuffer_size * sizeof(rtm::Hit);
-	std::vector<rtm::Hit> hits(args.framebuffer_size, {T_MAX, 0.0f, ~0u});
+	std::vector<rtm::Hit> hits(args.framebuffer_size);
+	for (uint i = 0; i < hits.size(); i++) {
+		hits[i] = { T_MAX, 0.0f, i };
+	}
 	args.hit_records = write_vector(main_memory, ROW_BUFFER_SIZE, hits, heap_address);
 	args.treelets = write_vector(main_memory, sizeof(Treelet), treelet_bvh.treelets, heap_address);
 	args.triangles = write_vector(main_memory, CACHE_BLOCK_SIZE, tris, heap_address);
@@ -250,7 +253,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 	simulator.new_unit_group();
 
-	ELF elf("../dual-streaming-benchmark/riscv/kernel");
+	ELF elf("../../dual-streaming-benchmark/riscv/kernel");
 	paddr_t heap_address = dram.write_elf(elf);
 
 	KernelArgs kernel_args = initilize_buffers(&dram, heap_address);
