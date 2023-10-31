@@ -38,6 +38,12 @@ private:
 				if(_float_regs_pending[i])
 					return _float_regs_pending[i];
 		}
+		else if (instr_info.instr_type == ISA::RISCV::InstrType::CUSTOM5) { // CSHIT
+			for (uint i = 0; i < 4; i++) {
+				if (_float_regs_pending[i])
+					return _float_regs_pending[i];
+			}
+		}
 		else return Units::UnitTP::_check_dependancies(instr, instr_info);
 
 		return 0;

@@ -27,6 +27,7 @@ struct RayBucketBuffer
 	}
 };
 
+
 class UnitRayStagingBuffer : public UnitMemoryBase
 {
 public:
@@ -43,7 +44,6 @@ public:
 	UnitStreamScheduler* _stream_scheduler;
 	UnitHitRecordUpdater* _hit_record_updater;
 	
-
 	uint tm_index;
 
 	RayBucketBuffer* front_buffer;
@@ -112,6 +112,10 @@ public:
 					rtm::Hit hit_record;
 					std::memcpy(&hit_record, request.data, sizeof(rtm::Hit));
 					_hit_record_updater->write_request(hit_record, tm_index);
+					static uint cnt = 0;
+					cnt += 1;
+					std::cout << cnt << '\n';
+					request_valid = false;
 				}
 			}
 			else if(_stream_scheduler->request_port_write_valid(tm_index))
