@@ -124,8 +124,23 @@ public:
 			//a store request is pending service it
 			if(request.type == MemoryRequest::Type::STORE) //ray write or conditionally store hit
 			{
+
+				if (request.size == sizeof(rtm::Hit)) {
+					if (_hit_record_updater->request_port_write_valid(tm_index)) {
+						rtm::Hit hit_record;
+						std::memcpy(&hit_record, request.data, request.size);
+						_hit_record_updater->write_request(hit_record, tm_index);
+						request_valid = false;
+
+						//static int tot = 0;
+						//tot += 1;
+						//std::cout << "cnt = " << tot << '\n';
+						
+
+					}
+				}
 				//forward to stream scheduler
-				if(_stream_scheduler->request_port_write_valid(tm_index))
+				else if(_stream_scheduler->request_port_write_valid(tm_index))
 				{
 					StreamSchedulerRequest req;
 					req.type = StreamSchedulerRequest::Type::STORE_WORKITEM;

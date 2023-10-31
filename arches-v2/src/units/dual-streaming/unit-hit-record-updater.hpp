@@ -98,7 +98,8 @@ public:
 						return i;
 					}
 					else {
-						std::cout << "DRAM is better" << '\n';
+						cache[i].state = State::EMPTY;
+						//std::cout << "DRAM is better" << '\n';
 					}
 				}
 			}
@@ -143,6 +144,7 @@ public:
 		HitRecordUpdaterRequestCrossBar(uint ports, uint channels, paddr_t hit_record_start_address) : CasscadedCrossBar<rtm::Hit>(ports, channels, channels), hit_record_start_address(hit_record_start_address){}
 		uint get_sink(const rtm::Hit& request) override {
 			paddr_t hit_record_address = hit_record_start_address + request.id * sizeof(rtm::Hit);
+			int channel_id = calcDramAddr(hit_record_address).channel;
 			return calcDramAddr(hit_record_address).channel;
 		}
 		paddr_t hit_record_start_address;
@@ -161,11 +163,17 @@ private:
 	UnitMemoryBase* main_memory;
 	uint                main_mem_port_offset{ 0 };
 	uint                main_mem_port_stride{ 1 };
+
+	uint busy = 0;
+	
 private:
 	void process_requests(uint channel_index) {
 		if (!request_network.is_read_valid(channel_index)) return;
 		Channel& channel = channels[channel_index];
 		rtm::Hit req = request_network.peek(channel_index);
+		
+		if (busy == 0) simulator->units_executing++;
+		busy |= (1 << channel_index);
 
 		uint cache_index = channel.hit_record_cache.look_up(req);
 		if (cache_index != ~0) {
@@ -184,6 +192,10 @@ private:
 	void process_returns(uint channel_index) {
 		uint port_in_main_memory = channel_index * main_mem_port_stride + main_mem_port_offset;
 		if (!main_memory->return_port_read_valid(port_in_main_memory)) return;
+
+		if (busy == 0) simulator->units_executing++;
+		busy |= (1 << channel_index);
+
 		Channel& channel = channels[channel_index];
 		MemoryReturn ret = main_memory->read_return(port_in_main_memory);
 		rtm::Hit hit_in_dram;
@@ -208,7 +220,7 @@ private:
 			channel.write_queue.pop();
 			channel.hit_record_cache.update_state(cache_index, HitRecordCache::State::EMPTY);
 
-			smaller_than_dram += 1;
+			//smaller_than_dram += 1;
 
 			rtm::Hit hit_record = channel.hit_record_cache.fetch_hit(cache_index);
 			MemoryRequest req;
@@ -221,7 +233,7 @@ private:
 			main_memory->write_request(req, port_in_main_memory);
 			requested = true;
 
-			std::cout << smaller_than_dram << '\n';
+			/*std::cout << smaller_than_dram << '\n';*/
 		}
 
 		// Read (Only do that when we do not send a write request)
@@ -236,15 +248,25 @@ private:
 			req.size = sizeof(rtm::Hit);
 			req.paddr = hit_record_start_address + hit_record.id * sizeof(rtm::Hit);
 			main_memory->write_request(req, port_in_main_memory);
+			requested = true;
 		}
-		channel.hit_record_cache.check_cache();
+		//channel.hit_record_cache.check_cache();
+
+		if (!requested) {
+			if(busy == (1 << channel_index)) simulator->units_executing--;
+			//if (simulator->units_executing == 0) {
+			//	assert(false);
+			//}
+			busy &= ~(1 << channel_index);
+		}
 	}
 
 public:
-	UnitHitRecordUpdater(Configuration config) : request_network(config.num_tms, DRAM_CHANNELS, config.hit_record_start), main_memory(config.main_mem), main_mem_port_offset(config.main_mem_port_offset), main_mem_port_stride(config.main_mem_port_stride), hit_record_start_address(config.hit_record_start){
-		for (int i = 0; i < DRAM_CHANNELS; i++) {
+	UnitHitRecordUpdater(Configuration config) : request_network(config.num_tms, NUM_DRAM_CHANNELS, config.hit_record_start), main_memory(config.main_mem), main_mem_port_offset(config.main_mem_port_offset), main_mem_port_stride(config.main_mem_port_stride), hit_record_start_address(config.hit_record_start){
+		for (int i = 0; i < NUM_DRAM_CHANNELS; i++) {
 			channels.push_back({ HitRecordCache(config.cache_size, config.associativity) });
 		}
+		busy = 0;
 	}
 
 	bool request_port_write_valid(uint port_index)
@@ -271,6 +293,7 @@ public:
 			issue_requests(i);
 		}
 		// There are no return interconnects
+		
 	}
 };
 

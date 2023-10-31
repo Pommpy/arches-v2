@@ -39,7 +39,7 @@ private:
 					return _float_regs_pending[i];
 		}
 		else if (instr_info.instr_type == ISA::RISCV::InstrType::CUSTOM5) { // CSHIT
-			for (uint i = 0; i < 4; i++) {
+			for (uint i = 15; i <= 18; i++) {
 				if (_float_regs_pending[i])
 					return _float_regs_pending[i];
 			}

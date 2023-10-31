@@ -31,7 +31,7 @@ inline static void kernel(const KernelArgs& args)
 
 		// generate random hit
 		rtm::Hit hit;
-		hit.id = index % 1024;
+		hit.id = index % 8192;
 		hit.bc = { rng.randf(), rng.randf() };
 		hit.t = rng.randf();
 
@@ -90,7 +90,7 @@ inline static void kernel(const KernelArgs& args)
 
 		// generate random hit
 		rtm::Hit hit;
-		hit.id = index % 1024;
+		hit.id = index % 8192;
 		hit.bc = { rng.randf(), rng.randf() };
 		hit.t = rng.randf();
 

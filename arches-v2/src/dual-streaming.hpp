@@ -349,7 +349,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 		unit_table[(uint)ISA::RISCV::InstrType::CUSTOM3] = rsbs.back(); //LWI
 		unit_table[(uint)ISA::RISCV::InstrType::CUSTOM4] = rsbs.back(); //SWI
-		unit_table[(uint)ISA::RISCV::InstrType::CUSTOM5] = l1s.back(); //CSHIT
+		unit_table[(uint)ISA::RISCV::InstrType::CUSTOM5] = rsbs.back(); //CSHIT
 
 
 
