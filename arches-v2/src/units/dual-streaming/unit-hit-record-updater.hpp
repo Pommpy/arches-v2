@@ -58,7 +58,8 @@ public:
 	public:
 		enum class State : uint8_t
 		{
-			ALREADY_CLOEST, // Get data from DRAM and wait to write
+			CLOSEST_WRITE,
+			CLOSEST_DRAM,
 			LOAD_FROM_DRAM,
 			EMPTY,
 		};
@@ -98,7 +99,8 @@ public:
 			return found_index;
 		}
 
-		void replace(HitInfo hit_info) {
+		void compare_replace(HitInfo hit_info) {
+			// This must come from a write request
 			uint set_id = hit_info.hit_address % num_set;
 			uint start_index = set_id * associativity, end_index = start_index + associativity;
 			assert(end_index <= cache_size);
@@ -107,11 +109,20 @@ public:
 				if (cache[i].state != State::EMPTY && cache[i].hit_info.hit_address == hit_info.hit_address) {
 					found_index = i;
 					if (hit_info.hit.t < cache[i].hit_info.hit.t) {
+						cache[i].state = State::CLOSEST_WRITE;
 						cache[i].hit_info = hit_info;
 					}
 				}
 			}
 			assert(found_index != ~0);
+		}
+
+		void direct_replace(HitInfo hit_info, uint cache_index) {
+			if (cache_index != ~0) {
+				cache[cache_index].state = State::LOAD_FROM_DRAM;
+				cache[cache_index].lru = 0;
+				cache[cache_index].hit_info = hit_info;
+			}
 		}
 
 		/*!
@@ -125,9 +136,12 @@ public:
 			for (int i = start_index; i < end_index; i++) {
 				if (cache[i].state == State::LOAD_FROM_DRAM && cache[i].hit_info.hit_address == hit_info.hit_address) {
 					found_index = i;
-					cache[i].state = State::ALREADY_CLOEST;
 					if (cache[i].hit_info.hit.t < hit_info.hit.t) { // The record in cache is closer
+						cache[i].state = State::CLOSEST_WRITE;
+					}
+					else {
 						cache[i].hit_info = hit_info;
+						cache[i].state = State::CLOSEST_DRAM;
 					}
 				}
 			}
@@ -149,16 +163,11 @@ public:
 			if (found_index == ~0) {
 				uint lru = 0;
 				for (int i = start_index; i < end_index; i++) {
-					if (cache[i].state == State::ALREADY_CLOEST && cache[i].lru >= lru) {
+					if ((cache[i].state == State::CLOSEST_DRAM || cache[i].state == State::CLOSEST_WRITE) && cache[i].lru >= lru) {
 						found_index = i;
 						lru = cache[i].lru;
 					}
 				}
-			}
-			if (found_index != ~0) {
-				cache[found_index].state = State::LOAD_FROM_DRAM;
-				cache[found_index].lru = 0;
-				cache[found_index].hit_info = hit_info;
 			}
 			return found_index;
 		}
@@ -211,6 +220,7 @@ public:
 		HitRecordCache hit_record_cache; //128 records
 		std::queue<int> read_queue; //128 * 7 = 1024 bit
 		std::queue<int> write_queue; // TO DO: maximum queue size
+		std::queue<MemoryReturn> return_queue;
 	};
 
 private:
@@ -238,16 +248,24 @@ private:
 		if(cache_index != ~0) state = channel.hit_record_cache.get_state(cache_index);
 
 		if (req.type == HitRecordUpdaterRequest::TYPE::LOAD) {
-			if (state == HitRecordCache::State::ALREADY_CLOEST) {
-
+			assert(fabs(req.hit_info.hit.t - T_MAX) < 1e-6);
+			if (state == HitRecordCache::State::CLOSEST_DRAM || state == HitRecordCache::State::CLOSEST_WRITE) {
+				// We do not need to visit DRAM because we already have the closest hit
 			}
 			else {
-
+				if (cache_index == ~0) {
+					// We need to insert the request to the cache
+				}
+				else {
+					// There is already a load request for this hit
+				}
+				
 			}
 		}
-		else {
-
+		else if (req.type == HitRecordUpdaterRequest::TYPE::STORE) {
+			if()
 		}
+		else assert(false);
 
 		uint cache_index = channel.hit_record_cache.look_up(req.hit);
 		if (cache_index != ~0) {

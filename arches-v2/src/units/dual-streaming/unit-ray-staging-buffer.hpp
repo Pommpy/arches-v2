@@ -128,9 +128,9 @@ public:
 				if (request.size == sizeof(rtm::Hit)) {
 					if (_hit_record_updater->request_port_write_valid(tm_index)) {
 						HitRecordUpdaterRequest req;
-						req.paddr = request.paddr;
+						req.hit_info.hit_address = request.paddr;
 						req.type = HitRecordUpdaterRequest::TYPE::STORE;
-						std::memcpy(&req.hit, request.data, request.size);
+						std::memcpy(&req.hit_info.hit, request.data, request.size);
 						_hit_record_updater->write_request(req, tm_index);
 						request_valid = false;
 						
@@ -156,12 +156,16 @@ public:
 		else
 		{ // LOAD
 
-			if (request.size == sizeof(rtm::Hit) && _hit_record_updater->request_port_write_valid(tm_index)) {
-				HitRecordUpdaterRequest req;
-				req.paddr = request.paddr;
-				req.type = HitRecordUpdaterRequest::TYPE::LOAD;
-				_hit_record_updater->write_request(req, tm_index);
-				request_valid = false;
+			if (request.size == sizeof(rtm::Hit)) {
+				if (_hit_record_updater->request_port_write_valid(tm_index)) {
+					HitRecordUpdaterRequest req;
+					req.hit_info.hit_address = request.paddr;
+					req.hit_info.hit.t = T_MAX;
+					req.type = HitRecordUpdaterRequest::TYPE::LOAD;
+					_hit_record_updater->write_request(req, tm_index);
+					request_valid = false;
+				}
+				
 			}
 			else {
 				//we can't send these until draining the pending stores
