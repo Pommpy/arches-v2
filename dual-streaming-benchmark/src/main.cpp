@@ -22,24 +22,30 @@ void inline barrier()
 
 inline static void kernel(const KernelArgs& args)
 {
-#if __riscv
-	for (uint index = fchthrd(); index < args.framebuffer_size; index = fchthrd()) {
+#if 0 //__riscv
+	uint index;
+	for (index = fchthrd(); index < args.framebuffer_size; index = fchthrd()) 
+	{
 		uint fb_index = index;
-		uint x = index % args.framebuffer_width;
-		uint y = index / args.framebuffer_width;
+		uint hit_index = fb_index % 8192;
 		rtm::RNG rng(fb_index);
 
 		// generate random hit
 		rtm::Hit hit;
-		hit.id = index % 8192;
+		hit.id = rng.randi();
 		hit.bc = { rng.randf(), rng.randf() };
 		hit.t = rng.randf();
 
-		_cshit(hit, args.hit_records + hit.id);
+		_cshit(hit, args.hit_records + hit_index);
+	}
 
-		hit = *(args.hit_records + hit.id);
-		hit.t = hit.t / (hit.t + 1);
-		hit.bc = hit.bc / (hit.bc + 1);
+	for (; index < args.framebuffer_size * 2; index = fchthrd()) 
+	{
+		uint fb_index = index - args.framebuffer_size;
+		uint hit_index = fb_index % 8192;
+
+		rtm::Hit hit = _lhit(args.hit_records + hit_index);
+
 		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 	}
 

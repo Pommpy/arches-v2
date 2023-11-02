@@ -194,7 +194,7 @@ void UnitStreamScheduler::_update_scheduler()
 
 				memory_manager.free_bucket(bucket_adddress);
 
-				Channel::WorkItem channel_work_item;
+				Channel::WorkItem channel_work_item = {};
 				channel_work_item.is_read = true;
 				channel_work_item.address = bucket_adddress;
 				channel_work_item.dst_tm = _scheduler.bucket_request_queue.front();
@@ -265,7 +265,7 @@ void UnitStreamScheduler::_update_scheduler()
 		paddr_t bucket_adddress = memory_manager.alloc_bucket();
 		state.bucket_address_queue.push(bucket_adddress);
 
-		Channel::WorkItem channel_work_item;
+		Channel::WorkItem channel_work_item = {};
 		channel_work_item.is_read = false;
 		channel_work_item.address = bucket_adddress;
 		channel_work_item.bucket = bucket;

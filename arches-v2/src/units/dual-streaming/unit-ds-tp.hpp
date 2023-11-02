@@ -28,20 +28,26 @@ private:
 		}
 		else if(instr_info.instr_type == ISA::RISCV::InstrType::CUSTOM3) //LWI
 		{
-			for(uint i = 0; i <= 9; ++i)
-				if(_float_regs_pending[i])
-					return _float_regs_pending[i];
+			for(uint i = 0; i < sizeof(WorkItem) / sizeof(float); ++i)
+				if(_float_regs_pending[instr.rd + i])
+					return _float_regs_pending[instr.rd + i];
 		}
 		else if(instr_info.instr_type == ISA::RISCV::InstrType::CUSTOM4) //SWI
 		{
-			for(uint i = 0; i <= 9; ++i)
-				if(_float_regs_pending[i])
-					return _float_regs_pending[i];
+			for(uint i = 0; i < sizeof(WorkItem) / sizeof(float); ++i)
+				if(_float_regs_pending[instr.rs2 + i])
+					return _float_regs_pending[instr.rs2 + i];
 		}
 		else if (instr_info.instr_type == ISA::RISCV::InstrType::CUSTOM5) { // CSHIT
-			for (uint i = 15; i <= 18; i++) {
-				if (_float_regs_pending[i])
-					return _float_regs_pending[i];
+			for (uint i = 0; i < sizeof(rtm::Hit) / sizeof(float); i++) {
+				if (_float_regs_pending[instr.rs2 + i])
+					return _float_regs_pending[instr.rs2 + i];
+			}
+		}
+		else if (instr_info.instr_type == ISA::RISCV::InstrType::CUSTOM6) { // LHIT
+			for (uint i = 0; i < sizeof(rtm::Hit) / sizeof(float); i++) {
+				if (_float_regs_pending[instr.rd + i])
+					return _float_regs_pending[instr.rd + i];
 			}
 		}
 		else return Units::UnitTP::_check_dependancies(instr, instr_info);
@@ -58,8 +64,13 @@ private:
 		//}
 		if(instr_info.instr_type == ISA::RISCV::InstrType::CUSTOM3) //LWI
 		{
-			for(uint i = 0; i <= 9; ++i)
-				_float_regs_pending[i] = (uint8_t)ISA::RISCV::InstrType::CUSTOM3;
+			for(uint i = 0; i < sizeof(WorkItem) / sizeof(float); ++i)
+				_float_regs_pending[instr.rd + i] = (uint8_t)ISA::RISCV::InstrType::CUSTOM3;
+		}
+		else if (instr_info.instr_type == ISA::RISCV::InstrType::CUSTOM6) //LHIT
+		{
+			for (uint i = 0; i < sizeof(rtm::Hit) / sizeof(float); ++i)
+				_float_regs_pending[instr.rd + i] = (uint8_t)ISA::RISCV::InstrType::CUSTOM6;
 		}
 		else Units::UnitTP::_set_dependancies(instr, instr_info);
 	}

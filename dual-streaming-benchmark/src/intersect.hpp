@@ -71,9 +71,31 @@ inline void _cshit(const rtm::Hit& hit, rtm::Hit* dst)
 	register float f16 asm("f16") = hit.bc.x;
 	register float f17 asm("f17") = hit.bc.y;
 	register float f18 asm("f18") = *(float*)&hit.id;
-	asm volatile("cshit f15, 0(x0)" : : "f" (f15),  "f" (f16), "f" (f17), "f" (f18));
+	asm volatile("cshit f15, 0(%0)" : : "r" (dst), "f" (f15),  "f" (f16), "f" (f17), "f" (f18));
 #endif
 }
+
+inline rtm::Hit _lhit(rtm::Hit* src)
+{
+#ifdef __riscv
+	register float f15 asm("f15");
+	register float f16 asm("f16");
+	register float f17 asm("f17");
+	register float f18 asm("f18");
+	asm volatile("lhit f15, 0(%0)" : : "r" (src), "f" (f15), "f" (f16), "f" (f17), "f" (f18));
+
+	rtm::Hit hit;
+	hit.t = f15;
+	hit.bc.x = f16;
+	hit.bc.y = f17;
+
+	float _f18 = f18;
+	hit.id = *(uint*)&_f18;
+
+	return hit;
+#endif
+}
+
 
 inline float _intersect(const rtm::AABB& aabb, const rtm::Ray& ray, const rtm::vec3& inv_d)
 {

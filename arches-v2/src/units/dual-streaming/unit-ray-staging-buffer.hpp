@@ -127,16 +127,13 @@ public:
 
 				if (request.size == sizeof(rtm::Hit)) {
 					if (_hit_record_updater->request_port_write_valid(tm_index)) {
-						rtm::Hit hit_record;
-						std::memcpy(&hit_record, request.data, request.size);
-						_hit_record_updater->write_request(hit_record, tm_index);
+						HitRecordUpdaterRequest req;
+						req.paddr = request.paddr;
+						req.type = HitRecordUpdaterRequest::TYPE::STORE;
+						std::memcpy(&req.hit, request.data, request.size);
+						_hit_record_updater->write_request(req, tm_index);
 						request_valid = false;
-
-						//static int tot = 0;
-						//tot += 1;
-						//std::cout << "cnt = " << tot << '\n';
 						
-
 					}
 				}
 				//forward to stream scheduler
@@ -157,34 +154,44 @@ public:
 			}
 		}
 		else
-		{
-			//we can't send these until draining the pending stores
+		{ // LOAD
 
-			//ray generation complete
-			if(rgs_complete == 32 && _stream_scheduler->request_port_write_valid(tm_index))
-			{
-				StreamSchedulerRequest req;
-				req.type = StreamSchedulerRequest::Type::BUCKET_COMPLETE;
-				req.port = tm_index;
-				req.segment = 0;
-				_stream_scheduler->write_request(req, req.port);
-
-				rgs_complete = ~0u;
-				return;
+			if (request.size == sizeof(rtm::Hit) && _hit_record_updater->request_port_write_valid(tm_index)) {
+				HitRecordUpdaterRequest req;
+				req.paddr = request.paddr;
+				req.type = HitRecordUpdaterRequest::TYPE::LOAD;
+				_hit_record_updater->write_request(req, tm_index);
+				request_valid = false;
 			}
+			else {
+				//we can't send these until draining the pending stores
+				//ray generation complete
+				if (rgs_complete == 32 && _stream_scheduler->request_port_write_valid(tm_index))
+				{
+					StreamSchedulerRequest req;
+					req.type = StreamSchedulerRequest::Type::BUCKET_COMPLETE;
+					req.port = tm_index;
+					req.segment = 0;
+					_stream_scheduler->write_request(req, req.port);
 
-			//tell the stream scheduler that a bucket completed
-			if(!completed_buckets.empty() && _stream_scheduler->request_port_write_valid(tm_index))
-			{
-				StreamSchedulerRequest req;
-				req.type = StreamSchedulerRequest::Type::BUCKET_COMPLETE;
-				req.port = tm_index;
-				req.segment = completed_buckets.front();
-				_stream_scheduler->write_request(req, req.port);
+					rgs_complete = ~0u;
+					return;
+				}
 
-				completed_buckets.pop();
-				return;
+				//tell the stream scheduler that a bucket completed
+				if (!completed_buckets.empty() && _stream_scheduler->request_port_write_valid(tm_index))
+				{
+					StreamSchedulerRequest req;
+					req.type = StreamSchedulerRequest::Type::BUCKET_COMPLETE;
+					req.port = tm_index;
+					req.segment = completed_buckets.front();
+					_stream_scheduler->write_request(req, req.port);
+
+					completed_buckets.pop();
+					return;
+				}
 			}
+			
 		}
 	}
 

@@ -113,7 +113,7 @@ const static InstructionInfo isa_custom0_funct3[8] =
 		reg_addr.reg_type = RegType::FLOAT;
 		reg_addr.sign_ext = false;
 
-		//load bucket ray into registers f0 - f8
+		//load bucket ray into registers [rd - (rd + N)]
 		MemoryRequest mem_req;
 		mem_req.type = MemoryRequest::Type::LOAD;
 		mem_req.size = sizeof(WorkItem);
@@ -151,6 +151,22 @@ const static InstructionInfo isa_custom0_funct3[8] =
 		Register32* fr = unit->float_regs->registers;
 		for(uint i = 0; i < sizeof(rtm::Hit) / sizeof(float); ++i)
 			((float*)mem_req.data)[i] = fr[instr.s.rs2 + i].f32;
+
+		return mem_req;
+	}),
+	InstructionInfo(0x4, "lhit", InstrType::CUSTOM6, Encoding::I, RegType::FLOAT, RegType::INT, MEM_REQ_DECL
+	{
+		RegAddr reg_addr;
+		reg_addr.reg = instr.i.rd;
+		reg_addr.reg_type = RegType::FLOAT;
+		reg_addr.sign_ext = false;
+
+		//load hit record into registers [rd - (rd + N)]
+		MemoryRequest mem_req;
+		mem_req.type = MemoryRequest::Type::LOAD;
+		mem_req.size = sizeof(rtm::Hit);
+		mem_req.dst = reg_addr.u8;
+		mem_req.vaddr = unit->int_regs->registers[instr.i.rs1].u64 + i_imm(instr);
 
 		return mem_req;
 	}),
@@ -225,6 +241,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	ISA::RISCV::InstructionTypeNameDatabase::get_instance()[ISA::RISCV::InstrType::CUSTOM3] = "LWI";
 	ISA::RISCV::InstructionTypeNameDatabase::get_instance()[ISA::RISCV::InstrType::CUSTOM4] = "SWI";
 	ISA::RISCV::InstructionTypeNameDatabase::get_instance()[ISA::RISCV::InstrType::CUSTOM5] = "CSHIT";
+	ISA::RISCV::InstructionTypeNameDatabase::get_instance()[ISA::RISCV::InstrType::CUSTOM6] = "LHIT";
 	ISA::RISCV::isa[ISA::RISCV::CUSTOM_OPCODE0] = ISA::RISCV::custom0;
 
 	uint64_t num_tps_per_tm = 32;
@@ -350,6 +367,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 		unit_table[(uint)ISA::RISCV::InstrType::CUSTOM3] = rsbs.back(); //LWI
 		unit_table[(uint)ISA::RISCV::InstrType::CUSTOM4] = rsbs.back(); //SWI
 		unit_table[(uint)ISA::RISCV::InstrType::CUSTOM5] = rsbs.back(); //CSHIT
+		unit_table[(uint)ISA::RISCV::InstrType::CUSTOM6] = rsbs.back(); //LHIT
 
 
 

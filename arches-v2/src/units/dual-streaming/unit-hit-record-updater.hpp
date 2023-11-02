@@ -16,6 +16,24 @@ namespace Arches { namespace Units { namespace DualStreaming {
 * Each channel maintains a local hit record cache. When a new hit record is requesting data from DRAM, we use the cache to store the record. When the cache is full, the TPs are blocked.
 * Each channel processes one request from TPs in one cycle. Channels issue write request first (if available), then read request.
 */
+
+
+struct HitInfo {
+	rtm::Hit hit;
+	paddr_t hit_address;
+};
+
+struct HitRecordUpdaterRequest
+{
+	enum TYPE{
+		STORE = 0,
+		LOAD
+	};
+	TYPE type; //load or conditional store
+	HitInfo hit_info;
+	uint port;
+};
+
 class UnitHitRecordUpdater : public UnitBase {
 public:
 	struct Configuration
@@ -32,6 +50,7 @@ public:
 		uint                main_mem_port_stride{ 1 };
 	};
 
+
 	/*
 	* Hit record cache in the updater. It is a set-associative cache used for storing requesting updates.
 	*/
@@ -39,15 +58,15 @@ public:
 	public:
 		enum class State : uint8_t
 		{
-			READ_COMPLETE, // Get data from DRAM and wait to write
-			READ_ISSUED,
-			UNISSUED,
+			ALREADY_CLOEST, // Get data from DRAM and wait to write
+			LOAD_FROM_DRAM,
 			EMPTY,
 		};
 	private:
 		struct CacheElement {
 			State state;
-			rtm::Hit hit;
+			HitInfo hit_info;
+			uint lru = 0;
 		};
 		std::vector<CacheElement> cache;
 		uint cache_size; // How many hit records
@@ -58,70 +77,98 @@ public:
 			cache.resize(cache_size, { State::EMPTY });
 		}
 		
-		uint look_up(rtm::Hit hit_record, bool from_dram = false) {
-			uint set_id = hit_record.id % num_set;
+		uint look_up(HitInfo hit_info) {
+			uint set_id = hit_info.hit_address % num_set;
 			uint start_index = set_id * associativity, end_index = start_index + associativity;
 			assert(end_index <= cache_size);
+			uint found_index = ~0;
+			uint counter = 0;
 			for (int i = start_index; i < end_index; i++) {
-				if (cache[i].state != State::EMPTY && cache[i].hit.id == hit_record.id) return i;
-			}
-			return ~0;
-		}
-
-		void replace(rtm::Hit hit_record) {
-			uint set_id = hit_record.id % num_set;
-			uint start_index = set_id * associativity, end_index = start_index + associativity;
-			assert(end_index <= cache_size);
-			bool find_element = false;
-			for (int i = start_index; i < end_index; i++) {
-				if (cache[i].state != State::EMPTY && cache[i].hit.id == hit_record.id) {
-					find_element = true;
-					if(hit_record.t < cache[i].hit.t) cache[i].hit = hit_record;
+				if (cache[i].state != State::EMPTY && cache[i].hit_info.hit_address == hit_info.hit_address) {
+					found_index = i;
+					counter += 1;
 				}
 			}
-			assert(find_element);
+			assert(counter < 2);
+			if (!counter) return ~0;
+			for (int i = start_index; i < end_index; i++) {
+				if (cache[i].lru < cache[found_index].lru) cache[i].lru++;
+			}
+			cache[found_index].lru = 0;
+			return found_index;
+		}
+
+		void replace(HitInfo hit_info) {
+			uint set_id = hit_info.hit_address % num_set;
+			uint start_index = set_id * associativity, end_index = start_index + associativity;
+			assert(end_index <= cache_size);
+			uint found_index = ~0;
+			for (int i = start_index; i < end_index; i++) {
+				if (cache[i].state != State::EMPTY && cache[i].hit_info.hit_address == hit_info.hit_address) {
+					found_index = i;
+					if (hit_info.hit.t < cache[i].hit_info.hit.t) {
+						cache[i].hit_info = hit_info;
+					}
+				}
+			}
+			assert(found_index != ~0);
 		}
 
 		/*!
 		* \brief Hit record from DRAM.
 		*/
-		uint compare_dram(rtm::Hit hit_record) {
-			uint set_id = hit_record.id % num_set;
+		uint process_dram_hit(HitInfo hit_info) {
+			uint set_id = hit_info.hit_address % num_set;
 			uint start_index = set_id * associativity, end_index = start_index + associativity;
 			assert(end_index <= cache_size);
-			bool find_element = false;
+			uint found_index = ~0;
 			for (int i = start_index; i < end_index; i++) {
-				if (cache[i].state == State::READ_ISSUED && cache[i].hit.id == hit_record.id) {
-					find_element = true;
-					cache[i].state = State::READ_COMPLETE;
-					if (cache[i].hit.t < hit_record.t) { // The record in cache is closer
-						return i;
-					}
-					else {
-						cache[i].state = State::EMPTY;
-						//std::cout << "DRAM is better" << '\n';
+				if (cache[i].state == State::LOAD_FROM_DRAM && cache[i].hit_info.hit_address == hit_info.hit_address) {
+					found_index = i;
+					cache[i].state = State::ALREADY_CLOEST;
+					if (cache[i].hit_info.hit.t < hit_info.hit.t) { // The record in cache is closer
+						cache[i].hit_info = hit_info;
 					}
 				}
 			}
-			assert(find_element);
-			return ~0;
+			assert(found_index != ~0);
+			return found_index;
 		}
 
-		uint insert(rtm::Hit hit_record) {
-			uint set_id = hit_record.id % num_set;
+		uint insert(HitInfo hit_info) {
+			uint set_id = hit_info.hit_address % num_set;
 			uint start_index = set_id * associativity, end_index = start_index + associativity;
 			assert(end_index <= cache_size);
+			uint found_index = ~0;
 			for (int i = start_index; i < end_index; i++) {
 				if (cache[i].state == State::EMPTY) {
-					cache[i] = { State::UNISSUED, hit_record };
-					return i;
+					found_index = i;
+					break;
 				}
 			}
-			return ~0;
+			if (found_index == ~0) {
+				uint lru = 0;
+				for (int i = start_index; i < end_index; i++) {
+					if (cache[i].state == State::ALREADY_CLOEST && cache[i].lru >= lru) {
+						found_index = i;
+						lru = cache[i].lru;
+					}
+				}
+			}
+			if (found_index != ~0) {
+				cache[found_index].state = State::LOAD_FROM_DRAM;
+				cache[found_index].lru = 0;
+				cache[found_index].hit_info = hit_info;
+			}
+			return found_index;
 		}
 
-		rtm::Hit fetch_hit(uint cache_index) {
-			return cache[cache_index].hit;
+		HitInfo fetch_hit(uint cache_index) {
+			return cache[cache_index].hit_info;
+		}
+
+		State get_state(uint cache_index) {
+			return cache[cache_index].state;
 		}
 
 		void update_state(uint cache_index, State state) {
@@ -131,23 +178,33 @@ public:
 		void check_cache() {
 			std::map<int, int> counter;
 			for (int i = 0; i < cache_size; i++) {
-				
-				if(cache[i].state != State::EMPTY) counter[cache[i].hit.id] += 1;
+				if(cache[i].state != State::EMPTY) counter[cache[i].hit_info.hit_address] += 1;
 			}
 			for (auto [key, value] : counter) assert(value == 1);
 		}
 
 	};
 
-	class HitRecordUpdaterRequestCrossBar : public CasscadedCrossBar<rtm::Hit> {
+	class HitRecordUpdaterRequestCrossBar : public CasscadedCrossBar<HitRecordUpdaterRequest> {
 	public:
-		HitRecordUpdaterRequestCrossBar(uint ports, uint channels, paddr_t hit_record_start_address) : CasscadedCrossBar<rtm::Hit>(ports, channels, channels), hit_record_start_address(hit_record_start_address){}
-		uint get_sink(const rtm::Hit& request) override {
-			paddr_t hit_record_address = hit_record_start_address + request.id * sizeof(rtm::Hit);
+		HitRecordUpdaterRequestCrossBar(uint ports, uint channels, paddr_t hit_record_start_address) : CasscadedCrossBar<HitRecordUpdaterRequest>(ports, channels, channels), hit_record_start_address(hit_record_start_address){}
+		uint get_sink(const HitRecordUpdaterRequest& request) override {
+			paddr_t hit_record_address = request.hit_info.hit_address;
 			int channel_id = calcDramAddr(hit_record_address).channel;
 			return calcDramAddr(hit_record_address).channel;
 		}
 		paddr_t hit_record_start_address;
+	};
+
+	class ReturnCrossBar : public CasscadedCrossBar<MemoryReturn>
+	{
+	public:
+		ReturnCrossBar(uint ports, uint banks) : CasscadedCrossBar<MemoryReturn>(banks, ports, banks) {}
+
+		uint get_sink(const MemoryReturn& ret) override
+		{
+			return ret.port;
+		}
 	};
 
 	struct Channel {
@@ -159,6 +216,7 @@ public:
 private:
 	paddr_t hit_record_start_address;
 	HitRecordUpdaterRequestCrossBar request_network;
+	
 	std::vector<Channel> channels;
 	UnitMemoryBase* main_memory;
 	uint                main_mem_port_offset{ 0 };
@@ -170,18 +228,34 @@ private:
 	void process_requests(uint channel_index) {
 		if (!request_network.is_read_valid(channel_index)) return;
 		Channel& channel = channels[channel_index];
-		rtm::Hit req = request_network.peek(channel_index);
+		HitRecordUpdaterRequest req = request_network.peek(channel_index);
 		
 		if (busy == 0) simulator->units_executing++;
 		busy |= (1 << channel_index);
 
-		uint cache_index = channel.hit_record_cache.look_up(req);
+		uint cache_index = channel.hit_record_cache.look_up(req.hit_info);
+		HitRecordCache::State state;
+		if(cache_index != ~0) state = channel.hit_record_cache.get_state(cache_index);
+
+		if (req.type == HitRecordUpdaterRequest::TYPE::LOAD) {
+			if (state == HitRecordCache::State::ALREADY_CLOEST) {
+
+			}
+			else {
+
+			}
+		}
+		else {
+
+		}
+
+		uint cache_index = channel.hit_record_cache.look_up(req.hit);
 		if (cache_index != ~0) {
-			channel.hit_record_cache.replace(req); // try to replace
+			channel.hit_record_cache.replace(req.hit); // try to replace
 			request_network.read(channel_index);
 		}
 		else {
-			uint success_index = channel.hit_record_cache.insert(req);
+			uint success_index = channel.hit_record_cache.insert(req.hit);
 			if (success_index != ~0) {
 				request_network.read(channel_index);
 				channel.read_queue.push(success_index);
@@ -254,9 +328,6 @@ private:
 
 		if (!requested) {
 			if(busy == (1 << channel_index)) simulator->units_executing--;
-			//if (simulator->units_executing == 0) {
-			//	assert(false);
-			//}
 			busy &= ~(1 << channel_index);
 		}
 	}
@@ -274,7 +345,7 @@ public:
 		return request_network.is_write_valid(port_index);
 	}
 
-	void write_request(const rtm::Hit& request, uint port_index)
+	void write_request(const HitRecordUpdaterRequest& request, uint port_index)
 	{
 		request_network.write(request, port_index);
 	}
