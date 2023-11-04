@@ -162,7 +162,9 @@ public:
 					req.hit_info.hit_address = request.paddr;
 					req.hit_info.hit.t = T_MAX;
 					req.type = HitRecordUpdaterRequest::TYPE::LOAD;
-					_hit_record_updater->write_request(req, tm_index);
+					req.dst = request.dst;
+					req.port = tm_index;
+					_hit_record_updater->write_request(req, req.port);
 					request_valid = false;
 				}
 				
