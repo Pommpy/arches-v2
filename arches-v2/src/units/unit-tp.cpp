@@ -261,11 +261,6 @@ FREE_INSTR:
 			assert(req.vaddr < 4ull * 1024ull * 1024ull * 1024ull);
 
 			_set_dependancies(instr, instr_info);
-			//if (instr_info.instr_type == ISA::RISCV::InstrType::CUSTOM5) {
-			//	static int tot = 0;
-			//	tot += 1;
-			//	std::cout << "tot = " << tot << '\n';
-			//}
 			mem->write_request(req, req.port);
 		}
 		else

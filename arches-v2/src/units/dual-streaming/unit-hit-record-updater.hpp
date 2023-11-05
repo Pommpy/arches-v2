@@ -9,19 +9,23 @@
 
 namespace Arches { namespace Units { namespace DualStreaming {
 
-/*!
-* \brief The hit record updater receives hit records from TMs and update the record in the DRAM
-* 
-* The hit record updater is divided into multiple channels (eg. number of channels in DRAM). It uses a casscadeCrossBar to process requests.
-* Each channel maintains a local hit record cache. When a new hit record is requesting data from DRAM, we use the cache to store the record. When the cache is full, the TPs are blocked.
-* Each channel processes one request from TPs in one cycle. Channels issue write request first (if available), then read request.
-*/
-
+uint LOG_65536[1 << 16];
+uint LOG(UINT64 value) {
+	assert(value != 0);
+	assert(value & (value - 1) == 0); // It's a power number
+	if (LOG_65536[1 << 1] != 1) {
+		// Initialization
+		for (uint i = 0; i < 16; i++) LOG_65536[1 << i] = i;
+	}
+	while ((value >> 16) > 0) value >>= 16;
+	return LOG_65536[value];
+}
 
 struct HitInfo {
 	rtm::Hit hit;
 	paddr_t hit_address;
 };
+
 
 struct HitRecordUpdaterRequest
 {
@@ -32,9 +36,15 @@ struct HitRecordUpdaterRequest
 	TYPE type; //load or conditional store
 	HitInfo hit_info;
 	uint port;
-	uint dst; // TP register
 };
 
+/*!
+* \brief The hit record updater receives hit records from TMs and update the record in the DRAM
+*
+* The hit record updater is divided into multiple channels (eg. number of channels in DRAM). It uses a casscadeCrossBar to process requests.
+* Each channel maintains a local hit record cache. When a new hit record is requesting data from DRAM, we use the cache to store the record. When the cache is full, the TPs are blocked.
+* Each channel processes one request from TPs in one cycle. Channels issue write request first (if available), then read request.
+*/
 class UnitHitRecordUpdater : public UnitBase {
 public:
 	struct Configuration
@@ -222,7 +232,7 @@ public:
 		std::queue<MemoryRequest> read_queue; //128 * 7 = 1024 bit
 		std::queue<MemoryRequest> write_queue;
 		std::queue<MemoryReturn> return_queue;
-		std::map<paddr_t, std::vector<HitRecordUpdaterRequest>> tp_load_queue;
+		std::map<paddr_t, UINT64> rsb_load_queue; // If the number of TMs is smaller than 64, otherwise we should replace UINT64 with std::vector
 	};
 
 private:
@@ -241,24 +251,23 @@ private:
 	void process_requests(uint channel_index) {
 		if (!request_network.is_read_valid(channel_index)) return;
 		Channel& channel = channels[channel_index];
-		const HitRecordUpdaterRequest tp_req = request_network.peek(channel_index);
+		const HitRecordUpdaterRequest rsb_req = request_network.peek(channel_index);
 		
 		if (busy == 0) simulator->units_executing++;
 		busy |= (1 << channel_index);
 
-		uint cache_index = channel.hit_record_cache.look_up(tp_req.hit_info);
+		uint cache_index = channel.hit_record_cache.look_up(rsb_req.hit_info);
 		HitRecordCache::State state = HitRecordCache::State::EMPTY;
 		if(cache_index != ~0) state = channel.hit_record_cache.get_state(cache_index);
 
-		if (tp_req.type == HitRecordUpdaterRequest::TYPE::LOAD) {
-			assert(fabs(tp_req.hit_info.hit.t - T_MAX) < 1e-6); // For read request, hit.t = T_MAX
+		if (rsb_req.type == HitRecordUpdaterRequest::TYPE::LOAD) {
+			assert(fabs(rsb_req.hit_info.hit.t - T_MAX) < 1e-6); // For read request, hit.t = T_MAX
 			if (state == HitRecordCache::State::CLOSEST_DRAM || state == HitRecordCache::State::CLOSEST_WRITE) {
 				// We do not need to visit DRAM because we already have the closest hit
 				HitInfo hit_info = channel.hit_record_cache.fetch_hit(cache_index);
 				MemoryReturn ret;
-				ret.port = tp_req.port;
+				ret.port = rsb_req.port;
 				ret.size = sizeof(rtm::Hit);
-				ret.dst = tp_req.dst;
 				std::memcpy(ret.data, &hit_info.hit, sizeof(rtm::Hit));
 				ret.paddr = hit_info.hit_address;
 				channel.return_queue.push(ret);
@@ -267,12 +276,13 @@ private:
 			else {
 				if (cache_index != ~0) {
 					// There is already a load request for this hit
-					channel.tp_load_queue[tp_req.hit_info.hit_address].push_back(tp_req);
+					assert(rsb_req.port < 64);
+					channel.rsb_load_queue[rsb_req.hit_info.hit_address] |= (1 << rsb_req.port);
 					request_network.read(channel_index);
 				}
 				else {
 					// We need to insert the request to the cache
-					uint replace_index = channel.hit_record_cache.try_insert(tp_req.hit_info);
+					uint replace_index = channel.hit_record_cache.try_insert(rsb_req.hit_info);
 					if (replace_index != ~0) {
 						HitInfo hit_info_replaced = channel.hit_record_cache.fetch_hit(replace_index);
 						HitRecordCache::State state_replaced = channel.hit_record_cache.get_state(replace_index);
@@ -287,31 +297,30 @@ private:
 							std::memcpy(write_req.data, &hit_info_replaced.hit, sizeof(rtm::Hit));
 							channel.write_queue.push(write_req);
 						}
-						channel.hit_record_cache.direct_replace(tp_req.hit_info, replace_index);
+						channel.hit_record_cache.direct_replace(rsb_req.hit_info, replace_index);
 
 						MemoryRequest load_req;
 						load_req.type = MemoryRequest::Type::LOAD;
 						load_req.size = sizeof(rtm::Hit);
-						load_req.paddr = tp_req.hit_info.hit_address;
-						load_req.port = tp_req.port;
+						load_req.paddr = rsb_req.hit_info.hit_address;
 						channel.read_queue.push(load_req);
 
-						channel.tp_load_queue[tp_req.hit_info.hit_address].push_back(tp_req);
+						channel.rsb_load_queue[rsb_req.hit_info.hit_address] |= (1 << rsb_req.port);
 						request_network.read(channel_index);
 					}
 				}
 				
 			}
 		}
-		else if (tp_req.type == HitRecordUpdaterRequest::TYPE::STORE) {
+		else if (rsb_req.type == HitRecordUpdaterRequest::TYPE::STORE) {
 			if (cache_index != ~0) {
 				// There is a record in the cache
-				channel.hit_record_cache.compare_replace(tp_req.hit_info);
+				channel.hit_record_cache.compare_replace(rsb_req.hit_info);
 				request_network.read(channel_index);
 			}
 			else {
 				// It is a new record
-				uint replace_index = channel.hit_record_cache.try_insert(tp_req.hit_info);
+				uint replace_index = channel.hit_record_cache.try_insert(rsb_req.hit_info);
 				if (replace_index != ~0) {
 					HitInfo hit_info_replaced = channel.hit_record_cache.fetch_hit(replace_index);
 					HitRecordCache::State state_replaced = channel.hit_record_cache.get_state(replace_index);
@@ -326,13 +335,12 @@ private:
 						std::memcpy(write_req.data, &hit_info_replaced.hit, sizeof(rtm::Hit));
 						channel.write_queue.push(write_req);
 					}
-					channel.hit_record_cache.direct_replace(tp_req.hit_info, replace_index);
+					channel.hit_record_cache.direct_replace(rsb_req.hit_info, replace_index);
 					
 					MemoryRequest load_req;
 					load_req.type = MemoryRequest::Type::LOAD;
 					load_req.size = sizeof(rtm::Hit);
-					load_req.paddr = tp_req.hit_info.hit_address;
-					load_req.port = ~0; // It's important to identify TP request
+					load_req.paddr = rsb_req.hit_info.hit_address;
 					channel.read_queue.push(load_req);
 
 					request_network.read(channel_index);
@@ -350,29 +358,28 @@ private:
 		busy |= (1 << channel_index);
 
 		Channel& channel = channels[channel_index];
-		MemoryReturn ret = main_memory->read_return(port_in_main_memory);
-		paddr_t hit_address = ret.paddr;
+		MemoryReturn ret_from_dram = main_memory->read_return(port_in_main_memory);
+		paddr_t hit_address = ret_from_dram.paddr;
 		rtm::Hit hit_in_dram;
-		std::memcpy(&hit_in_dram, ret.data, sizeof(rtm::Hit));
+		std::memcpy(&hit_in_dram, ret_from_dram.data, sizeof(rtm::Hit));
 		HitInfo hit_info = { hit_in_dram, hit_address };
 
 		uint cache_index = channel.hit_record_cache.process_dram_hit(hit_info);
 		if (cache_index != ~0) {
 			HitInfo cloest_hit_info = channel.hit_record_cache.fetch_hit(cache_index);
 			// If there are load requests from TP
-			if (channel.tp_load_queue.count(hit_address)) {
-				for (const HitRecordUpdaterRequest& tp_request : channel.tp_load_queue[hit_address]) {
-					MemoryReturn ret;
-					ret.port = tp_request.port;
-					ret.dst = tp_request.dst;
-					std::memcpy(ret.data, &tp_request.hit_info.hit, sizeof(rtm::Hit));
-					ret.size = sizeof(rtm::Hit);
-					channel.return_queue.push(ret);
+			if (channel.rsb_load_queue.count(hit_address)) {
+				UINT64 rsb_set = channel.rsb_load_queue[hit_address];
+				for (; rsb_set != 0; rsb_set -= (rsb_set & -rsb_set)) {
+					uint rsb_index = LOG(rsb_set & -rsb_set);
+					MemoryReturn ret_to_rsb;
+					ret_to_rsb.paddr = hit_address;
+					ret_to_rsb.port = rsb_index;
+					std::memcpy(ret_to_rsb.data, &hit_info.hit, sizeof(rtm::Hit));
+					channel.return_queue.push(ret_to_rsb);
 				}
-				channel.tp_load_queue.erase(hit_address);
+				channel.rsb_load_queue.erase(hit_address);
 			}
-			
-			
 		}
 		else assert(false); // there must be a record in the cache
 		
@@ -411,8 +418,9 @@ private:
 		auto& queue = channel.return_queue;
 		if (!queue.empty()) {
 			MemoryReturn ret = queue.front();
-			if (return_network.is_write_valid()) {
-
+			if (return_network.is_write_valid(ret.port)) {
+				return_network.write(ret, ret.port);
+				queue.pop();
 			}
 		}
 	}
@@ -434,6 +442,21 @@ public:
 	void write_request(const HitRecordUpdaterRequest& request, uint port_index)
 	{
 		request_network.write(request, port_index);
+	}
+
+	bool return_port_read_valid(uint port_index)
+	{
+		return return_network.is_read_valid(port_index);
+	}
+
+	const MemoryReturn& peek_return(uint port_index)
+	{
+		return return_network.peek(port_index);
+	}
+
+	const MemoryReturn read_return(uint port_index)
+	{
+		return return_network.read(port_index);
 	}
 
 	// Process requests from TMs and returns from DRAM

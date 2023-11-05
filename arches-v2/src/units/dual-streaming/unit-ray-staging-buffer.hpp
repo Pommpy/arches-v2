@@ -57,6 +57,9 @@ public:
 	std::queue<uint> completed_buckets;
 	std::queue<uint> workitem_request_queue;
 
+	std::map<paddr_t, MemoryRequest> tp_hit_load_request; // a hit record (or ray index) is uniquely mapped to a TP
+	MemoryReturn returned_hit;
+
 	bool request_valid{false};
 	MemoryRequest request;
 
@@ -66,10 +69,15 @@ public:
 
 		if(!request_valid && _request_network.is_read_valid(0))
 		{
-			request = _request_network.read(0); // TO DO: What if last request hasn't been processed?
+			request = _request_network.read(0);
 			request_valid = true;
 		}
 
+		if (_hit_record_updater->return_port_read_valid(tm_index)) {
+			MemoryReturn ret = _hit_record_updater->read_return(tm_index);
+			returned_hit.paddr = ret.paddr;
+			std::memcpy(returned_hit.data, ret.data, ret.size);
+		}
 		if(_stream_scheduler->return_port_read_valid(tm_index))
 		{
 			MemoryReturn ret = _stream_scheduler->read_return(tm_index);
@@ -78,11 +86,10 @@ public:
 			{
 				//termination condition
 				back_buffer->bytes_returned = RAY_BUCKET_SIZE;
-				back_buffer->ray_bucket.segment = ~0u;
+				back_buffer->ray_bucket.segment = ~0u; 
 				back_buffer->ray_bucket.num_rays = 32;
 			}
-			else
-			{
+			else {
 				uint buffer_address = ret.paddr % RAY_BUCKET_SIZE;
 				std::memcpy(&back_buffer->data_u8[buffer_address], ret.data, ret.size);
 				back_buffer->bytes_returned += ret.size;
@@ -162,10 +169,11 @@ public:
 					req.hit_info.hit_address = request.paddr;
 					req.hit_info.hit.t = T_MAX;
 					req.type = HitRecordUpdaterRequest::TYPE::LOAD;
-					req.dst = request.dst;
 					req.port = tm_index;
 					_hit_record_updater->write_request(req, req.port);
-					request_valid = false;
+
+					assert(!tp_hit_load_request.count(request.paddr));
+					tp_hit_load_request[request.paddr] = request;
 				}
 				
 			}
@@ -203,49 +211,65 @@ public:
 
 	void issue_returns()
 	{
-		//a load request is pending put it in the request queue
-		if(request_valid && request.type == MemoryRequest::Type::LOAD)
-		{
-			workitem_request_queue.push(request.port);
-			request_valid = false;
+		if (returned_hit.paddr != ~0) {
+			assert(tp_hit_load_request.count(returned_hit.paddr));
+			MemoryRequest req = tp_hit_load_request[returned_hit.paddr];
+			
+			if (_return_network.is_write_valid(req.port)) {
+				returned_hit.port = req.port;
+				returned_hit.dst = req.dst;
+				_return_network.write(returned_hit, returned_hit.port);
 
-			//mark previous ray as complete
-			if(buffer_executing_on_tp[request.port])
-			{
-				RayBucketBuffer* buffer = buffer_executing_on_tp[request.port];
-				buffer->rays_complete++;
-				if(buffer->rays_complete == buffer->ray_bucket.num_rays)
-					completed_buckets.push(buffer->ray_bucket.segment);
-			}
-			else
-			{
-				rgs_complete++;
+				tp_hit_load_request.erase(returned_hit.paddr);
+				returned_hit.paddr = ~0;
 			}
 		}
 
-		//if we have a filled bucket pop a ray from it
-		if(!workitem_request_queue.empty() && front_buffer->next_ray < front_buffer->ray_bucket.num_rays && _return_network.is_write_valid(request.port))
-		{
-			MemoryReturn ret;
+		else {
+			//a load request is pending put it in the request queue
+			if (request_valid && request.type == MemoryRequest::Type::LOAD)
+			{
+				workitem_request_queue.push(request.port);
+				request_valid = false;
 
-			ISA::RISCV::RegAddr reg_addr;
-			reg_addr.reg = 0;
-			reg_addr.reg_type = ISA::RISCV::RegType::FLOAT;
-			reg_addr.sign_ext = 0;
-			ret.dst = reg_addr.u8;
+				//mark previous ray as complete
+				if (buffer_executing_on_tp[request.port])
+				{
+					RayBucketBuffer* buffer = buffer_executing_on_tp[request.port];
+					buffer->rays_complete++;
+					if (buffer->rays_complete == buffer->ray_bucket.num_rays)
+						completed_buckets.push(buffer->ray_bucket.segment);
+				}
+				else
+				{
+					rgs_complete++;
+				}
+			}
 
-			ret.size = sizeof(WorkItem);
-			ret.port = workitem_request_queue.front();
+			//if we have a filled bucket pop a ray from it
+			if (!workitem_request_queue.empty() && front_buffer->next_ray < front_buffer->ray_bucket.num_rays && _return_network.is_write_valid(request.port))
+			{
+				MemoryReturn ret;
 
-			WorkItem wi;
-			wi.bray = front_buffer->ray_bucket.bucket_rays[front_buffer->next_ray];
-			wi.segment = front_buffer->ray_bucket.segment;
-			std::memcpy(ret.data, &wi, ret.size);
-			_return_network.write(ret, ret.port);
+				ISA::RISCV::RegAddr reg_addr;
+				reg_addr.reg = 0;
+				reg_addr.reg_type = ISA::RISCV::RegType::FLOAT;
+				reg_addr.sign_ext = 0;
+				ret.dst = reg_addr.u8;
 
-			workitem_request_queue.pop();
-			front_buffer->next_ray++;
-			buffer_executing_on_tp[ret.port] = front_buffer;
+				ret.size = sizeof(WorkItem);
+				ret.port = workitem_request_queue.front();
+
+				WorkItem wi;
+				wi.bray = front_buffer->ray_bucket.bucket_rays[front_buffer->next_ray];
+				wi.segment = front_buffer->ray_bucket.segment;
+				std::memcpy(ret.data, &wi, ret.size);
+				_return_network.write(ret, ret.port);
+
+				workitem_request_queue.pop();
+				front_buffer->next_ray++;
+				buffer_executing_on_tp[ret.port] = front_buffer;
+			}
 		}
 	}
 
