@@ -61,31 +61,12 @@ namespace Arches {
 					_current_request_valid = true;
 				}
 			}
-
-			void clock_fall() override
+			else if(_return_network.is_write_valid(_current_request.port))
 			{
-				if (!_stalled_for_atomic_reg && _current_request_valid)
-				{
-					if (_current_offset == _tile_size)
-					{
-						if (_atomic_regs->request_port_write_valid(_tm_index))
-						{
-							MemoryRequest request;
-							request.type = MemoryRequest::Type::AMO_ADD;
-							request.size = 4;
-							request.port = _tm_index;
-							request.paddr = 0x0ull;
-							request.data_u32 = 1;
-							_atomic_regs->write_request(request, request.port);
-							_stalled_for_atomic_reg = true;
-						}
-					}
-					else if (_return_network.is_write_valid(_tm_index))
-					{
-						MemoryReturn ret = _current_request;
-						uint x = (_current_tile % (_width / _tile_width)) * _tile_width + (_current_offset % _tile_width);
-						uint y = (_current_tile / (_width / _tile_width)) * _tile_height + (_current_offset / _tile_width);
-						ret.data_u32 = y * _width + x;
+				uint x = (_current_tile % (_width / _tile_width)) * _tile_width + (_current_offset % _tile_width);
+				uint y = (_current_tile / (_width / _tile_width)) * _tile_height + (_current_offset / _tile_width);
+				uint32_t index = y * _width + x;
+				MemoryReturn ret(_current_request, &index);
 
 						_return_network.write(ret, ret.port);
 

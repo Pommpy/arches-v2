@@ -30,13 +30,8 @@ namespace Arches {
 
 			void clock_rise() override
 			{
-				_request_network.clock();
-
-				if (_request_network.is_read_valid(0))
-				{
-					_current_request = _request_network.read(0);
-					_current_request_valid = true;
-				}
+				MemoryReturn ret(_current_request, &ret_val);
+				_return_network.write(ret, ret.port);
 			}
 
 			void clock_fall() override

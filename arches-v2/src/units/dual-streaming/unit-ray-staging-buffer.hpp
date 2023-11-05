@@ -20,7 +20,6 @@ struct RayBucketBuffer
 	bool requested{false};
 	uint bytes_returned{0};
 	uint next_ray{0};
-	uint rays_complete{0};
 
 	RayBucketBuffer() 
 	{
@@ -37,9 +36,10 @@ public:
 	{
 		front_buffer = &ray_buffer[0];
 		back_buffer = &ray_buffer[1];
-		buffer_executing_on_tp.resize(num_tp, nullptr);
+		segment_executing_on_tp.resize(num_tp, ~0u);
 	}
 
+private:
 	Casscade<MemoryRequest> _request_network;
 	FIFOArray<MemoryReturn> _return_network;
 
@@ -47,12 +47,21 @@ public:
 	UnitHitRecordUpdater* _hit_record_updater;
 	
 	uint tm_index;
+	uint num_tp;
 	uint rgs_complete{0};
 
 	RayBucketBuffer* front_buffer;
 	RayBucketBuffer* back_buffer;
 	RayBucketBuffer ray_buffer[2];
-	std::vector<RayBucketBuffer*> buffer_executing_on_tp;
+
+	struct SegmentState
+	{
+		uint active_rays{0};
+		uint active_buckets{0};
+	};
+
+	std::map<uint, SegmentState> segment_state_map;
+	std::vector<uint>            segment_executing_on_tp;
 
 	std::queue<uint> completed_buckets;
 	std::queue<uint> workitem_request_queue;
@@ -61,7 +70,7 @@ public:
 	MemoryReturn returned_hit;
 
 	bool request_valid{false};
-	MemoryRequest request;
+	MemoryRequest request{};
 
 	void clock_rise() override
 	{
@@ -81,13 +90,12 @@ public:
 		if(_stream_scheduler->return_port_read_valid(tm_index))
 		{
 			MemoryReturn ret = _stream_scheduler->read_return(tm_index);
-
 			if(ret.size == 0)
 			{
 				//termination condition
 				back_buffer->bytes_returned = RAY_BUCKET_SIZE;
-				back_buffer->ray_bucket.segment = ~0u; 
-				back_buffer->ray_bucket.num_rays = 32;
+				back_buffer->ray_bucket.segment = ~0u;
+				back_buffer->ray_bucket.num_rays = num_tp;
 			}
 			else {
 				uint buffer_address = ret.paddr % RAY_BUCKET_SIZE;
@@ -109,88 +117,55 @@ public:
 			back_buffer->requested = false;
 		}
 
-		//back buffer is complete request a fill from the stream scheduler
-		if(!back_buffer->requested && back_buffer->rays_complete == back_buffer->ray_bucket.num_rays && _stream_scheduler->request_port_write_valid(tm_index))
+		if(_stream_scheduler->request_port_write_valid(tm_index))
 		{
-			StreamSchedulerRequest req;
-			req.type = StreamSchedulerRequest::Type::LOAD_BUCKET;
-			req.port = tm_index;
-			req.segment = ~0u; //TODO send segment hint
-			_stream_scheduler->write_request(req, req.port);
-
-			//reset ray return state as completed
-			back_buffer->rays_complete = 0;
-			back_buffer->next_ray = 0;
-
-			back_buffer->requested = true;
-			return;
-		}
-
-		if(request_valid)
-		{
-			//a store request is pending service it
-			if(request.type == MemoryRequest::Type::STORE) //ray write or conditionally store hit
+			if(!back_buffer->requested && back_buffer->next_ray == back_buffer->ray_bucket.num_rays)
 			{
+				//back buffer is drained request a fill from the stream scheduler
+				StreamSchedulerRequest req;
+				req.type = StreamSchedulerRequest::Type::LOAD_BUCKET;
+				req.port = tm_index;
+				_stream_scheduler->write_request(req, req.port);
 
-				if (request.size == sizeof(rtm::Hit)) {
-					if (_hit_record_updater->request_port_write_valid(tm_index)) {
-						HitRecordUpdaterRequest req;
-						req.hit_info.hit_address = request.paddr;
-						req.type = HitRecordUpdaterRequest::TYPE::STORE;
-						std::memcpy(&req.hit_info.hit, request.data, request.size);
-						_hit_record_updater->write_request(req, tm_index);
-						request_valid = false;
-						
-					}
-				}
-				//forward to stream scheduler
-				else if(_stream_scheduler->request_port_write_valid(tm_index))
-				{
-					StreamSchedulerRequest req;
-					req.type = StreamSchedulerRequest::Type::STORE_WORKITEM;
-					req.port = tm_index;
+				//reset ray return state as completed
+				back_buffer->next_ray = 0;
 
-					WorkItem wi;
-					std::memcpy(&wi, request.data, request.size);
-					req.bray = wi.bray;
-					req.segment = wi.segment;
-
-					_stream_scheduler->write_request(req, req.port);
-					request_valid = false;
-				}
+				back_buffer->requested = true;
 			}
-		}
-		else
-		{ // LOAD
+			else if(request_valid && request.type == MemoryRequest::Type::STORE)
+			{
+				//a store is pending forward to stream scheduler
+				StreamSchedulerRequest req;
+				req.type = StreamSchedulerRequest::Type::STORE_WORKITEM;
+				req.port = tm_index;
 
-			if (request.size == sizeof(rtm::Hit)) {
-				if (_hit_record_updater->request_port_write_valid(tm_index)) {
-					HitRecordUpdaterRequest req;
-					req.hit_info.hit_address = request.paddr;
-					req.hit_info.hit.t = T_MAX;
-					req.type = HitRecordUpdaterRequest::TYPE::LOAD;
-					req.port = tm_index;
-					_hit_record_updater->write_request(req, req.port);
+				WorkItem wi;
+				std::memcpy(&wi, request.data, request.size);
+				req.bray = wi.bray;
+				req.segment = wi.segment;
 
-					assert(!tp_hit_load_request.count(request.paddr));
-					tp_hit_load_request[request.paddr] = request;
-				}
-				
+				_stream_scheduler->write_request(req, req.port);
+				request_valid = false;
 			}
-			else {
-				//we can't send these until draining the pending stores
+			else if(rgs_complete == num_tp && _stream_scheduler->request_port_write_valid(tm_index))
+			{
 				//ray generation complete
-				if (rgs_complete == 32 && _stream_scheduler->request_port_write_valid(tm_index))
-				{
-					StreamSchedulerRequest req;
-					req.type = StreamSchedulerRequest::Type::BUCKET_COMPLETE;
-					req.port = tm_index;
-					req.segment = 0;
-					_stream_scheduler->write_request(req, req.port);
+				StreamSchedulerRequest req;
+				req.type = StreamSchedulerRequest::Type::BUCKET_COMPLETE;
+				req.port = tm_index;
+				req.segment = 0;
+				_stream_scheduler->write_request(req, req.port);
 
-					rgs_complete = ~0u;
-					return;
-				}
+				rgs_complete = ~0u;
+			}
+			else if(!completed_buckets.empty() && _stream_scheduler->request_port_write_valid(tm_index))
+			{
+				//a bucket completed
+				StreamSchedulerRequest req;
+				req.type = StreamSchedulerRequest::Type::BUCKET_COMPLETE;
+				req.port = tm_index;
+				req.segment = completed_buckets.front();
+				_stream_scheduler->write_request(req, req.port);
 
 				//tell the stream scheduler that a bucket completed
 				if (!completed_buckets.empty() && _stream_scheduler->request_port_write_valid(tm_index))
@@ -220,8 +195,24 @@ public:
 				returned_hit.dst = req.dst;
 				_return_network.write(returned_hit, returned_hit.port);
 
-				tp_hit_load_request.erase(returned_hit.paddr);
-				returned_hit.paddr = ~0;
+			//mark previous ray as complete
+			if(segment_executing_on_tp[request.port] != ~0u)
+			{
+				uint segment_index = segment_executing_on_tp[request.port];
+				SegmentState& segment_state = segment_state_map[segment_index];
+
+				segment_state.active_rays--;
+				if(segment_state.active_rays == 0)
+				{
+					for(uint i = 0; i < segment_state.active_buckets; ++i)
+						completed_buckets.push(segment_index);
+
+					segment_state_map.erase(segment_index);
+				}
+			}
+			else
+			{
+				rgs_complete++;
 			}
 		}
 
@@ -257,19 +248,15 @@ public:
 				reg_addr.sign_ext = 0;
 				ret.dst = reg_addr.u8;
 
-				ret.size = sizeof(WorkItem);
-				ret.port = workitem_request_queue.front();
-
-				WorkItem wi;
-				wi.bray = front_buffer->ray_bucket.bucket_rays[front_buffer->next_ray];
-				wi.segment = front_buffer->ray_bucket.segment;
-				std::memcpy(ret.data, &wi, ret.size);
-				_return_network.write(ret, ret.port);
-
-				workitem_request_queue.pop();
-				front_buffer->next_ray++;
-				buffer_executing_on_tp[ret.port] = front_buffer;
+			if(front_buffer->next_ray == 0)
+			{
+				segment_state_map[wi.segment].active_buckets++;
+				segment_state_map[wi.segment].active_rays += front_buffer->ray_bucket.num_rays;
 			}
+			segment_executing_on_tp[ret.port] = wi.segment;
+
+			workitem_request_queue.pop();
+			front_buffer->next_ray++;
 		}
 	}
 
