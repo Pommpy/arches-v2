@@ -22,7 +22,7 @@ void inline barrier()
 
 inline static void kernel(const KernelArgs& args)
 {
-#if 0 //__riscv
+#if __riscv
 	uint index;
 	for (index = fchthrd(); index < args.framebuffer_size; index = fchthrd()) 
 	{
@@ -37,17 +37,26 @@ inline static void kernel(const KernelArgs& args)
 		hit.t = rng.randf();
 
 		_cshit(hit, args.hit_records + hit_index);
-	}
-
-	for (; index < args.framebuffer_size * 2; index = fchthrd()) 
-	{
-		uint fb_index = index - args.framebuffer_size;
-		uint hit_index = fb_index % 8192;
-
-		rtm::Hit hit = _lhit(args.hit_records + hit_index);
-
+		hit = _lhit(args.hit_records + hit_index);
+		// hit.t = rng.randf();
 		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 	}
+
+	// uint s = 0;
+	// for(uint i = 0; i < 10000; i++){
+	// 	rtm::RNG rng(i);
+	// 	s += rng.randi();
+	// }
+
+	// for (; index < args.framebuffer_size * 2; index = fchthrd()) 
+	// {
+	// 	uint fb_index = index - args.framebuffer_size;
+	// 	uint hit_index = fb_index % 8192;
+	// 	// rtm::RNG rng(s);
+	// 	rtm::Hit hit = _lhit(args.hit_records + hit_index);
+	// 	// hit.t = rng.randf();
+	// 	args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
+	// }
 
 	//for(uint index = fchthrd(); index < args.framebuffer_size; index = fchthrd())
 	//{

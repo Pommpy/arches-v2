@@ -234,21 +234,21 @@ void UnitStreamScheduler::_update_scheduler()
 		}
 
 		// no current segment
-		if(_scheduler.current_segment == ~0u)
-		{
-			//try to pick a new segment to start traversing
-			if(_scheduler.active_segments.size() < MAX_ACTIVE_SEGMENTS && !_scheduler.candidate_segments.empty())
-			{
-				//we have room in the working set and a candidate segment so queue it up
-				uint next_segment = _scheduler.candidate_segments.top();
-				_scheduler.candidate_segments.pop();
+		//if(_scheduler.current_segment == ~0u)
+		//{
+		//	//try to pick a new segment to start traversing
+		//	if(_scheduler.active_segments.size() < MAX_ACTIVE_SEGMENTS && !_scheduler.candidate_segments.empty())
+		//	{
+		//		//we have room in the working set and a candidate segment so queue it up
+		//		uint next_segment = _scheduler.candidate_segments.top();
+		//		_scheduler.candidate_segments.pop();
 
-				_scheduler.active_segments.insert(next_segment);
-				_scheduler.current_segment = next_segment;
+		//		_scheduler.active_segments.insert(next_segment);
+		//		_scheduler.current_segment = next_segment;
 
-				printf("Segment %d scheduled\n", _scheduler.current_segment);
-			}
-		}
+		//		printf("Segment %d scheduled\n", _scheduler.current_segment);
+		//	}
+		//}
 	}
 
 	_scheduler.bucket_write_cascade.clock();

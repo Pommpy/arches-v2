@@ -234,6 +234,11 @@ FREE_INSTR:
 	else if(instr_info.exec_type == ISA::RISCV::ExecType::MEMORY)
 	{
 		UnitMemoryBase* mem = (UnitMemoryBase*)unit_table[(uint)instr_info.instr_type];
+
+		if (ENABLE_TP_DEBUG_PRINTS) {
+			std::cout << "1231231\n" << '\n';
+		}
+
 		if(!mem->request_port_write_valid(_tp_index))
 		{
 			log.log_resource_stall(instr_info, exec_item.pc);
