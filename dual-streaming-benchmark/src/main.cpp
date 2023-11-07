@@ -36,27 +36,23 @@ inline static void kernel(const KernelArgs& args)
 		hit.bc = { rng.randf(), rng.randf() };
 		hit.t = rng.randf();
 
-		_cshit(hit, args.hit_records + hit_index);
 		hit = _lhit(args.hit_records + hit_index);
+		//hit = _lhit(args.hit_records + hit_index);
 		// hit.t = rng.randf();
 		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 	}
 
-	// uint s = 0;
-	// for(uint i = 0; i < 10000; i++){
-	// 	rtm::RNG rng(i);
-	// 	s += rng.randi();
-	// }
+	//spin sleep
+	//for (volatile uint i = 0; i < 3000; i++);
 
-	// for (; index < args.framebuffer_size * 2; index = fchthrd()) 
-	// {
-	// 	uint fb_index = index - args.framebuffer_size;
-	// 	uint hit_index = fb_index % 8192;
-	// 	// rtm::RNG rng(s);
-	// 	rtm::Hit hit = _lhit(args.hit_records + hit_index);
-	// 	// hit.t = rng.randf();
-	// 	args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
-	// }
+	//for (index = index - args.framebuffer_size; index < args.framebuffer_size; index = fchthrd() - args.framebuffer_size) 
+	//{
+	//	uint fb_index = index;
+	//	uint hit_index = fb_index % 8192;
+	//	rtm::Hit hit = _lhit(args.hit_records + hit_index);
+	//	hit = _lhit(args.hit_records + hit_index);
+	//	args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
+	//}
 
 	//for(uint index = fchthrd(); index < args.framebuffer_size; index = fchthrd())
 	//{
@@ -101,21 +97,30 @@ inline static void kernel(const KernelArgs& args)
 		uint fb_index = index;
 		uint x = index % args.framebuffer_width;
 		uint y = index / args.framebuffer_width;
+		uint hit_index = fb_index % 8192;
 		rtm::RNG rng(fb_index);
 
 		// generate random hit
 		rtm::Hit hit;
-		hit.id = index % 8192;
+		hit.id = rng.randi();
 		hit.bc = { rng.randf(), rng.randf() };
 		hit.t = rng.randf();
 
-		if ((args.hit_records + hit.id)->t > hit.t) {
-			*(args.hit_records + hit.id) = hit;
+		if ((args.hit_records + hit_index)->t > hit.t) {
+			*(args.hit_records + hit_index) = hit;
 		}
 
-		hit = *(args.hit_records + hit.id);
-		hit.t = hit.t / (hit.t + 1);
-		hit.bc = hit.bc / (hit.bc + 1);
+	}
+	for (uint index = 0; index < args.framebuffer_size; index++) {
+		uint fb_index = index;
+		uint x = index % args.framebuffer_width;
+		uint y = index / args.framebuffer_width;
+		uint hit_index = fb_index % 8192;
+		rtm::RNG rng(fb_index);
+
+		// generate random hit
+		rtm::Hit hit;
+		hit = *(args.hit_records + hit_index);
 		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 	}
 

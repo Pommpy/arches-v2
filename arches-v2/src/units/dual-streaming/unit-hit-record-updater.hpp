@@ -9,6 +9,28 @@
 
 namespace Arches { namespace Units { namespace DualStreaming {
 
+static uint MY_LOG_65536[1 << 16] = { 0 };
+static uint check_flag = 0;
+static uint MY_LOG(uint64_t value) {
+	assert(value != 0);
+	assert((value & (value - 1)) == 0); // It's a power number
+	if (MY_LOG_65536[1 << 1] != 1) {
+		// Initialization
+		for (uint i = 0; i < 16; i++) MY_LOG_65536[1 << i] = i;
+
+		for (uint i = 0; i < 64; i++) {
+			uint64_t value = (1ull << i);
+			uint offset = 0;
+			while ((value >> 16) > 0) value >>= 16, offset += 16;
+			assert(offset + MY_LOG_65536[value] == i);
+		}
+	}
+
+	uint offset = 0;
+	while ((value >> 16) > 0) value >>= 16, offset += 16;
+	return offset + MY_LOG_65536[value];
+}
+
 struct HitInfo {
 	rtm::Hit hit;
 	paddr_t hit_address;
@@ -221,6 +243,7 @@ public:
 		std::queue<MemoryRequest> write_queue;
 		std::queue<MemoryReturn> return_queue;
 		std::map<paddr_t, uint64_t> rsb_load_queue; // If the number of TMs is smaller than 64, otherwise we should replace UINT64 with std::vector
+		std::map<std::pair<paddr_t, uint>, uint> rsb_counter;
 	};
 
 private:
@@ -235,27 +258,6 @@ private:
 
 	uint busy = 0;
 
-	uint MY_LOG_65536[1 << 16] = { 0 };
-	uint check_flag = 0;
-	uint MY_LOG(uint64_t value) {
-		assert(value != 0);
-		assert((value & (value - 1)) == 0); // It's a power number
-		if (MY_LOG_65536[1 << 1] != 1) {
-			// Initialization
-			for (uint i = 0; i < 16; i++) MY_LOG_65536[1 << i] = i;
-
-			for (uint i = 0; i < 64; i++) {
-				uint64_t value = (1ull << i);
-				uint offset = 0;
-				while ((value >> 16) > 0) value >>= 16, offset += 16;
-				assert(offset + MY_LOG_65536[value] == i);
-			}
-		}
-
-		uint offset = 0;
-		while ((value >> 16) > 0) value >>= 16, offset += 16;
-		return offset + MY_LOG_65536[value];
-	}
 	
 private:
 	void process_requests(uint channel_index);
@@ -274,6 +276,7 @@ public:
 		}
 		busy = 0;
 	}
+
 
 	bool request_port_write_valid(uint port_index)
 	{

@@ -69,7 +69,7 @@ private:
 	std::queue<uint> workitem_request_queue;
 
 	MemoryReturn returned_hit;
-	std::map<paddr_t, MemoryRequest> tp_load_hit_request;
+	std::map<paddr_t, std::queue<MemoryRequest>> tp_load_hit_request;
 
 	bool request_valid{ false };
 	MemoryRequest request{};
@@ -87,8 +87,9 @@ private:
 			request_valid = true;
 		}
 
-		if (_hit_record_updater->return_port_read_valid(tm_index)) {
+		if (_hit_record_updater->return_port_read_valid(tm_index) && returned_hit.paddr == ~0) {
 			returned_hit = _hit_record_updater->read_return(tm_index);
+			assert(returned_hit.size == sizeof(rtm::Hit));
 		}
 		if (_stream_scheduler->return_port_read_valid(tm_index))
 		{
@@ -135,10 +136,7 @@ private:
 				}
 				else {
 					req.type = HitRecordUpdaterRequest::TYPE::LOAD;
-					tp_load_hit_request[request.paddr] = request;
-					if (request.port == 0 && tm_index == 0) {
-						int a = 1;
-					}
+					tp_load_hit_request[request.paddr].push(request);
 				}
 				_hit_record_updater->write_request(req, req.port);
 			}
@@ -205,20 +203,29 @@ private:
 
 	void issue_returns()
 	{
+
 		if (returned_hit.paddr != ~0) {
 			assert(tp_load_hit_request.count(returned_hit.paddr));
-			MemoryRequest tp_request = tp_load_hit_request[returned_hit.paddr];
 
+			auto& queue = tp_load_hit_request[returned_hit.paddr];
+			const auto& tp_request = queue.front();
+
+
+			rtm::Hit hit;
+			assert(returned_hit.size == sizeof(rtm::Hit));
+			std::memcpy(&hit, returned_hit.data, returned_hit.size);
 			if (_return_network.is_write_valid(tp_request.port)) {
-				returned_hit.port = tp_request.port;
 				returned_hit.dst = tp_request.dst;
-
+				returned_hit.port = tp_request.port;
 				assert(returned_hit.size == sizeof(rtm::Hit));
 				_return_network.write(returned_hit, returned_hit.port);
-				
-				tp_load_hit_request.erase(returned_hit.paddr);
-				returned_hit.paddr = ~0;
+				queue.pop();
 			}
+
+			if (queue.empty()) {
+				tp_load_hit_request.erase(returned_hit.paddr);
+			}
+			returned_hit.paddr = ~0;
 			
 		}
 

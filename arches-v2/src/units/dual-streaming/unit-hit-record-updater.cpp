@@ -56,6 +56,7 @@ void UnitHitRecordUpdater::process_requests(uint channel_index) {
 				// There is already a load request for this hit
 				assert(rsb_req.port < 64);
 				channel.rsb_load_queue[rsb_req.hit_info.hit_address] |= (1ull << rsb_req.port);
+				channel.rsb_counter[{rsb_req.hit_info.hit_address, rsb_req.port}]++;
 				request_network.read(channel_index);
 			}
 			else {
@@ -82,8 +83,9 @@ void UnitHitRecordUpdater::process_requests(uint channel_index) {
 					load_req.size = sizeof(rtm::Hit);
 					load_req.paddr = rsb_req.hit_info.hit_address;
 					channel.read_queue.push(load_req);
-
+					
 					channel.rsb_load_queue[rsb_req.hit_info.hit_address] |= (1ull << rsb_req.port);
+					channel.rsb_counter[{rsb_req.hit_info.hit_address, rsb_req.port}]++;
 					request_network.read(channel_index);
 				}
 			}
@@ -145,27 +147,26 @@ void UnitHitRecordUpdater::process_returns(uint channel_index) {
 		// If there are load requests from TP
 		if (channel.rsb_load_queue.count(hit_address)) {
 			uint64_t rsb_set = channel.rsb_load_queue[hit_address];
-
-			for (uint rsb_index = 0; rsb_index < 64; rsb_index++) {
-				if ((rsb_set >> rsb_index) & 1) {
-					MemoryReturn ret_to_rsb;
-					ret_to_rsb.paddr = hit_address;
-					ret_to_rsb.port = rsb_index;
-					ret_to_rsb.size = sizeof(rtm::Hit);
-					std::memcpy(ret_to_rsb.data, &hit_info.hit, sizeof(rtm::Hit));
-					channel.return_queue.push(ret_to_rsb);
+			for (uint64_t set = rsb_set; set != 0; set -= (set & -set)) {
+				uint rsb_index = MY_LOG(set & -set);
+				assert(channel.rsb_counter.count({ hit_address, rsb_index }));
+				MemoryReturn ret_to_rsb;
+				ret_to_rsb.paddr = hit_address;
+				ret_to_rsb.port = rsb_index;
+				ret_to_rsb.size = sizeof(rtm::Hit);
+				std::memcpy(ret_to_rsb.data, &hit_info.hit, sizeof(rtm::Hit));
+				channel.return_queue.push(ret_to_rsb);
+				channel.rsb_counter[{hit_address, rsb_index}]--;
+				if (!channel.rsb_counter[{hit_address, rsb_index}]) {
+					channel.rsb_counter.erase({ hit_address, rsb_index });
+					assert(rsb_set >> rsb_index & 1);
+					rsb_set ^= (1ull << rsb_index);
 				}
 			}
-			//for (; rsb_set != 0; rsb_set -= (rsb_set & -rsb_set)) {
-			//	uint rsb_index = MY_LOG(rsb_set & -rsb_set);
-			//	MemoryReturn ret_to_rsb;
-			//	ret_to_rsb.paddr = hit_address;
-			//	ret_to_rsb.port = rsb_index;
-			//	ret_to_rsb.size = sizeof(rtm::Hit);
-			//	std::memcpy(ret_to_rsb.data, &hit_info.hit, sizeof(rtm::Hit));
-			//	channel.return_queue.push(ret_to_rsb);
-			//}
-			channel.rsb_load_queue.erase(hit_address);
+			channel.rsb_load_queue[hit_address] = rsb_set;
+			if (!rsb_set) {
+				channel.rsb_load_queue.erase(hit_address);
+			}
 		}
 	}
 	else assert(false); // there must be a record in the cache
@@ -177,8 +178,17 @@ void UnitHitRecordUpdater::issue_requests(uint channel_index) {
 	Channel& channel = channels[channel_index];
 
 	bool requested = false;
-	// Read first
-	if (!channel.read_queue.empty()) {
+
+	// Write first
+	if (!channel.write_queue.empty()) {
+		MemoryRequest req = channel.write_queue.front();
+		channel.write_queue.pop();
+		req.port = port_in_main_memory;
+		main_memory->write_request(req, port_in_main_memory);
+		requested = true;
+	}
+	// Read
+	if (!requested && !channel.read_queue.empty()) {
 		MemoryRequest req = channel.read_queue.front();
 		channel.read_queue.pop();
 		req.port = port_in_main_memory;
@@ -186,14 +196,6 @@ void UnitHitRecordUpdater::issue_requests(uint channel_index) {
 		requested = true;
 	}
 
-	// Write
-	if (!requested && !channel.write_queue.empty()) {
-		MemoryRequest req = channel.write_queue.front();
-		channel.write_queue.pop();
-		req.port = port_in_main_memory;
-		main_memory->write_request(req, port_in_main_memory);
-		requested = true;
-	}
 	
 }
 
