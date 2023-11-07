@@ -155,18 +155,11 @@ void UnitHitRecordUpdater::process_returns(uint channel_index) {
 				ret_to_rsb.port = rsb_index;
 				ret_to_rsb.size = sizeof(rtm::Hit);
 				std::memcpy(ret_to_rsb.data, &hit_info.hit, sizeof(rtm::Hit));
-				channel.return_queue.push(ret_to_rsb);
-				channel.rsb_counter[{hit_address, rsb_index}]--;
-				if (!channel.rsb_counter[{hit_address, rsb_index}]) {
-					channel.rsb_counter.erase({ hit_address, rsb_index });
-					assert(rsb_set >> rsb_index & 1);
-					rsb_set ^= (1ull << rsb_index);
-				}
+				uint counter = channel.rsb_counter[{hit_address, rsb_index}];
+				while(counter--) channel.return_queue.push(ret_to_rsb);
+				channel.rsb_counter.erase({ hit_address, rsb_index });
 			}
-			channel.rsb_load_queue[hit_address] = rsb_set;
-			if (!rsb_set) {
-				channel.rsb_load_queue.erase(hit_address);
-			}
+			channel.rsb_load_queue.erase(hit_address);
 		}
 	}
 	else assert(false); // there must be a record in the cache

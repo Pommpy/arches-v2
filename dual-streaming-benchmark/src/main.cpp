@@ -37,7 +37,7 @@ inline static void kernel(const KernelArgs& args)
 		hit.t = rng.randf();
 		_cshit(hit, args.hit_records + hit_index);
 		// hit = _lhit(args.hit_records + hit_index);
-		//hit = _lhit(args.hit_records + hit_index);
+		// hit = _lhit(args.hit_records + hit_index);
 		// hit.t = rng.randf();
 	}
 
@@ -48,8 +48,8 @@ inline static void kernel(const KernelArgs& args)
 	{
 		uint fb_index = index;
 		uint hit_index = fb_index % 8192;
-		// rtm::Hit hit = _lhit(args.hit_records + hit_index);
-		rtm::Hit hit = *(args.hit_records + hit_index);
+		rtm::Hit hit = _lhit(args.hit_records + hit_index);
+		// rtm::Hit hit = *(args.hit_records + hit_index);
 		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 	}
 

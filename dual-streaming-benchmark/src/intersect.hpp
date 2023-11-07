@@ -82,7 +82,7 @@ inline rtm::Hit _lhit(rtm::Hit* src)
 	register float f16 asm("f16");
 	register float f17 asm("f17");
 	register float f18 asm("f18");
-	asm volatile("lhit f15, 0(%0)" : : "r" (src), "f" (f15), "f" (f16), "f" (f17), "f" (f18));
+	asm volatile("lhit f15, 0(%4)" : "=f" (f15), "=f" (f16), "=f" (f17), "=f" (f18) : "r" (src));
 
 	rtm::Hit hit;
 	hit.t = f15;
