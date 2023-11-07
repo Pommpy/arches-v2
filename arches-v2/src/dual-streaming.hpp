@@ -222,7 +222,7 @@ static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	//args.hit_records = reinterpret_cast<rtm::Hit*>(heap_address); heap_address += args.framebuffer_size * sizeof(rtm::Hit);
 	std::vector<rtm::Hit> hits(args.framebuffer_size);
 	for (uint i = 0; i < hits.size(); i++) {
-		hits[i] = { 1.0, 0.0f, 0 };
+		hits[i] = { 1.0f, 1.0f, 0 };
 	}
 	args.hit_records = write_vector(main_memory, ROW_BUFFER_SIZE, hits, heap_address);
 	args.treelets = write_vector(main_memory, ROW_BUFFER_SIZE, treelet_bvh.treelets, heap_address);

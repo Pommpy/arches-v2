@@ -70,6 +70,7 @@ void write_register(IntegerRegisterFile* int_regs, FloatingPointRegisterFile* fl
 	{
 		assert(size == 4);
 		float_regs->registers[dst.reg].f32 = *((float*)data);
+	
 	}
 }
 

@@ -103,14 +103,6 @@ void UnitTP::_process_load_return(const MemoryReturn& ret)
 			_thread_id = ret.data_u32;
 	}
 
-	if (ret.size == sizeof(rtm::Hit)) {
-		rtm::Hit hit;
-		std::memcpy(&hit, ret.data, ret.size);
-		assert(fabs(hit.t - 1) < 1e-6);
-		int a = 1;
-	}
-	
-
 	ISA::RISCV::RegAddr reg_addr(ret.dst);
 	if(reg_addr.reg_type == ISA::RISCV::RegType::FLOAT)
 	{

@@ -18,7 +18,7 @@ void Simulator::new_unit_group()
 }
 
 #ifndef _DEBUG
-//#define USE_TBB
+#define USE_TBB
 #endif
 
 #ifdef USE_TBB

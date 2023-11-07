@@ -35,24 +35,23 @@ inline static void kernel(const KernelArgs& args)
 		hit.id = rng.randi();
 		hit.bc = { rng.randf(), rng.randf() };
 		hit.t = rng.randf();
-
-		hit = _lhit(args.hit_records + hit_index);
+		_cshit(hit, args.hit_records + hit_index);
+		// hit = _lhit(args.hit_records + hit_index);
 		//hit = _lhit(args.hit_records + hit_index);
 		// hit.t = rng.randf();
-		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 	}
 
 	//spin sleep
-	//for (volatile uint i = 0; i < 3000; i++);
+	for (volatile uint i = 0; i < 3000; i++);
 
-	//for (index = index - args.framebuffer_size; index < args.framebuffer_size; index = fchthrd() - args.framebuffer_size) 
-	//{
-	//	uint fb_index = index;
-	//	uint hit_index = fb_index % 8192;
-	//	rtm::Hit hit = _lhit(args.hit_records + hit_index);
-	//	hit = _lhit(args.hit_records + hit_index);
-	//	args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
-	//}
+	for (index = index - args.framebuffer_size; index < args.framebuffer_size; index = fchthrd() - args.framebuffer_size) 
+	{
+		uint fb_index = index;
+		uint hit_index = fb_index % 8192;
+		// rtm::Hit hit = _lhit(args.hit_records + hit_index);
+		rtm::Hit hit = *(args.hit_records + hit_index);
+		args.framebuffer[fb_index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
+	}
 
 	//for(uint index = fchthrd(); index < args.framebuffer_size; index = fchthrd())
 	//{
