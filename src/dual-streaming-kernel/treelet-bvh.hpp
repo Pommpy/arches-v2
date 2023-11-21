@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.hpp"
+#include <map>
 
 #define TREELET_SIZE (7 * 8 * 1024)
 
@@ -9,6 +10,7 @@ struct alignas(8 * 1024) Treelet
 	{
 		uint first_child;
 		uint num_children;
+		uint subtree_size = 1;
 	};
 
 	struct alignas(32) Node
@@ -167,11 +169,21 @@ public:
 		std::vector<std::vector<uint>> treelet_assignments;
 		std::unordered_map<uint, uint> root_node_treelet;
 
+		std::map<uint, uint> father_map;
+		std::vector<uint> father;
+
 		std::queue<uint> root_node_queue;
 		root_node_queue.push(0);
 		while(!root_node_queue.empty())
 		{
 			uint root_node = root_node_queue.front();
+
+			uint father_treelet = -1;
+			if (father_map.count(root_node)) 
+				father_treelet = father_map[root_node];
+			else
+				assert(root_node == 0);
+			
 			root_node_queue.pop();
 
 			root_node_treelet[root_node] = treelet_assignments.size();
@@ -219,12 +231,24 @@ public:
 			}
 
 			treelet_headers.push_back({(uint)(root_node_queue.size() + treelet_assignments.size()), (uint)cut.size()});
+			father.push_back(father_treelet);
 
 			//we use a queue so that treelets are breadth first in memory
-			for(auto& n : cut)
+			for (auto& n : cut)
+			{
+				father_map[n] = treelet_assignments.size() - 1;
 				root_node_queue.push(n);
+			}
 		}
-
+		assert(father.size() == treelet_headers.size());
+		std::reverse(father.begin(), father.end());
+		for (int i = father.size() - 1; i >= 0; i--) {
+			int fa = father[i];
+			if (fa != -1) {
+				assert(fa < i);
+				treelet_headers[fa].subtree_size += treelet_headers[i].subtree_size;
+			}
+		}
 
 
 		//Phase 3 construct treelets in memeory
