@@ -1,6 +1,7 @@
 #pragma once
 
 #include "unit-stream-scheduler-dfs.hpp"
+#include <numeric>
 
 namespace Arches {
 namespace Units {
@@ -25,6 +26,7 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 
 		//increment total buckets
 		state.total_buckets++;
+		state.weight.value++;
 	}
 
 	while (!_scheduler.bucket_complete_queue.empty())
@@ -36,7 +38,7 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 		segment_state.active_buckets--;
 
 		//all remaining buckets are active
-		if (segment_state.parent_finished && segment_state.total_buckets == 0)
+		if ((segment_state.parent_finished || segment_index == 0) && segment_state.total_buckets == 0)
 		{
 			//segment is complete
 
@@ -61,11 +63,218 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 				Bank& child_bank = _banks[child_bank_index];
 				child_bank.bucket_flush_queue.push(child_segment_index);
 			}
-
 			break;
 		}
-
 		_scheduler.bucket_complete_queue.pop();
+	}
+
+	//try to pick a new segment to prefetch
+	auto& order = _scheduler.traversal_order_indexed_segment_id;
+	auto& ptr = _scheduler.traversal_ptr;
+	auto next_ptr = ptr + 1;
+	if ((_scheduler.active_segments.size()) < MAX_ACTIVE_SEGMENTS && next_ptr < _scheduler.total_treelet_nodes && order[next_ptr] != -1)
+	{
+		//we have room in the working set and a segment in the traversal queue try to expand working set
+		if (ptr >= 0)
+		{
+			const auto& current_segment = order[ptr];
+			const auto& current_segment_state = _scheduler.segment_state_map[current_segment];
+			// For DFS, all buckets of the parent are in-flight and then we can get the next child
+			if(current_segment_state.is_top_level)
+				assert(current_segment_state.active_buckets == current_segment_state.total_buckets);
+		}
+		uint next_segment = order[next_ptr];
+		while (next_ptr < _scheduler.total_treelet_nodes && order[next_ptr] != -1) {
+			uint next_segment = order[next_ptr];
+			SegmentState& state = _scheduler.segment_state_map[next_segment];
+
+
+			//if this segment is active or the parent is still traversing
+			if (state.total_buckets > 0 || !state.parent_finished)
+			{
+				// prefecth the segment
+				//paddr_t address = _scheduler.treelet_addr + sizeof(Treelet) * next_segment;
+				//for(uint i = 0; i < sizeof(Treelet); i += ROW_BUFFER_SIZE)
+				//{
+				//	Channel::WorkItem channel_work_item;
+				//	channel_work_item.type = Channel::WorkItem::Type::READ_SEGMENT;
+				//	channel_work_item.address = address + i;
+				//
+				//	uint channel_index = calcDramAddr(address).channel;
+				//	Channel& channel = _channels[channel_index];
+				//	channel.work_queue.push(channel_work_item);
+				//}
+
+				//TODO: wait for prefetch to complete before adding to candidate set
+				_scheduler.candidate_segments.push_back(next_segment);
+
+				//Add the segment to the active set
+				_scheduler.active_segments.insert(next_segment);
+				printf("Segment %d scheduled\n", next_segment);
+				ptr = next_ptr;
+				break;
+			}
+			next_ptr += 1;
+		}
+	}
+
+	//schedule bucket read requests
+	if (!_scheduler.bucket_request_queue.empty())
+	{
+		uint tm_index = _scheduler.bucket_request_queue.front();
+		uint last_segment = _scheduler.last_segment_on_tm[tm_index];
+
+		//find highest priority segment that has rays ready
+		uint current_segment = ~0u;
+		for (uint i = 0; i < _scheduler.candidate_segments.size(); ++i)
+		{
+			uint candidate_segment = _scheduler.candidate_segments[i];
+			SegmentState& state = _scheduler.segment_state_map[candidate_segment];
+
+			if (state.active_buckets != state.total_buckets)
+			{
+				//last segment match or first match
+				if (!state.bucket_address_queue.empty() && (current_segment == ~0u || candidate_segment == last_segment))
+				{
+					current_segment = candidate_segment;
+				}
+			}
+			if (candidate_segment == 0) {
+				if (state.total_buckets == 0)
+				{
+					//If no ray were launched erase the candidate from the active set as well
+					_scheduler.active_segments.erase(candidate_segment);
+					_scheduler.candidate_segments.erase(_scheduler.candidate_segments.begin() + i--);
+				}
+			}
+			else if (state.parent_finished)
+			{
+
+				//No more rays to traverse. Erase the segment from the candidate set
+				_scheduler.candidate_segments.erase(_scheduler.candidate_segments.begin() + i--);
+
+				if (state.total_buckets == 0)
+				{
+					//If no ray were launched erase the candidate from the active set as well
+					_scheduler.active_segments.erase(candidate_segment);
+				}
+				else
+				{
+					//Otherwise queue up the children segments. The segment will be removed from active set when all rays complete
+
+					Treelet::Header header = _scheduler.cheat_treelets[candidate_segment].header;
+					if (state.is_top_level) 
+					{
+						// Do DFS here
+						std::vector<DfsWeight> child_weights(header.num_children);
+						std::vector<uint> child_id(header.num_children);
+						std::iota(child_id.begin(), child_id.end(), 0);
+						for (uint i = 0; i < header.num_children; ++i) 
+						{
+							uint child_segment_index = header.first_child + i;
+							SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
+							child_weights[i] = child_segment_state.weight;
+						}
+						std::sort(child_id.begin(), child_id.end(), [&](const uint& x, const uint& y)
+							{
+								return child_weights[x] < child_weights[y];
+							}
+						);
+						uint candidate_dfs_order = _scheduler.segment_id_indexed_traversal_order[candidate_segment];
+						uint sum_subtree_size = 1; // 1 for this node
+						for (const uint& sorted_child_id : child_id)
+						{
+							uint child_segment_index = header.first_child + sorted_child_id;
+							Treelet::Header header = _scheduler.cheat_treelets[child_segment_index].header;
+							uint child_dfs_order = candidate_dfs_order + sum_subtree_size;
+							_scheduler.traversal_order_indexed_segment_id[child_dfs_order] = child_segment_index;
+							_scheduler.segment_id_indexed_traversal_order[child_segment_index] = child_dfs_order;
+							sum_subtree_size += header.subtree_size;
+						}
+					}
+					else 
+					{
+						// Do BFS here
+						//for all children segments
+
+						uint candidate_traversal_order = _scheduler.segment_id_indexed_traversal_order[candidate_segment];
+						for (uint i = 0; i < header.num_children; ++i)
+						{
+							//add child to the traversal qeueue
+							uint child_segment_index = header.first_child + i;
+							uint child_traversal_order = candidate_traversal_order + 1 + i;
+							SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
+							child_segment_state.is_top_level = false;
+							_scheduler.traversal_order_indexed_segment_id[child_traversal_order] = child_segment_index;
+							_scheduler.segment_id_indexed_traversal_order[child_segment_index] = child_traversal_order;
+						}
+					}
+				}
+			}
+			else {
+				// which means all ray buckets of this child node are drained but the parent node is not finished yet
+				
+				// That means, this child node is very close to the leaves and we switch from DFS to BFS
+				if (state.is_top_level) {
+					state.is_top_level = false;
+				}
+
+			}
+		}
+
+		//try to insert the tm into the read queue of one of the channels
+		if (current_segment != ~0u)
+		{
+			SegmentState& state = _scheduler.segment_state_map[current_segment];
+			printf("Segment %d launched, total bucket %d, activated bucket %d \n", current_segment, state.total_buckets, state.active_buckets);
+			_scheduler.bucket_request_queue.pop();
+			_scheduler.last_segment_on_tm[tm_index] = current_segment;
+
+			
+			paddr_t bucket_adddress = state.bucket_address_queue.front();
+			state.bucket_address_queue.pop();
+
+			uint channel_index = calcDramAddr(bucket_adddress).channel;
+			MemoryManager& memory_manager = _scheduler.memory_managers[channel_index];
+			memory_manager.free_bucket(bucket_adddress);
+
+			Channel::WorkItem channel_work_item;
+			channel_work_item.type = Channel::WorkItem::Type::READ_BUCKET;
+			channel_work_item.address = bucket_adddress;
+			channel_work_item.dst_tm = tm_index;
+
+			Channel& channel = _channels[channel_index];
+			channel.work_queue.push(channel_work_item);
+
+			state.active_buckets++;
+		}
+		//else std::cout << "Load fucking failed" << '\n';
+	}
+
+	//schduel bucket write requests
+	_scheduler.bucket_write_cascade.clock();
+	if (_scheduler.bucket_write_cascade.is_read_valid(0))
+	{
+		const RayBucket& bucket = _scheduler.bucket_write_cascade.peek(0);
+		uint segment_index = bucket.segment;
+		SegmentState& state = _scheduler.segment_state_map[segment_index];
+
+		uint channel_index = state.next_channel;
+		MemoryManager& memory_manager = _scheduler.memory_managers[channel_index];
+		paddr_t bucket_adddress = memory_manager.alloc_bucket();
+		state.bucket_address_queue.push(bucket_adddress);
+
+		Channel::WorkItem channel_work_item;
+		channel_work_item.type = Channel::WorkItem::Type::WRITE_BUCKET;
+		channel_work_item.address = bucket_adddress;
+		channel_work_item.bucket = bucket;
+		_scheduler.bucket_write_cascade.read(0);
+
+		Channel& channel = _channels[channel_index];
+		channel.work_queue.push(channel_work_item);
+
+		if (++state.next_channel >= NUM_DRAM_CHANNELS)
+			state.next_channel = 0;
 	}
 }
 

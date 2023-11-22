@@ -11,10 +11,11 @@
 #include "units/unit-sfu.hpp"
 #include "units/unit-tp.hpp"
 
-#include "units/dual-streaming/unit-stream-scheduler.hpp"
+//#include "units/dual-streaming/unit-stream-scheduler.hpp"
 #include "units/dual-streaming/unit-ray-staging-buffer.hpp"
 #include "units/dual-streaming/unit-ds-tp.hpp"
 #include "units/dual-streaming/unit-hit-record-updater.hpp"
+#include "units/dual-streaming/unit-stream-scheduler-dfs.hpp"
 
 #include "util/elf.hpp"
 #include "isa/riscv.hpp"
@@ -272,7 +273,20 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 	KernelArgs kernel_args = initilize_buffers(&dram, heap_address);
 
-	Units::DualStreaming::UnitStreamScheduler::Configuration stream_scheduler_config;
+	//Units::DualStreaming::UnitStreamScheduler::Configuration stream_scheduler_config;
+	//stream_scheduler_config.treelet_addr = *(paddr_t*)&kernel_args.treelets;
+	//stream_scheduler_config.heap_addr = *(paddr_t*)&heap_address;
+	//stream_scheduler_config.num_tms = num_tms;
+	//stream_scheduler_config.num_banks = 16;
+	//stream_scheduler_config.cheat_treelets = (Treelet*)&dram._data_u8[(size_t)kernel_args.treelets];
+	//stream_scheduler_config.main_mem = &dram;
+	//stream_scheduler_config.main_mem_port_offset = 1;
+	//stream_scheduler_config.main_mem_port_stride = 4;
+
+	//Units::DualStreaming::UnitStreamScheduler stream_scheduler(stream_scheduler_config);
+	//simulator.register_unit(&stream_scheduler);
+
+	Units::DualStreaming::UnitStreamSchedulerDFS::Configuration stream_scheduler_config;
 	stream_scheduler_config.treelet_addr = *(paddr_t*)&kernel_args.treelets;
 	stream_scheduler_config.heap_addr = *(paddr_t*)&heap_address;
 	stream_scheduler_config.num_tms = num_tms;
@@ -282,7 +296,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	stream_scheduler_config.main_mem_port_offset = 1;
 	stream_scheduler_config.main_mem_port_stride = 4;
 
-	Units::DualStreaming::UnitStreamScheduler stream_scheduler(stream_scheduler_config);
+	Units::DualStreaming::UnitStreamSchedulerDFS stream_scheduler(stream_scheduler_config);
 	simulator.register_unit(&stream_scheduler);
 
 	Units::DualStreaming::UnitHitRecordUpdater::Configuration hit_record_updater_config;

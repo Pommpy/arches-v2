@@ -10,7 +10,8 @@ struct alignas(8 * 1024) Treelet
 	{
 		uint first_child;
 		uint num_children;
-		uint subtree_size = 1;
+		uint subtree_size;
+		uint depth;
 	};
 
 	struct alignas(32) Node
@@ -178,7 +179,7 @@ public:
 		{
 			uint root_node = root_node_queue.front();
 
-			uint father_treelet = -1;
+			uint father_treelet = ~0u;
 			if (father_map.count(root_node)) 
 				father_treelet = father_map[root_node];
 			else
@@ -230,7 +231,8 @@ public:
 				if(cost == best_cost[root_node]) break;
 			}
 
-			treelet_headers.push_back({(uint)(root_node_queue.size() + treelet_assignments.size()), (uint)cut.size()});
+			uint depth = father_treelet == ~0u ? 0 : treelet_headers[father_treelet].depth + 1;
+			treelet_headers.push_back({ (uint)(root_node_queue.size() + treelet_assignments.size()), (uint)cut.size(), depth });
 			father.push_back(father_treelet);
 
 			//we use a queue so that treelets are breadth first in memory
@@ -241,8 +243,7 @@ public:
 			}
 		}
 		assert(father.size() == treelet_headers.size());
-		std::reverse(father.begin(), father.end());
-		for (int i = father.size() - 1; i >= 0; i--) {
+		for (int i = father.size() - 1; i > 0; i--) {
 			int fa = father[i];
 			if (fa != -1) {
 				assert(fa < i);

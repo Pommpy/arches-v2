@@ -36,7 +36,7 @@ inline static void kernel(const KernelArgs& args)
 		wi.segment = 0;
 
 		//write root ray to ray bucket
-	#if 0
+	#if 1
 		_swi(wi);
 	#else
 

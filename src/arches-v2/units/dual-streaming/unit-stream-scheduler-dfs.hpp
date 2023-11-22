@@ -118,6 +118,13 @@ private:
 		}
 	};
 
+	struct DfsWeight {
+		float value;
+		bool operator < (const DfsWeight& other) const 
+		{
+			return value < other.value;
+		};
+	};
 	struct SegmentState
 	{
 		std::queue<paddr_t> bucket_address_queue{};
@@ -125,7 +132,11 @@ private:
 		uint                total_buckets{ 0 };
 		uint                active_buckets{ 0 };
 		bool                parent_finished{ false };
+
+		bool			    is_top_level{ true };
+		DfsWeight			weight;
 	};
+
 
 	struct Scheduler
 	{
@@ -149,9 +160,10 @@ private:
 
 		//the queue of segments to traverse
 		// std::queue<uint> traversal_queue;
-		std::vector<uint> traversal_order; // now we replace the queue as a traversal array
-		uint traversal_ptr = 0;
-		uint current_traversing_node; // we will visit child nodes only after we finish issueing all rays of current_node
+		std::vector<uint> traversal_order_indexed_segment_id; // now we replace the queue as a traversal array
+		std::vector<uint> segment_id_indexed_traversal_order;
+		int traversal_ptr = 0;
+		int total_treelet_nodes = 0;
 
 		Scheduler(const Configuration& config) : bucket_write_cascade(config.num_banks, 1), last_segment_on_tm(config.num_tms, ~0u)
 		{
@@ -168,8 +180,13 @@ private:
 
 			active_segments.insert(0);
 			Treelet::Header root_header = cheat_treelets[0].header;
-			traversal_order.resize(root_header.subtree_size, -1);
-			current_traversing_node = traversal_order[traversal_ptr = 0] = 0; // The first traversing element is the root
+			total_treelet_nodes = root_header.subtree_size;
+			traversal_order_indexed_segment_id.resize(root_header.subtree_size, -1);
+			segment_id_indexed_traversal_order.resize(root_header.subtree_size, -1);
+			traversal_ptr = -1;
+			traversal_order_indexed_segment_id[0] = 0; // The first traversing element is the root
+			segment_id_indexed_traversal_order[0] = 0;
+
 			/*for (uint i = 0; i < root_header.num_children; ++i)
 				traversal_queue.push(root_header.first_child + i);*/
 		}

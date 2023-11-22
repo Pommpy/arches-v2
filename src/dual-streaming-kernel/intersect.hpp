@@ -289,6 +289,7 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 		WorkItem wi = _lwi();
 		if(wi.segment == ~0u) break;
 
+		rtm::Ray ray = wi.bray.ray;
 		rtm::Hit hit; hit.t = wi.bray.ray.t_max;
 		uint treelet_stack[16]; uint treelet_stack_size = 0;
 		if(intersect_treelet(treelets[wi.segment], wi.bray.ray, hit, treelet_stack, treelet_stack_size))
@@ -303,7 +304,14 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 		{
 			uint treelet_index = treelet_stack[--treelet_stack_size];
 			wi.segment = treelet_index;
-			_swi(wi);
+			// This is where we decide the DFS weight
+			// Currently, we use the number of ray buckets as a metric
+			const Treelet& treelet = treelets[wi.segment];
+			const Treelet::Node& root_node = treelet.nodes[0];
+			rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
+			float hit_t = _intersect(root_node.aabb, ray, inv_d);
+			if (hit_t < hit.t) _swi(wi);
+			//_swi(wi);
 		}
 	}
 }
