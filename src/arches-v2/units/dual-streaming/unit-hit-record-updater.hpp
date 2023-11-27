@@ -222,6 +222,7 @@ public:
 		std::queue<MemoryReturn> return_queue;
 		std::map<paddr_t, uint64_t> rsb_load_queue; // If the number of TMs is smaller than 64, otherwise we should replace UINT64 with std::vector
 		std::map<std::pair<paddr_t, uint>, uint> rsb_counter;
+		std::map<paddr_t, bool> ever_committed;
 	};
 
 private:

@@ -67,10 +67,10 @@ inline static void kernel(const KernelArgs& args)
 	for(index = index - args.framebuffer_size; index < args.framebuffer_size; index = fchthrd() - args.framebuffer_size)
 	{
 		rtm::Hit hit = _lhit(args.hit_records + index);
-		args.framebuffer[index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
+		//args.framebuffer[index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 
 		rtm::vec3 out = 0.0f;
-		if(hit.t < T_MAX)
+		if(hit.t < T_MAX && hit.id != ~0)
 		{
 			rtm::vec3 n = args.triangles[hit.id].normal();
 			out = n * 0.5f + 0.5f;

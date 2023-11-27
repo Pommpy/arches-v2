@@ -66,9 +66,11 @@ private:
 	std::map<uint, SegmentState> segment_state_map;
 	std::vector<uint>            segment_executing_on_tp;
 
+	std::map<std::pair<uint, uint>, uint> segment_executing_on_thread;
+
 	std::queue<uint> completed_buckets;
 	std::queue<uint> workitem_request_queue;
-
+	std::queue<std::pair<uint, uint>> thread_workitem_request_queue;
 	MemoryReturn returned_hit;
 	std::map<paddr_t, std::queue<MemoryRequest>> tp_load_hit_request;
 
@@ -82,6 +84,18 @@ private:
 		if (!request_valid && _request_network.is_read_valid(0))
 		{
 			request = _request_network.read(0);
+			/*static int cnt = 0;
+			if (request.size == sizeof(WorkItem) && request.type == MemoryRequest::Type::STORE) 
+			{
+				WorkItem wi;
+				std::memcpy(&wi, request.data, request.size);
+				if (wi.segment == 0) 
+				{
+					cnt += 1;
+					std::cout << cnt << '\n';
+				}
+				
+			}*/
 			request_valid = true;
 		}
 
@@ -153,20 +167,6 @@ private:
 				request_valid = false;
 				return;
 			}
-			else if(rgs_complete == num_tp && _stream_scheduler->request_port_write_valid(tm_index))
-			{
-				//ray generation complete
-				StreamSchedulerRequest req;
-				req.type = StreamSchedulerRequest::Type::BUCKET_COMPLETE;
-				req.port = tm_index;
-				req.segment = 0;
-				_stream_scheduler->write_request(req, req.port);
-
-				rgs_complete = ~0u;
-
-				std::cout << "should not be here!!!" << '\n';
-				return;
-			}
 			else if(!completed_buckets.empty() && _stream_scheduler->request_port_write_valid(tm_index))
 			{
 				//a bucket completed
@@ -236,17 +236,12 @@ private:
 		//a load request is pending put it in the request queue
 		if(request_valid && request.size == sizeof(WorkItem) && request.type == MemoryRequest::Type::LOAD)
 		{
-			workitem_request_queue.push(request.port);
-
-			if (tm_index == 56) {
-				int a = 1;
-				int b = 2;
-			}
-
+			//workitem_request_queue.push(request.port);
+			thread_workitem_request_queue.push({ request.port, request.dst });
 			//mark previous ray as complete
-			if(segment_executing_on_tp[request.port] != ~0u)
+			if (segment_executing_on_thread.count({request.port, request.dst}))
 			{
-				uint segment_index = segment_executing_on_tp[request.port];
+				uint segment_index = segment_executing_on_thread[{request.port, request.dst}];
 				SegmentState& segment_state = segment_state_map[segment_index];
 
 				segment_state.active_rays--;
@@ -264,36 +259,35 @@ private:
 		}
 
 		//if we have a filled bucket pop a ray from it
-		if (!workitem_request_queue.empty() && front_buffer->next_ray < front_buffer->ray_bucket.num_rays && _return_network.is_write_valid(request.port))
+		if (!thread_workitem_request_queue.empty() && front_buffer->next_ray < front_buffer->ray_bucket.num_rays && _return_network.is_write_valid(request.port))
 		{
 			MemoryReturn ret;
 
-			ISA::RISCV::RegAddr reg_addr;
-			reg_addr.reg = 0;
-			reg_addr.reg_type = ISA::RISCV::RegType::FLOAT;
-			reg_addr.sign_ext = 0;
-			ret.dst = reg_addr.u8;
+			//ISA::RISCV::RegAddr reg_addr;
+			//reg_addr.reg = 0;
+			//reg_addr.reg_type = ISA::RISCV::RegType::FLOAT;
+			//reg_addr.sign_ext = 0;
+			//ret.dst = reg_addr.u8;
 
 			ret.size = sizeof(WorkItem);
-			ret.port = workitem_request_queue.front();
-
+			auto [port, dst] = thread_workitem_request_queue.front();
+			thread_workitem_request_queue.pop();
+			//ret.port = workitem_request_queue.front();
+			ret.port = port;
+			ret.dst = dst;
 			WorkItem wi;
 			wi.bray = front_buffer->ray_bucket.bucket_rays[front_buffer->next_ray];
 			wi.segment = front_buffer->ray_bucket.segment;
 			std::memcpy(ret.data, &wi, ret.size);
 			_return_network.write(ret, ret.port);
-			if (tm_index == 56 && wi.segment == 19) {
-				int v = 1;
-				int y = 1;
-			}
 			if (front_buffer->next_ray == 0)
 			{
 				segment_state_map[wi.segment].active_buckets++;
 				segment_state_map[wi.segment].active_rays += front_buffer->ray_bucket.num_rays;
 			}
-			segment_executing_on_tp[ret.port] = wi.segment;
-
-			workitem_request_queue.pop();
+			//segment_executing_on_tp[ret.port] = wi.segment;
+			segment_executing_on_thread[{ret.port, ret.dst}] = wi.segment;
+			//workitem_request_queue.pop();
 			front_buffer->next_ray++;
 		}
 	}

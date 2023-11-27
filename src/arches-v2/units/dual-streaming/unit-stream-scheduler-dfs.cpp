@@ -46,27 +46,7 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 		{
 			//segment is complete
 
-			//remove from the active segments
-			_scheduler.active_segments.erase(segment_index);
-			printf("Segment %d retired\n", segment_index);
 
-			//free the segment state
-			_scheduler.segment_state_map.erase(segment_index);
-
-			//for all children segments
-			Treelet::Header header = _scheduler.cheat_treelets[segment_index].header;
-			for (uint i = 0; i < header.num_children; ++i)
-			{
-				//mark the child as parent finsihed
-				uint child_segment_index = header.first_child + i;
-				SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
-				child_segment_state.parent_finished = true;
-
-				//flush the child from the coalescer
-				uint child_bank_index = child_segment_index % _banks.size();
-				Bank& child_bank = _banks[child_bank_index];
-				child_bank.bucket_flush_queue.push(child_segment_index);
-			}
 			break;
 		}
 	}
@@ -92,82 +72,66 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 					current_segment = candidate_segment;
 				}
 			}
-			else if (state.parent_finished)
+			else if (candidate_segment != 0 || state.parent_finished)
 			{
+				Treelet::Header header = _scheduler.cheat_treelets[candidate_segment].header;
 
-				//No more rays to traverse. Erase the segment from the candidate set
-				_scheduler.candidate_segments.erase(_scheduler.candidate_segments.begin() + i--);
-				state.child_order_generated = true;
+				// push in children nodes
+				if (!state.child_order_generated)
+				{
+					state.child_order_generated = true;
 
-				if (state.total_buckets == 0)
-				{
-					//If no ray were launched erase the candidate from the active set as well
-					_scheduler.active_segments.erase(candidate_segment);
-				}
-				else
-				{
-					//Otherwise queue up the children segments. The segment will be removed from active set when all rays complete
-					Treelet::Header header = _scheduler.cheat_treelets[candidate_segment].header;
 					std::vector<DfsWeight> child_weights(header.num_children);
 					std::vector<uint> child_id(header.num_children);
 					std::iota(child_id.begin(), child_id.end(), 0);
-					if (0 && state.is_top_level && header.subtree_size >= 10)
+
+					// push children to traversal stack in sorted order
+					for (uint i = 0; i < header.num_children; ++i)
 					{
-						// Do DFS here
-						for (uint i = 0; i < header.num_children; ++i) 
-						{
-							uint child_segment_index = header.first_child + i;
-							SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
-							child_weights[i] = child_segment_state.weight;
-						}
-						std::sort(child_id.begin(), child_id.end(), [&](const uint& x, const uint& y)
-							{
-								return child_weights[x] > child_weights[y];
-							}
-						);
-						uint last_segment = candidate_segment;
-						//assert(_scheduler.ptr_to_next_indices[candidate_segment].size() == 1);
-						for (const uint& sorted_child_id : child_id)
-						{
-							uint child_segment_index = header.first_child + sorted_child_id;
-							Treelet::Header header = _scheduler.cheat_treelets[child_segment_index].header;
-
-							auto origin_next = _scheduler.ptr_to_next_index[last_segment];
-							_scheduler.ptr_to_next_index[last_segment] = child_segment_index;
-							_scheduler.ptr_to_next_index[child_segment_index] = origin_next;
-
-							//auto nxt = _scheduler.ptr_to_next_indices[candidate_segment].back();
-							//_scheduler.ptr_to_next_indices[candidate_segment].back() = child_segment_index;
-							//_scheduler.ptr_to_next_indices[candidate_segment].push_back(nxt);
-							last_segment = child_segment_index;
-						}
-
-						//Treelet::Header header = _scheduler.cheat_treelets[candidate_segment].header;
+						uint child_segment_index = header.first_child + i;
+						SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
+						child_weights[i] = child_segment_state.weight;
 					}
-					else 
-					{
-						// Do Simple BFS here
-						// for all children segments
-						for (uint i = 0; i < header.num_children; ++i)
+					std::sort(child_id.begin(), child_id.end(), [&](const uint& x, const uint& y) 
 						{
-							//add child to the traversal qeueue
-							uint child_segment_index = header.first_child + i;
-							Treelet::Header header = _scheduler.cheat_treelets[child_segment_index].header;
-							SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
-							child_segment_state.is_top_level = false;
-							_scheduler.traversal_queue.push(child_segment_index);
+							return child_weights[x] < child_weights[y];
 						}
+					);
+					for (const uint& sorted_child_id : child_id)
+					{
+						uint child_segment_index = header.first_child + sorted_child_id;
+						_scheduler.traversal_stack.push(child_segment_index);
 					}
 				}
-			}
-			else if(candidate_segment != 0){
-				// which means all ray buckets of this child node are drained but the parent node is not finished yet
-				
-				// That means, this child node is very close to the leaves and we switch from DFS to BFS
-				if (state.is_top_level) {
-					state.is_top_level = false;
-				}
 
+				if (state.parent_finished && state.total_buckets == 0)
+				{
+					// remove segment from candidate set
+					_scheduler.candidate_segments.erase(_scheduler.candidate_segments.begin() + i--);
+
+					//remove from the active segments
+					_scheduler.active_segments.erase(candidate_segment);
+
+					//free the segment state
+					_scheduler.segment_state_map.erase(candidate_segment);
+
+					//for all children segments
+					Treelet::Header header = _scheduler.cheat_treelets[candidate_segment].header;
+					for (uint i = 0; i < header.num_children; ++i)
+					{
+						//mark the child as parent finsihed
+						uint child_segment_index = header.first_child + i;
+						SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
+						child_segment_state.parent_finished = true;
+
+						//flush the child from the coalescer
+						uint child_bank_index = child_segment_index % _banks.size();
+						Bank& child_bank = _banks[child_bank_index];
+						child_bank.bucket_flush_queue.push(child_segment_index);
+					}
+
+					printf("Segment %d retired\n", candidate_segment);
+				}
 			}
 		}
 
@@ -196,38 +160,23 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 
 			state.active_buckets++;
 		}
-		//else std::cout << "load fucking failed\n";
-	}
 
-	// prefetch segments
-	// try to pick a new segment to prefetch
-	auto& index = _scheduler.current_index;
-	auto& current_segment_state = _scheduler.segment_state_map[index];
-	auto& ptr_table = _scheduler.ptr_to_next_index;
-	auto& queue = _scheduler.traversal_queue;
-	if ((_scheduler.active_segments.size()) < MAX_ACTIVE_SEGMENTS)
-	{
-		//we have room in the working set and a segment in the traversal queue try to expand working set
-		uint next_segment = ptr_table[index];
-		if (!queue.empty()) {
-			uint next_segment = queue.front();
-			queue.pop();
-			_scheduler.candidate_segments.push_back(next_segment);
-
-			//Add the segment to the active set
-			_scheduler.active_segments.insert(next_segment);
-			printf("Segment %d scheduled\n", next_segment);
-		}
-		else if (current_segment_state.child_order_generated && ptr_table[index] != -1) {
-			uint next_segment = ptr_table[index];
-			SegmentState& state = _scheduler.segment_state_map[next_segment];
+		if (current_segment == ~0u)
+		{
+			// prefetch segments
+			// try to pick a new segment to prefetch
+			if ((_scheduler.active_segments.size()) < MAX_ACTIVE_SEGMENTS)
 			{
-				index = next_segment;
-				_scheduler.candidate_segments.push_back(next_segment);
+				//we have room in the working set and a segment in the traversal queue try to expand working set
+				if (_scheduler.traversal_stack.size()) {
+					uint next_segment = _scheduler.traversal_stack.top();
+					_scheduler.traversal_stack.pop();
+					_scheduler.candidate_segments.push_back(next_segment);
 
-				//Add the segment to the active set
-				_scheduler.active_segments.insert(next_segment);
-				printf("Segment %d scheduled\n", next_segment);
+					//Add the segment to the active set
+					_scheduler.active_segments.insert(next_segment);
+					printf("Segment %d scheduled\n", next_segment);
+				}
 			}
 		}
 	}
@@ -263,31 +212,11 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 
 
 
-
-
-
-
-
-
-
-
-
-
 /*!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
-* The following part is completely the same with traditional stream scheduler!
+* The following part is almost the same with traditional stream scheduler!
+* The following part is almost the same with traditional stream scheduler!
+* The following part is almost the same with traditional stream scheduler!
+* 
 */
 
 void UnitStreamSchedulerDFS::clock_rise() {

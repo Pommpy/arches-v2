@@ -156,6 +156,10 @@ void UnitStreamScheduler::_update_scheduler()
 
 			//remove from the active segments
 			_scheduler.active_segments.erase(segment_index);
+			if (segment_index == 0) {
+				std::cout << "fuck off" << '\n';
+				exit(0);
+			}
 			printf("Segment %d retired\n", segment_index);
 
 			//free the segment state

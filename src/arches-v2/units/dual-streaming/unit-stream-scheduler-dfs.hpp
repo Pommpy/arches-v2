@@ -125,6 +125,10 @@ private:
 		{
 			return value > other.value;
 		};
+		bool operator < (const DfsWeight& other) const
+		{
+			return value < other.value;
+		};
 	};
 	struct SegmentState
 	{
@@ -159,12 +163,9 @@ private:
 
 		//the set of segments that are ready to issue buckets
 		std::vector<uint> candidate_segments;
+		
+		std::stack<uint> traversal_stack;
 
-
-		std::vector<uint> ptr_to_next_index;
-		std::queue<int> traversal_queue;
-		int current_index = 0;
-		int total_treelet_nodes = 0;
 		int root_rays_counter = 0;
 		int num_root_rays = 0;
 
@@ -181,9 +182,6 @@ private:
 
 			active_segments.insert(0);
 			Treelet::Header root_header = cheat_treelets[0].header;
-			total_treelet_nodes = root_header.subtree_size;
-			ptr_to_next_index.resize(root_header.subtree_size + 1, -1);
-			current_index = 0;
 			candidate_segments.push_back(0);
 
 			/*for (uint i = 0; i < root_header.num_children; ++i)
