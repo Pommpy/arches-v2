@@ -300,6 +300,7 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 		}
 
 		//drain treelet stack
+		bool early = true;
 		while(treelet_stack_size)
 		{
 			uint treelet_index = treelet_stack[--treelet_stack_size];
@@ -310,6 +311,9 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 			const Treelet::Node& root_node = treelet.nodes[0];
 			rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
 			float hit_t = _intersect(root_node.aabb, ray, inv_d);
+
+			// early termination
+			//if (early) hit = _lhit(hit_records + wi.bray.id);
 			if (hit_t < hit.t) _swi(wi);
 			//_swi(wi);
 		}

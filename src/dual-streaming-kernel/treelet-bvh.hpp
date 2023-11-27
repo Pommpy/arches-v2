@@ -232,7 +232,7 @@ public:
 			}
 
 			uint depth = father_treelet == ~0u ? 0 : treelet_headers[father_treelet].depth + 1;
-			treelet_headers.push_back({ (uint)(root_node_queue.size() + treelet_assignments.size()), (uint)cut.size(), depth });
+			treelet_headers.push_back({ (uint)(root_node_queue.size() + treelet_assignments.size()), (uint)cut.size(), 1, depth });
 			father.push_back(father_treelet);
 
 			//we use a queue so that treelets are breadth first in memory
@@ -243,14 +243,14 @@ public:
 			}
 		}
 		assert(father.size() == treelet_headers.size());
-		for (int i = father.size() - 1; i > 0; i--) {
+		for (int i = father.size() - 1; i >= 0; i--) {
 			int fa = father[i];
 			if (fa != -1) {
 				assert(fa < i);
 				treelet_headers[fa].subtree_size += treelet_headers[i].subtree_size;
 			}
 		}
-
+		for (int i = 0; i <= 20; i++) std::cout << i << ' ' << father[i] << '\n';
 
 		//Phase 3 construct treelets in memeory
 		treelets.resize(treelet_assignments.size());

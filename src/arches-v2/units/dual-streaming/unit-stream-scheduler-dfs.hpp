@@ -45,6 +45,7 @@ public:
 		paddr_t  heap_addr;
 		Treelet* cheat_treelets{ nullptr };
 
+		uint num_root_rays;
 		uint num_tms;
 		uint num_banks;
 
@@ -120,9 +121,9 @@ private:
 
 	struct DfsWeight {
 		float value;
-		bool operator < (const DfsWeight& other) const 
+		bool operator > (const DfsWeight& other) const 
 		{
-			return value < other.value;
+			return value > other.value;
 		};
 	};
 	struct SegmentState
@@ -135,6 +136,7 @@ private:
 
 		bool			    is_top_level{ true };
 		DfsWeight			weight;
+		bool				child_order_generated{ false };
 	};
 
 
@@ -158,22 +160,21 @@ private:
 		//the set of segments that are ready to issue buckets
 		std::vector<uint> candidate_segments;
 
-		//the queue of segments to traverse
-		// std::queue<uint> traversal_queue;
-		std::vector<uint> traversal_order_indexed_segment_id; // now we replace the queue as a traversal array
-		std::vector<uint> segment_id_indexed_traversal_order;
-		int traversal_ptr = 0;
-		int total_treelet_nodes = 0;
 
-		Scheduler(const Configuration& config) : bucket_write_cascade(config.num_banks, 1), last_segment_on_tm(config.num_tms, ~0u)
+		std::vector<uint> ptr_to_next_index;
+		std::queue<int> traversal_queue;
+		int current_index = 0;
+		int total_treelet_nodes = 0;
+		int root_rays_counter = 0;
+		int num_root_rays = 0;
+
+		Scheduler(const Configuration& config) : bucket_write_cascade(config.num_banks, 1), last_segment_on_tm(config.num_tms, ~0u), num_root_rays(config.num_root_rays)
 		{
 			for (uint i = 0; i < NUM_DRAM_CHANNELS; ++i)
 				memory_managers.emplace_back(i, config.heap_addr);
 
 			SegmentState& segment_state = segment_state_map[0];
-			segment_state.active_buckets = config.num_tms;
-			segment_state.total_buckets = config.num_tms;
-			segment_state.parent_finished = true;
+			segment_state.parent_finished = false;
 
 			cheat_treelets = config.cheat_treelets;
 			treelet_addr = config.treelet_addr;
@@ -181,11 +182,9 @@ private:
 			active_segments.insert(0);
 			Treelet::Header root_header = cheat_treelets[0].header;
 			total_treelet_nodes = root_header.subtree_size;
-			traversal_order_indexed_segment_id.resize(root_header.subtree_size, -1);
-			segment_id_indexed_traversal_order.resize(root_header.subtree_size, -1);
-			traversal_ptr = -1;
-			traversal_order_indexed_segment_id[0] = 0; // The first traversing element is the root
-			segment_id_indexed_traversal_order[0] = 0;
+			ptr_to_next_index.resize(root_header.subtree_size + 1, -1);
+			current_index = 0;
+			candidate_segments.push_back(0);
 
 			/*for (uint i = 0; i < root_header.num_children; ++i)
 				traversal_queue.push(root_header.first_child + i);*/

@@ -295,6 +295,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	stream_scheduler_config.main_mem = &dram;
 	stream_scheduler_config.main_mem_port_offset = 1;
 	stream_scheduler_config.main_mem_port_stride = 4;
+	stream_scheduler_config.num_root_rays = kernel_args.framebuffer_size;
 
 	Units::DualStreaming::UnitStreamSchedulerDFS stream_scheduler(stream_scheduler_config);
 	simulator.register_unit(&stream_scheduler);

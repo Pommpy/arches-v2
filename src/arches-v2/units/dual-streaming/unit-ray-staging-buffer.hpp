@@ -163,6 +163,8 @@ private:
 				_stream_scheduler->write_request(req, req.port);
 
 				rgs_complete = ~0u;
+
+				std::cout << "should not be here!!!" << '\n';
 				return;
 			}
 			else if(!completed_buckets.empty() && _stream_scheduler->request_port_write_valid(tm_index))
@@ -236,6 +238,11 @@ private:
 		{
 			workitem_request_queue.push(request.port);
 
+			if (tm_index == 56) {
+				int a = 1;
+				int b = 2;
+			}
+
 			//mark previous ray as complete
 			if(segment_executing_on_tp[request.port] != ~0u)
 			{
@@ -251,7 +258,7 @@ private:
 					segment_state_map.erase(segment_index);
 				}
 			}
-			else rgs_complete++;
+			
 
 			request_valid = false;
 		}
@@ -275,7 +282,10 @@ private:
 			wi.segment = front_buffer->ray_bucket.segment;
 			std::memcpy(ret.data, &wi, ret.size);
 			_return_network.write(ret, ret.port);
-
+			if (tm_index == 56 && wi.segment == 19) {
+				int v = 1;
+				int y = 1;
+			}
 			if (front_buffer->next_ray == 0)
 			{
 				segment_state_map[wi.segment].active_buckets++;
