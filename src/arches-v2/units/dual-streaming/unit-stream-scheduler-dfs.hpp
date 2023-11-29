@@ -54,7 +54,7 @@ public:
 		uint num_tms;
 		uint num_banks;
 
-		uint traversal_scheme = 0; // 0-bfs, 1-dfs
+		uint traversal_scheme = 1; // 0-bfs, 1-dfs
 
 		UnitMainMemoryBase* main_mem;
 		uint                main_mem_port_offset{ 0 };
@@ -62,18 +62,21 @@ public:
 	};
 
 private:
-	class StreamSchedulerRequestCrossbar : public CrossBar<StreamSchedulerRequest>
+	class StreamSchedulerRequestCrossbar : public CasscadedCrossBar<StreamSchedulerRequest>
 	{
 	public:
-		StreamSchedulerRequestCrossbar(uint ports, uint banks) : CrossBar<StreamSchedulerRequest>(ports, banks) {}
+		StreamSchedulerRequestCrossbar(uint ports, uint banks) : CasscadedCrossBar<StreamSchedulerRequest>(ports, banks, banks) {}
 
 		uint get_sink(const StreamSchedulerRequest& request) override
 		{
 			if (request.type == StreamSchedulerRequest::Type::STORE_WORKITEM)
 			{
 				//if this is a workitem write or bucket completed then distrbute across banks
-				current_sink = (current_sink + 1) % num_sinks();
-				return current_sink;
+				if (request.segment == 0) {
+					current_sink = (current_sink + 1) % num_sinks();
+					return current_sink; // distributes across all banks
+				}
+				
 				return request.segment % num_sinks();
 			}
 			else
@@ -82,7 +85,7 @@ private:
 				return request.port * num_sinks() / num_sources();
 			}
 		}
-		int current_sink = -1;
+		int current_sink = 0;
 	};
 
 	struct Bank

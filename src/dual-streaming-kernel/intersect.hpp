@@ -284,7 +284,7 @@ bool inline intersect_treelet(const Treelet& treelet, const rtm::Ray& ray, rtm::
 
 inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 {
-	bool early = false;
+	bool early = true;
 	while(1)
 	{
 		WorkItem wi = _lwi();

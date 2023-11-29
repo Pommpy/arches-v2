@@ -207,8 +207,8 @@ static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	TreeletBVH treelet_bvh(blas, mesh);
 
 	KernelArgs args;
-	args.framebuffer_width = 256;
-	args.framebuffer_height = 256;
+	args.framebuffer_width = 1024;
+	args.framebuffer_height = 1024;
 	args.framebuffer_size = args.framebuffer_width * args.framebuffer_height;
 
 	args.samples_per_pixel = 1;
@@ -306,8 +306,8 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	hit_record_updater_config.main_mem_port_offset = 3;
 	hit_record_updater_config.main_mem_port_stride = 4;
 	hit_record_updater_config.hit_record_start = *(paddr_t*)&kernel_args.hit_records;
-	hit_record_updater_config.cache_size = 128; // 128 * 16 = 2048B = 2KB
-	hit_record_updater_config.associativity = 4;
+	hit_record_updater_config.cache_size = 128 * 1024; // 128 * 16 = 2048B = 2KB
+	hit_record_updater_config.associativity = 16;
 	Units::DualStreaming::UnitHitRecordUpdater hit_record_updater(hit_record_updater_config);
 	simulator.register_unit(&hit_record_updater);
 

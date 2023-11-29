@@ -152,7 +152,7 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 		if (current_segment != ~0u)
 		{
 			SegmentState& state = _scheduler.segment_state_map[current_segment];
-			printf("Segment %d launched, total bucket %d, activated bucket %d \n", current_segment, state.total_buckets, state.active_buckets);
+			//printf("Segment %d launched, total bucket %d, activated bucket %d \n", current_segment, state.total_buckets, state.active_buckets);
 			_scheduler.bucket_request_queue.pop();
 			_scheduler.last_segment_on_tm[tm_index] = current_segment;
 
@@ -287,7 +287,7 @@ void UnitStreamSchedulerDFS::_proccess_request(uint bank_index) {
 	Bank& bank = _banks[bank_index];
 
 	//try to flush a bucket from the cache
-	if (!bank.bucket_flush_queue.empty())
+	while (!bank.bucket_flush_queue.empty())
 	{
 		uint flush_segment_index = bank.bucket_flush_queue.front();
 		if (bank.ray_coalescer.count(flush_segment_index) > 0)
@@ -297,14 +297,13 @@ void UnitStreamSchedulerDFS::_proccess_request(uint bank_index) {
 				_scheduler.bucket_write_cascade.write(bank.ray_coalescer[flush_segment_index], bank_index);
 				bank.ray_coalescer.erase(flush_segment_index);
 				bank.bucket_flush_queue.pop();
+				return;
 			}
 		}
 		else
 		{
 			bank.bucket_flush_queue.pop();
 		}
-
-		return;
 	}
 
 	if (!_request_network.is_read_valid(bank_index)) return;
@@ -330,7 +329,8 @@ void UnitStreamSchedulerDFS::_proccess_request(uint bank_index) {
 				if (_scheduler.root_rays_counter == _scheduler.num_root_rays) {
 					SegmentState& segment_state = _scheduler.segment_state_map[0];
 					segment_state.parent_finished = true;
-					bank.bucket_flush_queue.push(0);
+					// flush all bank
+					for(auto& bank: _banks) bank.bucket_flush_queue.push(0);
 				}
 			}
 			_request_network.read(bank_index);

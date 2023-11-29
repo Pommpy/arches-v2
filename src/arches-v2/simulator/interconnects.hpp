@@ -422,16 +422,18 @@ private:
 	std::vector<RoundRobinArbiter> _cascade_arbiters;
 	std::vector<RoundRobinArbiter> _crossbar_arbiters;
 	size_t                         _output_cascade_ratio;
+	std::vector<uint>			   _source_to_sink;
 	FIFOArray<T> _sink_fifos;
 
 public:
 	CasscadedCrossBar(uint sources, uint sinks, uint crossbar_width) :
-		_source_fifos(sources), 
+		_source_fifos(sources),
 		_input_cascade_ratio(std::max(sources / crossbar_width, 1u)),
 		_cascade_arbiters(crossbar_width, _input_cascade_ratio),
 		_crossbar_arbiters(crossbar_width, crossbar_width),
 		_output_cascade_ratio(std::max(sinks / crossbar_width, 1u)),
-		_sink_fifos(sinks) 
+		_sink_fifos(sinks),
+		_source_to_sink(sources, ~0u)
 	{}
 
 	virtual uint get_sink(const T& transaction) = 0;
@@ -440,7 +442,10 @@ public:
 	{
 		for(uint source_index = 0; source_index < _source_fifos.num_sinks(); ++source_index)
 		{
-			if(!_source_fifos.is_read_valid(source_index)) continue;
+			if(!_source_fifos.is_read_valid(source_index) || _source_to_sink[source_index] != ~0u) continue;
+
+			uint sink_index = get_sink(_source_fifos.peek(source_index));
+			_source_to_sink[source_index] = sink_index;
 
 			uint cascade_index = source_index / _input_cascade_ratio;
 			uint cascade_source_index = source_index % _input_cascade_ratio;
@@ -454,7 +459,7 @@ public:
 
 			uint cascade_source_index = _cascade_arbiters[cascade_index].get_index();
 			uint source_index = cascade_index * _input_cascade_ratio + cascade_source_index;
-			uint sink_index = get_sink(_source_fifos.peek(source_index));
+			uint sink_index = _source_to_sink[source_index];
 			uint crossbar_index = sink_index / _output_cascade_ratio;
 
 			_crossbar_arbiters[crossbar_index].add(cascade_index);
@@ -471,6 +476,7 @@ public:
 			if(!_sink_fifos.is_write_valid(crossbar_index)) continue;
 
 			uint sink_index = get_sink(_source_fifos.peek(source_index));
+			_source_to_sink[source_index] = ~0u;
 
 			_crossbar_arbiters[crossbar_index].remove(cascade_index);
 			_cascade_arbiters[cascade_index].remove(cascade_source_index);
