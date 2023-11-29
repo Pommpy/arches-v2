@@ -36,6 +36,11 @@ struct alignas(RAY_BUCKET_SIZE) RayBucket
 	}
 };
 
+enum class TraversalScheme {
+	BFS = 0,
+	DFS
+};
+
 class UnitStreamSchedulerDFS : public UnitBase
 {
 public:
@@ -49,22 +54,26 @@ public:
 		uint num_tms;
 		uint num_banks;
 
+		uint traversal_scheme = 0; // 0-bfs, 1-dfs
+
 		UnitMainMemoryBase* main_mem;
 		uint                main_mem_port_offset{ 0 };
 		uint                main_mem_port_stride{ 1 };
 	};
 
 private:
-	class StreamSchedulerRequestCrossbar : public CasscadedCrossBar<StreamSchedulerRequest>
+	class StreamSchedulerRequestCrossbar : public CrossBar<StreamSchedulerRequest>
 	{
 	public:
-		StreamSchedulerRequestCrossbar(uint ports, uint banks) : CasscadedCrossBar<StreamSchedulerRequest>(ports, banks, banks) {}
+		StreamSchedulerRequestCrossbar(uint ports, uint banks) : CrossBar<StreamSchedulerRequest>(ports, banks) {}
 
 		uint get_sink(const StreamSchedulerRequest& request) override
 		{
 			if (request.type == StreamSchedulerRequest::Type::STORE_WORKITEM)
 			{
 				//if this is a workitem write or bucket completed then distrbute across banks
+				current_sink = (current_sink + 1) % num_sinks();
+				return current_sink;
 				return request.segment % num_sinks();
 			}
 			else
@@ -73,6 +82,7 @@ private:
 				return request.port * num_sinks() / num_sources();
 			}
 		}
+		int current_sink = -1;
 	};
 
 	struct Bank
@@ -163,13 +173,18 @@ private:
 
 		//the set of segments that are ready to issue buckets
 		std::vector<uint> candidate_segments;
+
+		std::vector<uint> candidate_link_list;
+		uint candidate_link_list_head = 0;
 		
-		std::stack<uint> traversal_stack;
+		std::stack<uint> traversal_stack; // for DFS
+		std::queue<uint> traversal_queue; // for BFS
 
 		int root_rays_counter = 0;
 		int num_root_rays = 0;
+		uint traversal_scheme = 0;
 
-		Scheduler(const Configuration& config) : bucket_write_cascade(config.num_banks, 1), last_segment_on_tm(config.num_tms, ~0u), num_root_rays(config.num_root_rays)
+		Scheduler(const Configuration& config) : bucket_write_cascade(config.num_banks, 1), last_segment_on_tm(config.num_tms, ~0u), num_root_rays(config.num_root_rays), traversal_scheme(config.traversal_scheme)
 		{
 			for (uint i = 0; i < NUM_DRAM_CHANNELS; ++i)
 				memory_managers.emplace_back(i, config.heap_addr);
@@ -184,8 +199,6 @@ private:
 			Treelet::Header root_header = cheat_treelets[0].header;
 			candidate_segments.push_back(0);
 
-			/*for (uint i = 0; i < root_header.num_children; ++i)
-				traversal_queue.push(root_header.first_child + i);*/
 		}
 
 		bool is_complete()

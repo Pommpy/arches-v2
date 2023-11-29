@@ -373,9 +373,10 @@ private:
 	FIFOArray<T> _source_fifos;
 	std::vector<RoundRobinArbiter> _arbiters;
 	FIFOArray<T> _sink_fifos;
+	std::vector<uint> already_arrange;
 
 public:
-	CrossBar(uint sources, uint sinks) : _source_fifos(sources), _arbiters(sinks, sources), _sink_fifos(sinks) {}
+	CrossBar(uint sources, uint sinks) : _source_fifos(sources), _arbiters(sinks, sources), _sink_fifos(sinks), already_arrange(sources, ~0u){}
 	
 	virtual uint get_sink(const T& transaction) = 0;
 
@@ -383,19 +384,21 @@ public:
 	{
 		for(uint source_index = 0; source_index < _source_fifos.num_sinks(); ++source_index)
 		{
-			if(!_source_fifos.is_read_valid(source_index)) continue;
-
-			uint sink_index = get_sink(_source_fifos.peek(source_index), source_index);
+			if(!_source_fifos.is_read_valid(source_index) || already_arrange[source_index] == ~0u) continue;
+			uint sink_index = get_sink(_source_fifos.peek(source_index));
+			assert((_arbiters[sink_index]._pending & (1ull << source_index)) == 0);
+			already_arrange[source_index] = sink_index;
 			_arbiters[sink_index].add(source_index);
 		}
 
 		for(uint sink_index = 0; sink_index < _sink_fifos.num_sinks(); ++sink_index)
 		{
-			if(!_sink_fifos.is_write_valid(sink_index) || _arbiters[sink_index].num_pending() == 0) continue;
-
+			if (!_sink_fifos.is_write_valid(sink_index) || _arbiters[sink_index].num_pending() == 0) continue;
 			uint source_index = _arbiters[sink_index].get_index();
+			assert(already_arrange[source_index] == sink_index);
 			_sink_fifos.write(_source_fifos.read(source_index), sink_index);
-			_arbiters.remove(source_index);
+			already_arrange[source_index] = ~0u;
+			_arbiters[sink_index].remove(source_index);
 		}
 	}
 

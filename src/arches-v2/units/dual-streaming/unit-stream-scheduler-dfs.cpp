@@ -44,9 +44,7 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 		//all remaining buckets are active
 		if (segment_state.parent_finished && segment_state.total_buckets == 0)
 		{
-			//segment is complete
-
-
+			//segment is complete, which will be evicted from active segments and candidate segments later
 			break;
 		}
 	}
@@ -59,6 +57,7 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 
 		//find highest priority segment that has rays ready
 		uint current_segment = ~0u;
+
 		for (uint i = 0; i < _scheduler.candidate_segments.size(); ++i)
 		{
 			uint candidate_segment = _scheduler.candidate_segments[i];
@@ -79,29 +78,43 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 				// push in children nodes
 				if (!state.child_order_generated)
 				{
-					state.child_order_generated = true;
-
-					std::vector<DfsWeight> child_weights(header.num_children);
-					std::vector<uint> child_id(header.num_children);
-					std::iota(child_id.begin(), child_id.end(), 0);
-
-					// push children to traversal stack in sorted order
-					for (uint i = 0; i < header.num_children; ++i)
+					if (_scheduler.traversal_scheme == (uint)TraversalScheme::BFS) 
 					{
-						uint child_segment_index = header.first_child + i;
-						SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
-						child_weights[i] = child_segment_state.weight;
-					}
-					std::sort(child_id.begin(), child_id.end(), [&](const uint& x, const uint& y) 
-						{
-							return child_weights[x] < child_weights[y];
+						if (state.parent_finished && state.total_buckets > 0) {
+							state.child_order_generated = true;
+							for (uint i = 0; i < header.num_children; ++i)
+							{
+								uint child_segment_index = header.first_child + i;
+								SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
+								_scheduler.traversal_queue.push(child_segment_index);
+							}
 						}
-					);
-					for (const uint& sorted_child_id : child_id)
-					{
-						uint child_segment_index = header.first_child + sorted_child_id;
-						_scheduler.traversal_stack.push(child_segment_index);
 					}
+					else 
+					{
+						state.child_order_generated = true;
+						std::vector<DfsWeight> child_weights(header.num_children);
+						std::vector<uint> child_id(header.num_children);
+						std::iota(child_id.begin(), child_id.end(), 0);
+						// push children to traversal stack in sorted order
+						for (uint i = 0; i < header.num_children; ++i)
+						{
+							uint child_segment_index = header.first_child + i;
+							SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
+							child_weights[i] = child_segment_state.weight;
+						}
+						std::sort(child_id.begin(), child_id.end(), [&](const uint& x, const uint& y)
+							{
+								return child_weights[x] < child_weights[y];
+							}
+						);
+						for (const uint& sorted_child_id : child_id)
+						{
+							uint child_segment_index = header.first_child + sorted_child_id;
+							_scheduler.traversal_stack.push(child_segment_index);
+						}
+					}
+					
 				}
 
 				if (state.parent_finished && state.total_buckets == 0)
@@ -169,15 +182,32 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 			{
 				//we have room in the working set and a segment in the traversal queue try to expand working set
 				if (_scheduler.traversal_stack.size()) {
+					// DFS
 					uint next_segment = _scheduler.traversal_stack.top();
 					_scheduler.traversal_stack.pop();
 					_scheduler.candidate_segments.push_back(next_segment);
 
 					//Add the segment to the active set
 					_scheduler.active_segments.insert(next_segment);
-					printf("Segment %d scheduled\n", next_segment);
+					printf("DFS Segment %d scheduled\n", next_segment);
 				}
 			}
+		}
+	}
+
+	if ((_scheduler.active_segments.size()) < MAX_ACTIVE_SEGMENTS)
+	{
+		//we have room in the working set and a segment in the traversal queue try to expand working set
+		if (_scheduler.traversal_queue.size())
+		{
+			// BFS
+			uint next_segment = _scheduler.traversal_queue.front();
+			_scheduler.traversal_queue.pop();
+			_scheduler.candidate_segments.push_back(next_segment);
+
+			//Add the segment to the active set
+			_scheduler.active_segments.insert(next_segment);
+			printf("BFS Segment %d scheduled\n", next_segment);
 		}
 	}
 
@@ -344,7 +374,6 @@ void UnitStreamSchedulerDFS::_issue_request(uint channel_index) {
 	if (!_main_mem->request_port_write_valid(mem_higher_port_index)) return;
 
 	if (channel.work_queue.empty()) return;
-
 
 	if (channel.work_queue.front().type == Channel::WorkItem::Type::READ_BUCKET)
 	{

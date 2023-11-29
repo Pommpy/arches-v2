@@ -5,7 +5,7 @@
 //Uses a 64bit integer and BM2 extension to implement a computational and stoarge efficent arbiter for up to 64 clients
 class RoundRobinArbiter
 {
-protected:
+public:
 	uint64_t _pending{0x0ull};
 	uint32_t _priority_index{0};
 	uint32_t _size{64};

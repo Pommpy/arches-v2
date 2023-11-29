@@ -70,7 +70,7 @@ inline static void kernel(const KernelArgs& args)
 		//args.framebuffer[index] = encode_pixel(rtm::vec3(hit.bc.x, hit.bc.y, hit.t));
 
 		rtm::vec3 out = 0.0f;
-		if(hit.t < T_MAX && hit.id != ~0)
+		if(hit.t < T_MAX)
 		{
 			rtm::vec3 n = args.triangles[hit.id].normal();
 			out = n * 0.5f + 0.5f;

@@ -52,10 +52,10 @@ public:
 	};
 
 private:
-	class StreamSchedulerRequestCrossbar : public CasscadedCrossBar<StreamSchedulerRequest>
+	class StreamSchedulerRequestCrossbar : public CrossBar<StreamSchedulerRequest>
 	{
 	public:
-		StreamSchedulerRequestCrossbar(uint ports, uint banks) : CasscadedCrossBar<StreamSchedulerRequest>(ports, banks, banks) {}
+		StreamSchedulerRequestCrossbar(uint ports, uint banks) : CrossBar<StreamSchedulerRequest>(ports, banks) {}
 
 		uint get_sink(const StreamSchedulerRequest& request) override
 		{
