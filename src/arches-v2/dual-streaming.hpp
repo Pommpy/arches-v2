@@ -207,8 +207,8 @@ static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	TreeletBVH treelet_bvh(blas, mesh);
 
 	KernelArgs args;
-	args.framebuffer_width = 1024;
-	args.framebuffer_height = 1024;
+	args.framebuffer_width = 128;
+	args.framebuffer_height = 128;
 	args.framebuffer_size = args.framebuffer_width * args.framebuffer_height;
 
 	args.samples_per_pixel = 1;

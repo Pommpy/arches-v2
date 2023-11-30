@@ -47,20 +47,20 @@ void UnitHitRecordUpdater::process_requests(uint channel_index)
 
 	if (rsb_req.type == HitRecordUpdaterRequest::TYPE::LOAD) 
 	{
-		if (!channel.ever_committed.count(rsb_req.hit_info.hit_address))
-		{
-			// We do not need to visit DRAM because this hit is never committed
-			MemoryReturn ret;
-			ret.port = rsb_req.port;
-			ret.size = sizeof(rtm::Hit);
-			auto hit = rsb_req.hit_info.hit;
-			hit.id = ~0; // It hits nothing
-			std::memcpy(ret.data, &hit, sizeof(rtm::Hit));
-			ret.paddr = rsb_req.hit_info.hit_address;
-			channel.return_queue.push(ret);
-			request_network.read(channel_index);
-			return;
-		}
+		//if (!channel.ever_committed.count(rsb_req.hit_info.hit_address))
+		//{
+		//	// We do not need to visit DRAM because this hit is never committed
+		//	MemoryReturn ret;
+		//	ret.port = rsb_req.port;
+		//	ret.size = sizeof(rtm::Hit);
+		//	auto hit = rsb_req.hit_info.hit;
+		//	hit.id = ~0u; // It hits nothing
+		//	//hit.t = T_MAX;
+		//	std::memcpy(ret.data, &hit, sizeof(rtm::Hit));
+		//	ret.paddr = rsb_req.hit_info.hit_address;
+		//	channel.return_queue.push(ret);
+		//	request_network.read(channel_index);
+		//}
 		if (state == HitRecordCache::State::CLOSEST_DRAM || state == HitRecordCache::State::CLOSEST_WRITE) 
 		{
 			// We do not need to visit DRAM because we already have the closest hit
