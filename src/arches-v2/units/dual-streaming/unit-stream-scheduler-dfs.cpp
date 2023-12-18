@@ -152,7 +152,7 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 		if (current_segment != ~0u)
 		{
 			SegmentState& state = _scheduler.segment_state_map[current_segment];
-			printf("Segment %d launched, total bucket %d, activated bucket %d \n", current_segment, state.total_buckets, state.active_buckets);
+			//printf("Segment %d launched, total bucket %d, activated bucket %d \n", current_segment, state.total_buckets, state.active_buckets);
 			_scheduler.bucket_request_queue.pop();
 			_scheduler.last_segment_on_tm[tm_index] = current_segment;
 

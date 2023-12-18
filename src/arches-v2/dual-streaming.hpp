@@ -207,8 +207,8 @@ static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	TreeletBVH treelet_bvh(blas, mesh);
 
 	KernelArgs args;
-	args.framebuffer_width = 128;
-	args.framebuffer_height = 128;
+	args.framebuffer_width = 16;
+	args.framebuffer_height = 16;
 	args.framebuffer_size = args.framebuffer_width * args.framebuffer_height;
 
 	args.samples_per_pixel = 1;
@@ -222,7 +222,7 @@ static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	args.framebuffer = reinterpret_cast<uint32_t*>(heap_address); heap_address += args.framebuffer_size * sizeof(uint32_t);
 
 	std::vector<rtm::Hit> hits(args.framebuffer_size);
-	for(auto& hit : hits) hit.t = T_MAX;
+	for(auto& hit : hits) hit.t = T_MAX, hit.id = ~0u;
 	args.hit_records = write_vector(main_memory, ROW_BUFFER_SIZE, hits, heap_address);
 	args.treelets = write_vector(main_memory, ROW_BUFFER_SIZE, treelet_bvh.treelets, heap_address);
 	args.triangles = write_vector(main_memory, CACHE_BLOCK_SIZE, tris, heap_address);

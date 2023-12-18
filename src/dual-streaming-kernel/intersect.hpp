@@ -71,7 +71,7 @@ inline void _cshit(const rtm::Hit& hit, rtm::Hit* dst)
 	register float f16 asm("f16") = hit.bc.x;
 	register float f17 asm("f17") = hit.bc.y;
 	register float f18 asm("f18") = *(float*)&hit.id;
-	asm volatile("cshit f15, 0(%0)" : : "r" (dst), "f" (f15),  "f" (f16), "f" (f17), "f" (f18));
+	asm volatile("cshit %1, 0(%0)\t\n" : : "r" (dst), "f" (f15),  "f" (f16), "f" (f17), "f" (f18) : "memory");
 #endif
 }
 
@@ -82,7 +82,7 @@ inline rtm::Hit _lhit(rtm::Hit* src)
 	register float f16 asm("f16");
 	register float f17 asm("f17");
 	register float f18 asm("f18");
-	asm volatile("lhit f15, 0(%4)" : "=f" (f15), "=f" (f16), "=f" (f17), "=f" (f18) : "r" (src));
+	asm volatile("lhit %0, 0(%4)" : "=f" (f15), "=f" (f16), "=f" (f17), "=f" (f18) : "r" (src) : "memory");
 
 	rtm::Hit hit;
 	hit.t = f15;
@@ -273,7 +273,7 @@ bool inline intersect_treelet(const Treelet& treelet, const rtm::Ray& ray, rtm::
 				if(_intersect(tri.tri, ray, hit))
 				{
 					hit.id = tri.id;
-					is_hit |= true;
+					is_hit = true;
 				}
 			}
 		}
@@ -297,8 +297,12 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 		if(intersect_treelet(treelets[wi.segment], wi.bray.ray, hit, treelet_stack, treelet_stack_size))
 		{
 			//update hit record with hit using cshit
-			_cshit(hit, hit_records + wi.bray.id);
-			wi.bray.ray.t_max = hit.t;
+			if (hit.id != ~0u) 
+			{
+				_cshit(hit, hit_records + wi.bray.id);
+				wi.bray.ray.t_max = hit.t;
+			}
+			
 		}
 
 		//drain treelet stack
