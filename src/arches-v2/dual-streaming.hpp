@@ -153,6 +153,12 @@ const static InstructionInfo isa_custom0_funct3[8] =
 		for(uint i = 0; i < sizeof(rtm::Hit) / sizeof(float); ++i)
 			((float*)mem_req.data)[i] = fr[instr.s.rs2 + i].f32;
 
+		//rtm::Hit hit;
+		//std::memcpy(&hit, mem_req.data, sizeof(rtm::Hit));
+		//std::cout << hit.t << ' ' << hit.id << '\n';
+
+		//std::cout << "===============\n";
+
 		return mem_req;
 	}),
 	InstructionInfo(0x4, "lhit", InstrType::CUSTOM6, Encoding::I, RegType::FLOAT, RegType::INT, MEM_REQ_DECL
@@ -207,8 +213,8 @@ static KernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, padd
 	TreeletBVH treelet_bvh(blas, mesh);
 
 	KernelArgs args;
-	args.framebuffer_width = 16;
-	args.framebuffer_height = 16;
+	args.framebuffer_width = 256;
+	args.framebuffer_height = 256;
 	args.framebuffer_size = args.framebuffer_width * args.framebuffer_height;
 
 	args.samples_per_pixel = 1;

@@ -132,17 +132,6 @@ private:
 		}
 	};
 
-	struct DfsWeight {
-		float value;
-		bool operator > (const DfsWeight& other) const 
-		{
-			return value > other.value;
-		};
-		bool operator < (const DfsWeight& other) const
-		{
-			return value < other.value;
-		};
-	};
 	struct SegmentState
 	{
 		std::queue<paddr_t> bucket_address_queue{};
@@ -152,7 +141,7 @@ private:
 		bool                parent_finished{ false };
 
 		bool			    is_top_level{ true };
-		DfsWeight			weight;
+		uint64_t			weight;
 		bool				child_order_generated{ false };
 	};
 
@@ -160,7 +149,10 @@ private:
 	struct Scheduler
 	{
 		std::queue<uint> bucket_allocated_queue;
+
 		std::queue<uint> bucket_request_queue;
+		std::queue<uint> bucket_request_queue1;
+		std::queue<uint> bucket_request_queue2;
 		std::queue<uint> bucket_complete_queue;
 		Casscade<RayBucket> bucket_write_cascade;
 
@@ -176,9 +168,6 @@ private:
 
 		//the set of segments that are ready to issue buckets
 		std::vector<uint> candidate_segments;
-
-		std::vector<uint> candidate_link_list;
-		uint candidate_link_list_head = 0;
 		
 		std::stack<uint> traversal_stack; // for DFS
 		std::queue<uint> traversal_queue; // for BFS
@@ -242,6 +231,8 @@ private:
 		//forwarding
 		MemoryReturn forward_return{};
 		bool forward_return_valid{ false };
+
+		Channel() {};
 	};
 
 	UnitMainMemoryBase* _main_mem;

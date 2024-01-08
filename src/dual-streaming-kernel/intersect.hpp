@@ -84,15 +84,26 @@ inline rtm::Hit _lhit(rtm::Hit* src)
 	register float f18 asm("f18");
 	asm volatile("lhit %0, 0(%4)" : "=f" (f15), "=f" (f16), "=f" (f17), "=f" (f18) : "r" (src) : "memory");
 
-	rtm::Hit hit;
-	hit.t = f15;
-	hit.bc.x = f16;
-	hit.bc.y = f17;
-
+	rtm::Hit cloest_hit;
+	cloest_hit.t = f15;
+	cloest_hit.bc.x = f16;
+	cloest_hit.bc.y = f17;
 	float _f18 = f18;
-	hit.id = *(uint*)&_f18;
+	cloest_hit.id = *(uint*)&_f18;
+	
+	return cloest_hit;
 
-	return hit;
+#endif
+}
+
+inline void _lhit_delay(rtm::Hit* src)
+{
+#ifdef __riscv
+	register float f15 asm("f15");
+	register float f16 asm("f16");
+	register float f17 asm("f17");
+	register float f18 asm("f18");
+	asm volatile("lhit %0, 0(%4)" : "=f" (f15), "=f" (f16), "=f" (f17), "=f" (f18) : "r" (src) : "memory");
 #endif
 }
 
@@ -285,6 +296,7 @@ bool inline intersect_treelet(const Treelet& treelet, const rtm::Ray& ray, rtm::
 inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 {
 	bool early = true;
+	bool lhit_delay = false;
 	while(1)
 	{
 		WorkItem wi = _lwi();
@@ -292,25 +304,65 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 
 		rtm::Ray ray = wi.bray.ray;
 		rtm::Hit hit; hit.t = wi.bray.ray.t_max;
-		if (early) hit = _lhit(hit_records + wi.bray.id);
+		if (early) {
+			if (lhit_delay) _lhit_delay(hit_records + wi.bray.id);
+			else hit = _lhit(hit_records + wi.bray.id);
+		}
 		uint treelet_stack[16]; uint treelet_stack_size = 0;
 		if(intersect_treelet(treelets[wi.segment], wi.bray.ray, hit, treelet_stack, treelet_stack_size))
 		{
-			//update hit record with hit using cshit
-			if (hit.id != ~0u) 
+			// get cloest hit here
+			rtm::Hit cloest_hit;
+			cloest_hit.t = T_MAX;
+#ifdef __riscv
+			register float f15 asm("f15");
+			register float f16 asm("f16");
+			register float f17 asm("f17");
+			register float f18 asm("f18");
+			cloest_hit.t = f15;
+			cloest_hit.bc.x = f16;
+			cloest_hit.bc.y = f17;
+			float _f18 = f18;
+			cloest_hit.id = *(uint*)&_f18;
+#endif
+			//cloest_hit.t = T_MAX;
+			if (early && lhit_delay && hit.t > cloest_hit.t) 
+			{
+				hit = cloest_hit;
+				wi.bray.ray.t_max = hit.t;
+			}
+			// update hit record with hit using cshit
+			else if (hit.id != ~0u) 
 			{
 				_cshit(hit, hit_records + wi.bray.id);
 				wi.bray.ray.t_max = hit.t;
 			}
-			
+			_cshit(hit, hit_records + wi.bray.id);
 		}
-
+		rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
 		//drain treelet stack
+
+		uint weight = 15;
 		while(treelet_stack_size)
 		{
 			uint treelet_index = treelet_stack[--treelet_stack_size];
-			wi.segment = treelet_index;
-			_swi(wi);
+			// If we delay the LHIT, we need to check here
+			if (early && lhit_delay)
+			{
+				//float hit_t = _intersect(treelets[treelet_index].nodes[0].aabb, ray, inv_d);
+				//hit_t = -10;
+				//if (hit_t < hit.t) 
+				{
+					wi.segment = (treelet_index | ((1 << 15 - treelet_stack_size) << 16));
+					_swi(wi);
+				}
+			}
+			else 
+			{
+				wi.segment = (treelet_index | ((1 << 15 - treelet_stack_size) << 16));
+				_swi(wi);
+			}
+			//weight--;
 		}
 	}
 }

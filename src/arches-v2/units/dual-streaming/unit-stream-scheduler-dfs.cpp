@@ -26,7 +26,6 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 
 		//increment total buckets
 		state.total_buckets++;
-		state.weight.value++;
 	}
 
 	while (!_scheduler.bucket_complete_queue.empty())
@@ -51,8 +50,11 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 
 	//schedule bucket read requests
 	if (!_scheduler.bucket_request_queue.empty())
+	//if(!_scheduler.bucket_request_queue1.empty() || !_scheduler.bucket_request_queue2.empty())
 	{
 		uint tm_index = _scheduler.bucket_request_queue.front();
+		//if(!_scheduler.bucket_request_queue1.empty()) tm_index = _scheduler.bucket_request_queue1.front();
+		//else if(!_scheduler.bucket_request_queue2.empty()) tm_index = _scheduler.bucket_request_queue2.front();
 		uint last_segment = _scheduler.last_segment_on_tm[tm_index];
 
 		//find highest priority segment that has rays ready
@@ -93,7 +95,7 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 					else 
 					{
 						state.child_order_generated = true;
-						std::vector<DfsWeight> child_weights(header.num_children);
+						std::vector<uint64_t> child_weights(header.num_children);
 						std::vector<uint> child_id(header.num_children);
 						std::iota(child_id.begin(), child_id.end(), 0);
 						// push children to traversal stack in sorted order
@@ -154,6 +156,8 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 			SegmentState& state = _scheduler.segment_state_map[current_segment];
 			//printf("Segment %d launched, total bucket %d, activated bucket %d \n", current_segment, state.total_buckets, state.active_buckets);
 			_scheduler.bucket_request_queue.pop();
+			//if(_scheduler.bucket_request_queue1.size()) _scheduler.bucket_request_queue1.pop();
+			//else if (_scheduler.bucket_request_queue2.size()) _scheduler.bucket_request_queue2.pop();
 			_scheduler.last_segment_on_tm[tm_index] = current_segment;
 
 			paddr_t bucket_adddress = state.bucket_address_queue.front();
@@ -218,7 +222,7 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 		const RayBucket& bucket = _scheduler.bucket_write_cascade.peek(0);
 		uint segment_index = bucket.segment;
 		SegmentState& state = _scheduler.segment_state_map[segment_index];
-
+		
 		uint channel_index = state.next_channel;
 		MemoryManager& memory_manager = _scheduler.memory_managers[channel_index];
 		paddr_t bucket_adddress = memory_manager.alloc_bucket();
@@ -267,6 +271,16 @@ void UnitStreamSchedulerDFS::clock_fall() {
 		if (_scheduler.is_complete() && _return_network.is_write_valid(0) && !_scheduler.bucket_request_queue.empty())
 		{
 			uint tm_index = _scheduler.bucket_request_queue.front();
+			//if (!_scheduler.bucket_request_queue1.empty()) 
+			//{
+			//	tm_index = _scheduler.bucket_request_queue1.front();
+			//	_scheduler.bucket_request_queue1.pop();
+			//}
+			//else if (!_scheduler.bucket_request_queue2.empty())
+			//{
+			//	tm_index = _scheduler.bucket_request_queue2.front();
+			//	_scheduler.bucket_request_queue2.pop();
+			//}
 			_scheduler.bucket_request_queue.pop();
 
 			MemoryReturn ret;
@@ -311,7 +325,8 @@ void UnitStreamSchedulerDFS::_proccess_request(uint bank_index) {
 
 	if (req.type == StreamSchedulerRequest::Type::STORE_WORKITEM)
 	{
-		uint segment_index = req.segment;
+		uint segment_index = req.segment % (1 << 16);
+		uint weight = req.segment >> 16;
 
 		//if this segment is not in the coalescer add an entry
 		if (bank.ray_coalescer.count(segment_index) == 0)
@@ -321,9 +336,13 @@ void UnitStreamSchedulerDFS::_proccess_request(uint bank_index) {
 		}
 
 		RayBucket& write_buffer = bank.ray_coalescer[segment_index];
+
 		if (!write_buffer.is_full())
 		{
 			write_buffer.write_ray(req.bray);
+			SegmentState& state = _scheduler.segment_state_map[segment_index];
+			state.weight += weight;
+
 			if (segment_index == 0) _scheduler.root_rays_counter++;
 			if (segment_index == 0) {
 				if (_scheduler.root_rays_counter == _scheduler.num_root_rays) {
@@ -354,6 +373,21 @@ void UnitStreamSchedulerDFS::_proccess_request(uint bank_index) {
 	{
 		//forward to stream scheduler
 		_scheduler.bucket_request_queue.push(req.port);
+		//int value = req.segment;
+		int tm_index = req.port;
+		//if (value == 1)
+		//{
+		//	_scheduler.bucket_request_queue1.push(tm_index);
+		//}
+		//else if (value == 2) 
+		//{
+		//	_scheduler.bucket_request_queue2.push(tm_index);
+		//}
+		//else
+		//{
+		//	std::cout << "should not be here" << '\n';
+		//	assert(false);
+		//}
 		_request_network.read(bank_index);
 	}
 	else assert(false);
@@ -362,7 +396,7 @@ void UnitStreamSchedulerDFS::_proccess_request(uint bank_index) {
 void UnitStreamSchedulerDFS::_proccess_return(uint channel_index) {
 	Channel& channel = _channels[channel_index];
 	uint mem_higher_port_index = channel_index * _main_mem_port_stride + _main_mem_port_offset;
-	if (!_main_mem->return_port_read_valid(mem_higher_port_index) || channel.forward_return_valid) return;
+	if (!_main_mem->return_port_read_valid(mem_higher_port_index)  || channel.forward_return_valid) return;
 
 	channel.forward_return = _main_mem->read_return(mem_higher_port_index);
 	channel.forward_return_valid = true;
@@ -397,7 +431,6 @@ void UnitStreamSchedulerDFS::_issue_request(uint channel_index) {
 	else if (channel.work_queue.front().type == Channel::WorkItem::Type::WRITE_BUCKET)
 	{
 		RayBucket& bucket = channel.work_queue.front().bucket;
-
 		MemoryRequest req;
 		req.type = MemoryRequest::Type::STORE;
 		req.size = CACHE_BLOCK_SIZE;
