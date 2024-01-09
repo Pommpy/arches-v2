@@ -78,18 +78,18 @@ inline void _cshit(const rtm::Hit& hit, rtm::Hit* dst)
 inline rtm::Hit _lhit(rtm::Hit* src)
 {
 #ifdef __riscv
-	register float f15 asm("f15");
-	register float f16 asm("f16");
-	register float f17 asm("f17");
-	register float f18 asm("f18");
-	asm volatile("lhit %0, 0(%4)" : "=f" (f15), "=f" (f16), "=f" (f17), "=f" (f18) : "r" (src) : "memory");
+	register float dst0 asm("f28");
+	register float dst1 asm("f29");
+	register float dst2 asm("f30");
+	register float dst3 asm("f31");
+	asm volatile("lhit %0, 0(%4)" : "=f" (dst0), "=f" (dst1), "=f" (dst2), "=f" (dst3) : "r" (src) : "memory");
 
 	rtm::Hit cloest_hit;
-	cloest_hit.t = f15;
-	cloest_hit.bc.x = f16;
-	cloest_hit.bc.y = f17;
-	float _f18 = f18;
-	cloest_hit.id = *(uint*)&_f18;
+	cloest_hit.t = dst0;
+	cloest_hit.bc.x = dst1;
+	cloest_hit.bc.y = dst2;
+	float _dst3 = dst3;
+	cloest_hit.id = *(uint*)&_dst3;
 	
 	return cloest_hit;
 
@@ -99,11 +99,11 @@ inline rtm::Hit _lhit(rtm::Hit* src)
 inline void _lhit_delay(rtm::Hit* src)
 {
 #ifdef __riscv
-	register float f15 asm("f15");
-	register float f16 asm("f16");
-	register float f17 asm("f17");
-	register float f18 asm("f18");
-	asm volatile("lhit %0, 0(%4)" : "=f" (f15), "=f" (f16), "=f" (f17), "=f" (f18) : "r" (src) : "memory");
+	register float dst0 asm("f28");
+	register float dst1 asm("f29");
+	register float dst2 asm("f30");
+	register float dst3 asm("f31");
+	asm volatile("lhit %0, 0(%4)" : "=f" (dst0), "=f" (dst1), "=f" (dst2), "=f" (dst3) : "r" (src) : "memory");
 #endif
 }
 
@@ -215,6 +215,12 @@ inline bool _intersect(const rtm::Triangle& tri, const rtm::Ray& ray, rtm::Hit& 
 
 bool inline intersect_treelet(const Treelet& treelet, const rtm::Ray& ray, rtm::Hit& hit, uint* treelet_stack, uint& treelet_stack_size)
 {
+#ifdef __riscv
+	register float f28 asm("f28") __attribute__((unused));
+	register float f29 asm("f29") __attribute__((unused));
+	register float f30 asm("f30") __attribute__((unused));
+	register float f31 asm("f31") __attribute__((unused));
+#endif
 	rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
 
 	struct NodeStackEntry
@@ -295,8 +301,14 @@ bool inline intersect_treelet(const Treelet& treelet, const rtm::Ray& ray, rtm::
 
 inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 {
+#ifdef __riscv
+	register float f28 asm("f28") __attribute__((unused));
+	register float f29 asm("f29") __attribute__((unused));
+	register float f30 asm("f30") __attribute__((unused));
+	register float f31 asm("f31") __attribute__((unused));
+#endif
 	bool early = true;
-	bool lhit_delay = false;
+	bool lhit_delay = true;
 	while(1)
 	{
 		WorkItem wi = _lwi();
@@ -315,15 +327,11 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 			rtm::Hit cloest_hit;
 			cloest_hit.t = T_MAX;
 #ifdef __riscv
-			register float f15 asm("f15");
-			register float f16 asm("f16");
-			register float f17 asm("f17");
-			register float f18 asm("f18");
-			cloest_hit.t = f15;
-			cloest_hit.bc.x = f16;
-			cloest_hit.bc.y = f17;
-			float _f18 = f18;
-			cloest_hit.id = *(uint*)&_f18;
+			cloest_hit.t = f28;
+			cloest_hit.bc.x = f29;
+			cloest_hit.bc.y = f30;
+			float _f31 = f31;
+			cloest_hit.id = *(uint*)&_f31;
 #endif
 			//cloest_hit.t = T_MAX;
 			if (early && lhit_delay && hit.t > cloest_hit.t) 
@@ -343,15 +351,18 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 		//drain treelet stack
 
 		uint weight = 15;
+
+		// weight = 2 ^ order
+		// cloest: 2 ^ 15
+		// second-cloest: 2 ^ 14
 		while(treelet_stack_size)
 		{
 			uint treelet_index = treelet_stack[--treelet_stack_size];
 			// If we delay the LHIT, we need to check here
 			if (early && lhit_delay)
 			{
-				//float hit_t = _intersect(treelets[treelet_index].nodes[0].aabb, ray, inv_d);
-				//hit_t = -10;
-				//if (hit_t < hit.t) 
+				float hit_t = _intersect(treelets[treelet_index].nodes[0].aabb, ray, inv_d);
+				if (hit_t < hit.t) 
 				{
 					wi.segment = (treelet_index | ((1 << 15 - treelet_stack_size) << 16));
 					_swi(wi);
