@@ -44,17 +44,20 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 		if (segment_state.parent_finished && segment_state.total_buckets == 0)
 		{
 			//segment is complete, which will be evicted from active segments and candidate segments later
+			
+			Treelet::Header header = _scheduler.cheat_treelets[segment_index].header;
+			if (header.subtree_size == 1)
+			{
+				log.log_complete(segment_index, segment_state.weight);
+			}
 			break;
 		}
 	}
 
 	//schedule bucket read requests
 	if (!_scheduler.bucket_request_queue.empty())
-	//if(!_scheduler.bucket_request_queue1.empty() || !_scheduler.bucket_request_queue2.empty())
 	{
 		uint tm_index = _scheduler.bucket_request_queue.front();
-		//if(!_scheduler.bucket_request_queue1.empty()) tm_index = _scheduler.bucket_request_queue1.front();
-		//else if(!_scheduler.bucket_request_queue2.empty()) tm_index = _scheduler.bucket_request_queue2.front();
 		uint last_segment = _scheduler.last_segment_on_tm[tm_index];
 
 		//find highest priority segment that has rays ready
@@ -95,6 +98,7 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 					else 
 					{
 						state.child_order_generated = true;
+						std::vector<uint64_t> child_ray_weights(header.num_children);
 						std::vector<uint64_t> child_weights(header.num_children);
 						std::vector<uint> child_id(header.num_children);
 						std::iota(child_id.begin(), child_id.end(), 0);
@@ -103,18 +107,23 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 						{
 							uint child_segment_index = header.first_child + i;
 							SegmentState& child_segment_state = _scheduler.segment_state_map[child_segment_index];
-							child_weights[i] = child_segment_state.weight;
+							child_weights[i] = child_segment_state.weight; // based on total weight
+							child_ray_weights[i] = child_segment_state.average_ray_weight; // based on average ray weight
 						}
 						std::sort(child_id.begin(), child_id.end(), [&](const uint& x, const uint& y)
 							{
+								if (child_ray_weights[x] != child_ray_weights[y]) return child_ray_weights[x] < child_ray_weights[y];
 								return child_weights[x] < child_weights[y];
 							}
 						);
+						//std::cout << "================" << candidate_segment << "============================\n";
 						for (const uint& sorted_child_id : child_id)
 						{
+							//std::cout << child_weights[sorted_child_id] << ' ';
 							uint child_segment_index = header.first_child + sorted_child_id;
 							_scheduler.traversal_stack.push(child_segment_index);
 						}
+						//std::cout << '\n';
 					}
 					
 				}
@@ -156,8 +165,6 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 			SegmentState& state = _scheduler.segment_state_map[current_segment];
 			//printf("Segment %d launched, total bucket %d, activated bucket %d \n", current_segment, state.total_buckets, state.active_buckets);
 			_scheduler.bucket_request_queue.pop();
-			//if(_scheduler.bucket_request_queue1.size()) _scheduler.bucket_request_queue1.pop();
-			//else if (_scheduler.bucket_request_queue2.size()) _scheduler.bucket_request_queue2.pop();
 			_scheduler.last_segment_on_tm[tm_index] = current_segment;
 
 			paddr_t bucket_adddress = state.bucket_address_queue.front();
@@ -191,9 +198,10 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 					_scheduler.traversal_stack.pop();
 					_scheduler.candidate_segments.push_back(next_segment);
 
+					SegmentState& state = _scheduler.segment_state_map[next_segment];
 					//Add the segment to the active set
 					_scheduler.active_segments.insert(next_segment);
-					printf("DFS Segment %d scheduled\n", next_segment);
+					printf("DFS Segment %d scheduled, Segment weight %llu, Average Weight %llu\n", next_segment, state.weight, state.average_ray_weight);
 				}
 			}
 		}
@@ -271,16 +279,6 @@ void UnitStreamSchedulerDFS::clock_fall() {
 		if (_scheduler.is_complete() && _return_network.is_write_valid(0) && !_scheduler.bucket_request_queue.empty())
 		{
 			uint tm_index = _scheduler.bucket_request_queue.front();
-			//if (!_scheduler.bucket_request_queue1.empty()) 
-			//{
-			//	tm_index = _scheduler.bucket_request_queue1.front();
-			//	_scheduler.bucket_request_queue1.pop();
-			//}
-			//else if (!_scheduler.bucket_request_queue2.empty())
-			//{
-			//	tm_index = _scheduler.bucket_request_queue2.front();
-			//	_scheduler.bucket_request_queue2.pop();
-			//}
 			_scheduler.bucket_request_queue.pop();
 
 			MemoryReturn ret;
@@ -341,7 +339,15 @@ void UnitStreamSchedulerDFS::_proccess_request(uint bank_index) {
 		{
 			write_buffer.write_ray(req.bray);
 			SegmentState& state = _scheduler.segment_state_map[segment_index];
+			Treelet::Header header = _scheduler.cheat_treelets[segment_index].header;
 			state.weight += weight;
+			state.num_rays++;
+			state.average_ray_weight = state.weight / state.num_rays;
+
+			if (header.subtree_size == 1)
+			{
+				log.log_leaf_rays(segment_index, req.bray.id);
+			}
 
 			if (segment_index == 0) _scheduler.root_rays_counter++;
 			if (segment_index == 0) {
@@ -373,21 +379,7 @@ void UnitStreamSchedulerDFS::_proccess_request(uint bank_index) {
 	{
 		//forward to stream scheduler
 		_scheduler.bucket_request_queue.push(req.port);
-		//int value = req.segment;
 		int tm_index = req.port;
-		//if (value == 1)
-		//{
-		//	_scheduler.bucket_request_queue1.push(tm_index);
-		//}
-		//else if (value == 2) 
-		//{
-		//	_scheduler.bucket_request_queue2.push(tm_index);
-		//}
-		//else
-		//{
-		//	std::cout << "should not be here" << '\n';
-		//	assert(false);
-		//}
 		_request_network.read(bank_index);
 	}
 	else assert(false);

@@ -142,6 +142,8 @@ private:
 
 		bool			    is_top_level{ true };
 		uint64_t			weight;
+		uint64_t			num_rays;
+		uint64_t				average_ray_weight;
 		bool				child_order_generated{ false };
 	};
 
@@ -151,8 +153,6 @@ private:
 		std::queue<uint> bucket_allocated_queue;
 
 		std::queue<uint> bucket_request_queue;
-		std::queue<uint> bucket_request_queue1;
-		std::queue<uint> bucket_request_queue2;
 		std::queue<uint> bucket_complete_queue;
 		Casscade<RayBucket> bucket_write_cascade;
 
@@ -252,6 +252,7 @@ public:
 		_main_mem = config.main_mem;
 		_main_mem_port_offset = config.main_mem_port_offset;
 		_main_mem_port_stride = config.main_mem_port_stride;
+		log.log_root_rays(config.num_root_rays);
 	}
 
 	void clock_rise() override;
@@ -288,6 +289,63 @@ private:
 	void _update_scheduler();
 	void _issue_request(uint channel_index);
 	void _issue_return(uint channel_index);
+
+public:
+	class Log
+	{
+	public:
+		uint64_t num_rays = 0;
+		uint64_t leaf_nodes_total_rays = 0; // For testing early termination
+		std::map<int, int> leaf_node_rays_counter;
+		std::map<int, uint64_t> leaf_node_weights;
+		std::map<int, std::vector<int>> ray_info;
+		std::vector<int> leaf_completed_order;
+
+		void log_root_rays(uint num)
+		{
+			num_rays = num;
+		}
+		void log_leaf_rays(uint node_id, uint ray_id)
+		{
+			leaf_node_rays_counter[node_id]++;
+			leaf_nodes_total_rays++;
+			ray_info[ray_id].push_back(node_id);
+		}
+		void log_complete(uint node_id, uint64_t weight)
+		{
+			leaf_completed_order.push_back(node_id);
+			leaf_node_weights[node_id] = weight;
+		}
+		void print()
+		{
+			printf("\n\n-------------------------Stream Scheduler Stats:----------------------\n");
+			printf("Total number of rays: %llu\n", num_rays);
+
+			uint64_t leaf_nodes_num = leaf_node_rays_counter.size();
+			printf("Total number of leaf nodes: %llu\n", leaf_nodes_num);
+
+			printf("Early Termination Stats:\n");
+			printf("Total rays in leaf nodes: %llu\n", leaf_nodes_total_rays);
+			printf("Average rays per leaf: %.3lf\n", 1.0 * leaf_nodes_total_rays / leaf_nodes_num);
+			printf("Average leafs per ray: %.3lf\n", 1.0 * leaf_nodes_total_rays / num_rays);
+			
+			printf("Leaf completed order : \n");
+			for (auto node_id: leaf_completed_order)
+			{
+				printf("Leaf node id: %d, Number of rays: %d, Average ray weight: %.3lf\n", node_id, leaf_node_rays_counter[node_id], 1.0 * leaf_node_weights[node_id] / leaf_node_rays_counter[node_id]);
+			}
+			printf("\n");
+
+			//printf("Ray distributed info : \n");
+			//for (auto& [ray_id, node_list] : ray_info)
+			//{
+			//	printf("Ray id: %d\n", ray_id);
+			//	printf("Visited node list: ");
+			//	for (auto node_id : node_list) printf("%d ", node_id);
+			//	printf("\n");
+			//}
+		}
+	}log;
 };
 
 }

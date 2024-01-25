@@ -312,7 +312,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	hit_record_updater_config.main_mem_port_offset = 3;
 	hit_record_updater_config.main_mem_port_stride = 4;
 	hit_record_updater_config.hit_record_start = *(paddr_t*)&kernel_args.hit_records;
-	hit_record_updater_config.cache_size = 128; // 128 * 16 = 2048B = 2KB
+	hit_record_updater_config.cache_size = 128 * 1024; // 128 * 16 = 2048B = 2KB
 	hit_record_updater_config.associativity = 16;
 	Units::DualStreaming::UnitHitRecordUpdater hit_record_updater(hit_record_updater_config);
 	simulator.register_unit(&hit_record_updater);
@@ -463,6 +463,8 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	for(auto& tp : tps)
 		tp_log.accumulate(tp->log);
 	tp_log.print_log();
+
+	stream_scheduler.log.print();
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 	printf("\nSummary\n");

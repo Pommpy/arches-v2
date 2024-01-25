@@ -216,10 +216,10 @@ inline bool _intersect(const rtm::Triangle& tri, const rtm::Ray& ray, rtm::Hit& 
 bool inline intersect_treelet(const Treelet& treelet, const rtm::Ray& ray, rtm::Hit& hit, uint* treelet_stack, uint& treelet_stack_size)
 {
 #ifdef __riscv
-	register float f28 asm("f28") __attribute__((unused));
-	register float f29 asm("f29") __attribute__((unused));
-	register float f30 asm("f30") __attribute__((unused));
-	register float f31 asm("f31") __attribute__((unused));
+	//register float f28 asm("f28") __attribute__((unused));
+	//register float f29 asm("f29") __attribute__((unused));
+	//register float f30 asm("f30") __attribute__((unused));
+	//register float f31 asm("f31") __attribute__((unused));
 #endif
 	rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
 
@@ -302,13 +302,17 @@ bool inline intersect_treelet(const Treelet& treelet, const rtm::Ray& ray, rtm::
 inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 {
 #ifdef __riscv
-	register float f28 asm("f28") __attribute__((unused));
-	register float f29 asm("f29") __attribute__((unused));
-	register float f30 asm("f30") __attribute__((unused));
-	register float f31 asm("f31") __attribute__((unused));
+	//register float f28 asm("f28") __attribute__((unused));
+	//register float f29 asm("f29") __attribute__((unused));
+	//register float f30 asm("f30") __attribute__((unused));
+	//register float f31 asm("f31") __attribute__((unused));
+	register float f28 asm("f28");
+	register float f29 asm("f29");
+	register float f30 asm("f30");
+	register float f31 asm("f31");
 #endif
 	bool early = true;
-	bool lhit_delay = true;
+	bool lhit_delay = false;
 	while(1)
 	{
 		WorkItem wi = _lwi();
@@ -345,7 +349,7 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 				_cshit(hit, hit_records + wi.bray.id);
 				wi.bray.ray.t_max = hit.t;
 			}
-			_cshit(hit, hit_records + wi.bray.id);
+			//_cshit(hit, hit_records + wi.bray.id);
 		}
 		rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
 		//drain treelet stack
@@ -358,22 +362,22 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 		while(treelet_stack_size)
 		{
 			uint treelet_index = treelet_stack[--treelet_stack_size];
+			uint weight = (1 << 15 - treelet_stack_size);
 			// If we delay the LHIT, we need to check here
 			if (early && lhit_delay)
 			{
 				float hit_t = _intersect(treelets[treelet_index].nodes[0].aabb, ray, inv_d);
 				if (hit_t < hit.t) 
-				{
-					wi.segment = (treelet_index | ((1 << 15 - treelet_stack_size) << 16));
+				{				
+					wi.segment = (treelet_index | (weight << 16));
 					_swi(wi);
 				}
 			}
 			else 
 			{
-				wi.segment = (treelet_index | ((1 << 15 - treelet_stack_size) << 16));
+				wi.segment = (treelet_index | (weight << 16));
 				_swi(wi);
 			}
-			//weight--;
 		}
 	}
 }

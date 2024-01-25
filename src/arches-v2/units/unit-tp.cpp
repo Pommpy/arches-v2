@@ -318,6 +318,11 @@ FREE_INSTR:
 					printf("\n");
 			}
 
+			if (req.vaddr < 4ull * 1024ull * 1024ull * 1024ull);
+			else 
+			{
+				instr_info.print_instr(instr);
+			}
 			assert(req.vaddr < 4ull * 1024ull * 1024ull * 1024ull);
 
 			_set_dependancies(instr, instr_info);
