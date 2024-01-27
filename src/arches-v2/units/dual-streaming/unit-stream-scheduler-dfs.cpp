@@ -112,7 +112,8 @@ void UnitStreamSchedulerDFS::_update_scheduler() {
 						}
 						std::sort(child_id.begin(), child_id.end(), [&](const uint& x, const uint& y)
 							{
-								if (child_ray_weights[x] != child_ray_weights[y]) return child_ray_weights[x] < child_ray_weights[y];
+								//if (child_ray_weights[x] != child_ray_weights[y]) 
+									return child_ray_weights[x] < child_ray_weights[y];
 								return child_weights[x] < child_weights[y];
 							}
 						);
@@ -344,6 +345,8 @@ void UnitStreamSchedulerDFS::_proccess_request(uint bank_index) {
 			state.num_rays++;
 			state.average_ray_weight = state.weight / state.num_rays;
 
+			
+			log.log_rays();
 			if (header.subtree_size == 1)
 			{
 				log.log_leaf_rays(segment_index, req.bray.id);

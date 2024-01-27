@@ -213,13 +213,13 @@ inline bool _intersect(const rtm::Triangle& tri, const rtm::Ray& ray, rtm::Hit& 
 #endif
 }
 
-bool inline intersect_treelet(const Treelet& treelet, const rtm::Ray& ray, rtm::Hit& hit, uint* treelet_stack, uint& treelet_stack_size)
+bool inline intersect_treelet(const Treelet* treelets, const Treelet& treelet, const rtm::Ray& ray, rtm::Hit& hit, uint* treelet_stack, uint& treelet_stack_size)
 {
 #ifdef __riscv
-	//register float f28 asm("f28") __attribute__((unused));
-	//register float f29 asm("f29") __attribute__((unused));
-	//register float f30 asm("f30") __attribute__((unused));
-	//register float f31 asm("f31") __attribute__((unused));
+	register float f28 asm("f28") __attribute__((unused));
+	register float f29 asm("f29") __attribute__((unused));
+	register float f30 asm("f30") __attribute__((unused));
+	register float f31 asm("f31") __attribute__((unused));
 #endif
 	rtm::vec3 inv_d = rtm::vec3(1.0f) / ray.d;
 
@@ -248,19 +248,53 @@ bool inline intersect_treelet(const Treelet& treelet, const rtm::Ray& ray, rtm::
 			const Treelet::Node& child1 = treelet.nodes[current_entry.data.child[1].index];
 
 			float hit_ts[2];
-			if(current_entry.data.child[0].is_treelet)
+			hit_ts[0] = hit_ts[1] = ray.t_max;
+			if (!current_entry.data.child[0].is_treelet)
+			//if(current_entry.data.child[0].is_treelet)
 			{
-				treelet_stack[treelet_stack_size++] = current_entry.data.child[0].index;
-				hit_ts[0] = ray.t_max;
+				hit_ts[0] = _intersect(child0.aabb, ray, inv_d);
+				//treelet_stack[treelet_stack_size++] = current_entry.data.child[0].index;
+				//hit_ts[0] = ray.t_max;
 			}
-			else hit_ts[0] = _intersect(child0.aabb, ray, inv_d);
+			//else hit_ts[0] = _intersect(child0.aabb, ray, inv_d);
 
-			if(current_entry.data.child[1].is_treelet)
+			if (!current_entry.data.child[1].is_treelet)
+			//if(current_entry.data.child[1].is_treelet)
 			{
-				treelet_stack[treelet_stack_size++] = current_entry.data.child[1].index;
-				hit_ts[1] = ray.t_max;
+				hit_ts[1] = _intersect(child1.aabb, ray, inv_d);
+				//treelet_stack[treelet_stack_size++] = current_entry.data.child[1].index;
+				//hit_ts[1] = ray.t_max;
 			}
-			else hit_ts[1] = _intersect(child1.aabb, ray, inv_d);
+			//else hit_ts[1] = _intersect(child1.aabb, ray, inv_d);
+			
+			bool left_child_treelet = current_entry.data.child[0].is_treelet;
+			bool right_child_treelet = current_entry.data.child[1].is_treelet;
+			if (left_child_treelet || right_child_treelet)
+			{
+				int left_treelet_index = current_entry.data.child[0].index;
+				int right_treelet_index = current_entry.data.child[1].index;
+				float left_t = hit.t;
+				if(left_child_treelet) left_t = _intersect(treelets[left_treelet_index].nodes[0].aabb, ray, inv_d);
+				float right_t = hit.t;
+				if (right_child_treelet) right_t = _intersect(treelets[right_treelet_index].nodes[0].aabb, ray, inv_d);
+
+				//printf("left_t %.3lf, right_t %.3lf, hit.t %.3lf\n", left_t, right_t, hit.t);
+				if (left_t < right_t)
+				{
+					if(left_t < hit.t && left_child_treelet) treelet_stack[treelet_stack_size++] = current_entry.data.child[0].index;
+					if(right_t < hit.t && right_child_treelet) treelet_stack[treelet_stack_size++] = current_entry.data.child[1].index;
+					
+					//if (left_child_treelet) treelet_stack[treelet_stack_size++] = current_entry.data.child[0].index;
+					//if (right_child_treelet) treelet_stack[treelet_stack_size++] = current_entry.data.child[1].index;
+				}
+				else
+				{
+					if(right_t < hit.t && right_child_treelet) treelet_stack[treelet_stack_size++] = current_entry.data.child[1].index;
+					if(left_t < hit.t && left_child_treelet) treelet_stack[treelet_stack_size++] = current_entry.data.child[0].index;
+					//if (right_child_treelet) treelet_stack[treelet_stack_size++] = current_entry.data.child[1].index;
+					//if (left_child_treelet) treelet_stack[treelet_stack_size++] = current_entry.data.child[0].index;
+				}
+			}
 
 			if(hit_ts[0] < hit_ts[1])
 			{
@@ -302,14 +336,14 @@ bool inline intersect_treelet(const Treelet& treelet, const rtm::Ray& ray, rtm::
 inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 {
 #ifdef __riscv
-	//register float f28 asm("f28") __attribute__((unused));
-	//register float f29 asm("f29") __attribute__((unused));
-	//register float f30 asm("f30") __attribute__((unused));
-	//register float f31 asm("f31") __attribute__((unused));
-	register float f28 asm("f28");
-	register float f29 asm("f29");
-	register float f30 asm("f30");
-	register float f31 asm("f31");
+	register float f28 asm("f28") __attribute__((unused));
+	register float f29 asm("f29") __attribute__((unused));
+	register float f30 asm("f30") __attribute__((unused));
+	register float f31 asm("f31") __attribute__((unused));
+	//register float f28 asm("f28");
+	//register float f29 asm("f29");
+	//register float f30 asm("f30");
+	//register float f31 asm("f31");
 #endif
 	bool early = true;
 	bool lhit_delay = false;
@@ -325,7 +359,7 @@ inline void intersect_buckets(const Treelet* treelets, rtm::Hit* hit_records)
 			else hit = _lhit(hit_records + wi.bray.id);
 		}
 		uint treelet_stack[16]; uint treelet_stack_size = 0;
-		if(intersect_treelet(treelets[wi.segment], wi.bray.ray, hit, treelet_stack, treelet_stack_size))
+		if(intersect_treelet(treelets, treelets[wi.segment], wi.bray.ray, hit, treelet_stack, treelet_stack_size))
 		{
 			// get cloest hit here
 			rtm::Hit cloest_hit;
@@ -391,7 +425,7 @@ inline bool intersect(const Treelet* treelets, const rtm::Ray& ray, rtm::Hit& hi
 	while(treelet_stack_size)
 	{
 		uint treelet_index = treelet_stack[--treelet_stack_size];
-		is_hit |= intersect_treelet(treelets[treelet_index], ray, hit, treelet_stack, treelet_stack_size);
+		is_hit |= intersect_treelet(treelets, treelets[treelet_index], ray, hit, treelet_stack, treelet_stack_size);
 	}
 
 	return is_hit;

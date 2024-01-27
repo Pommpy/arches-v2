@@ -300,7 +300,13 @@ public:
 		std::map<int, uint64_t> leaf_node_weights;
 		std::map<int, std::vector<int>> ray_info;
 		std::vector<int> leaf_completed_order;
+		
+		uint64_t number_of_treelets_visited = 0;
 
+		void log_rays()
+		{
+			number_of_treelets_visited++;
+		}
 		void log_root_rays(uint num)
 		{
 			num_rays = num;
@@ -328,7 +334,9 @@ public:
 			printf("Total rays in leaf nodes: %llu\n", leaf_nodes_total_rays);
 			printf("Average rays per leaf: %.3lf\n", 1.0 * leaf_nodes_total_rays / leaf_nodes_num);
 			printf("Average leafs per ray: %.3lf\n", 1.0 * leaf_nodes_total_rays / num_rays);
-			
+			printf("Average treelets per ray: %.3lf\n", 1.0 * number_of_treelets_visited / num_rays);
+
+
 			printf("Leaf completed order : \n");
 			for (auto node_id: leaf_completed_order)
 			{

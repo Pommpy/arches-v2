@@ -331,12 +331,12 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 	simulator.new_unit_group();
 
 	Units::UnitBlockingCache::Configuration l2_config;
-	l2_config.size = 4 * 1024 * 1024;
+	l2_config.size = 32 * 1024 * 1024;
 	l2_config.associativity = 8;
 	l2_config.num_ports = num_tms * 8;
 	l2_config.num_banks = 32;
 	l2_config.bank_select_mask = 0b0001'1110'0000'0100'0000ull; //The high order bits need to match the channel assignment bits
-	l2_config.data_array_latency = 4;
+	l2_config.data_array_latency = 10;
 	l2_config.mem_higher = &dram;
 	l2_config.mem_higher_port_offset = 0;
 	l2_config.mem_higher_port_stride = 2;
@@ -355,7 +355,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 		std::vector<Units::UnitMemoryBase*> mem_list;
 
 		Units::UnitNonBlockingCache::Configuration l1_config;
-		l1_config.size = 32 * 1024;
+		l1_config.size = 128 * 1024;
 		l1_config.associativity = 4;
 		l1_config.num_ports = num_tps_per_tm;
 		l1_config.num_banks = 8;
@@ -392,7 +392,7 @@ static void run_sim_dual_streaming(int argc, char* argv[])
 
 		std::vector<Units::UnitSFU*> sfu_list;
 
-		sfu_list.push_back(_new Units::UnitSFU(16, 1, 2, num_tps_per_tm));
+		sfu_list.push_back(_new Units::UnitSFU(64, 1, 2, num_tps_per_tm));
 		simulator.register_unit(sfu_list.back());
 		unit_table[(uint)ISA::RISCV::InstrType::FADD] = sfu_list.back();
 		unit_table[(uint)ISA::RISCV::InstrType::FMUL] = sfu_list.back();

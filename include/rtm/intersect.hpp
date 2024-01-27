@@ -19,9 +19,11 @@ inline float intersect(const rtm::AABB& aabb, const rtm::Ray& ray, const rtm::ve
 	float tmin = max(max(tminv.x, tminv.y), max(tminv.z, ray.t_min));
 	float tmax = min(min(tmaxv.x, tmaxv.y), min(tmaxv.z, ray.t_max));
 
-	if (tmin > tmax || tmax < ray.t_min) return ray.t_max;//no hit || behind
+	if (tmin > tmax || tmax < ray.t_min)
+		return ray.t_max;//no hit || behind
 	return tmin;
 }
+
 
 inline bool intersect(const rtm::Triangle& tri, const rtm::Ray& ray, rtm::Hit& hit)
 {
